@@ -1,0 +1,44 @@
+import { useMutation } from "@tanstack/react-query";
+
+import { Database } from "../supabase.types";
+import { useSupabase } from "./use-supabase";
+import { getSupabaseServerAdminClient } from "../client/server-admin-client";
+
+type UserRole = Database["public"]["Enums"]["role"];
+
+interface InviteUserByEmailMutationParams {
+  email: string;
+  role: string;
+  redirectTo: string;
+}
+
+/**
+ * @name useInviteUserByEmail
+ * @description Use Supabase to invite a user by email with role metadata.
+ * After the user clicks the link in the email, they will be redirected to
+ * /profile-setup where they can setup their profile.
+ */
+export function useInviteUserByEmail() {
+  const serverAdmin = getSupabaseServerAdminClient();
+  const mutationKey = ["auth", "invite-user-by-email"];
+
+  const mutationFn = async (params: InviteUserByEmailMutationParams) => {
+    const { error, data } = await serverAdmin.auth.admin.inviteUserByEmail(
+      params.email,
+      {
+        redirectTo: params.redirectTo,
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  };
+
+  return useMutation({
+    mutationFn,
+    mutationKey,
+  });
+}
