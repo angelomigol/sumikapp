@@ -1,0 +1,16 @@
+node_modules
+dist
+build
+.next
+coverage
+*.min.js
+*.lock
+*.snap
+public
+ml-service
+cache
+.cache
+package.json
+package-lock.json
+CHANGELOG.md
+.contentlayer
