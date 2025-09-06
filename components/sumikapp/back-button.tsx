@@ -1,0 +1,28 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+
+import { ChevronLeft } from "lucide-react";
+
+import { Button } from "../ui/button";
+import PageTitle from "./page-title";
+
+export default function BackButton({
+  title,
+  link,
+}: {
+  title: string;
+  link: string;
+}) {
+  return (
+    <div className="flex flex-1 items-center gap-2 md:gap-4">
+      <Button asChild size={"icon"} variant={"outline"}>
+        <Link href={link}>
+          <ChevronLeft />
+        </Link>
+      </Button>
+      <PageTitle text={title} />
+    </div>
+  );
+}
