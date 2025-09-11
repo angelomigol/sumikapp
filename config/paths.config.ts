@@ -21,9 +21,11 @@ const StaticPathsSchema = z.object({
     trainees: z.string().min(1),
     evaluations: z.string().min(1),
     users: z.string().min(1),
+    addUsers: z.string().min(1),
     partners: z.string().min(1),
     logs: z.string().min(1),
     settings: z.string().min(1),
+    internshipDetails: z.string().min(1),
   }),
 });
 
@@ -48,9 +50,11 @@ const staticPaths = StaticPathsSchema.parse({
     trainees: "/dashboard/trainees",
     evaluations: "/dashboard/evaluations",
     users: "/dashboard/users",
+    addUsers: "/dashboard/users/add",
     partners: "/dashboard/industry-partners",
     logs: "/dashboard/logs",
     settings: "/dashboard/settings",
+    internshipDetails: "/dashboard/settings/internship-details"
   },
 });
 

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   AlertCircle,
   BadgeCheck,
@@ -9,6 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 
+import pathsConfig from "@/config/paths.config";
 import { useFetchTraineeDashboard } from "@/hooks/use-trainee-dashboard";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,7 +53,7 @@ export default function TraineeDashboard() {
       data: {
         main: isLoading
           ? "..."
-          : `${traineeData?.attendanceRatePercentage || 0}%`,
+          : `${traineeData?.attendanceRatePercentage}%`,
       },
       tooltip:
         "Based on the percentage of approved attendance reports you've submitted",
@@ -59,7 +62,7 @@ export default function TraineeDashboard() {
       name: "Hours Logged",
       icon: Clock,
       data: {
-        main: isLoading ? "..." : `${traineeData?.hours.total || 0}`,
+        main: isLoading ? "..." : `${traineeData?.hours.total}`,
         sub: isLoading
           ? "..."
           : traineeData?.hours.required
@@ -75,7 +78,7 @@ export default function TraineeDashboard() {
       data: {
         main: isLoading
           ? "..."
-          : `${traineeData?.totalAccomplishmentReports || 0}`,
+          : `${traineeData?.totalAccomplishmentReports}`,
         sub: getAccomplishmentReportSummary(),
       },
       tooltip: "Your total number of weekly activity reports",
@@ -128,10 +131,21 @@ export default function TraineeDashboard() {
       <If condition={traineeData?.ojtStatus === "not started"}>
         <Alert className="border-blue-11 bg-blue-3 border-l-4">
           <AlertCircle className="size-5" />
-          <AlertDescription className="text-blue-11/80 text-sm">
-            Welcome to your OJT dashboard! Once your internship details are
-            approved and you begin your OJT, you'll see your progress and
-            statistics here.
+          <AlertDescription className="text-blue-11/80 text-sm leading-relaxed sm:leading-loose">
+            <p>
+              Welcome to your OJT dashboard. Once your internship details are
+              reviewed and approved, and you officially begin your OJT, your
+              progress and performance statistics will be displayed here. If you
+              have not yet submitted your internship details, please complete
+              the form{" "}
+              <Link
+                href={pathsConfig.app.internshipDetails}
+                className="inline font-medium underline outline-none"
+              >
+                here
+              </Link>
+              .
+            </p>
           </AlertDescription>
         </Alert>
       </If>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import {
   Cell,
@@ -12,106 +12,55 @@ import {
   TooltipProps,
 } from "recharts";
 
-const mockData = [
-  { name: "Active", value: 45, color: "#22c55e" },
-  { name: "Completed", value: 32, color: "#3b82f6" },
-  { name: "Dropped", value: 8, color: "#ef4444" },
-  { name: "Not Started", value: 15, color: "#f59e0b" },
-];
-
-interface TraineeStatusData {
-  name: string;
-  value: number;
-  color: string;
+interface TraineeStatusPieChartProps {
+  data?: {
+    totalTrainees: number;
+    activeTrainees: number;
+    completedTrainees: number;
+    notStartedTrainees: number;
+    droppedTrainees: number;
+  };
 }
 
-const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
-        <div className="grid gap-1.5">
-          {payload.map((entry: any, index: number) => (
-            <div
-              key={`tooltip-item-${index}`}
-              className="flex w-full flex-wrap items-center gap-2"
-            >
-              <div
-                className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                style={{
-                  backgroundColor: entry.payload.color,
-                  border: `1px solid ${entry.payload.color}`,
-                }}
-              />
+export default function TraineeStatusPieChart({
+  data,
+}: TraineeStatusPieChartProps) {
+  const total = data?.totalTrainees ?? 0;
 
-              <div className="flex flex-1 items-center justify-between leading-none">
-                <span className="text-muted-foreground">{entry.name}</span>
-                <span className="text-foreground font-mono font-medium tabular-nums">
-                  {entry.value}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
+  const chartData = [
+    { name: "Active", value: data?.activeTrainees ?? 0, color: "#22c55e" },
+    {
+      name: "Completed",
+      value: data?.completedTrainees ?? 0,
+      color: "#3b82f6",
+    },
+    {
+      name: "Not Started",
+      value: data?.notStartedTrainees ?? 0,
+      color: "#facc15",
+    },
+    { name: "Dropped", value: data?.droppedTrainees ?? 0, color: "#ef4444" },
+  ];
 
-export default function TraineeStatusPieChart() {
-  const [data, setData] = useState<TraineeStatusData[]>(mockData);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-
-  // Function to fetch real data from your database
-  const fetchTraineeStatusData = async (batchId?: string) => {
-    setIsLoading(true);
-    try {
-      // Replace this with your actual Supabase query
-      // const { data: batchData } = await supabase
-      //   .from('program_batch_overview_dashboard')
-      //   .select('active_trainees, completed_trainees, dropped_trainees, not_started_trainees')
-      //   .eq('batch_id', batchId)
-      //   .single();
-
-      // For now, using mock data
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-
-      // Transform your database data to chart format
-      // const chartData = [
-      //   { name: "Active", value: batchData.active_trainees || 0, color: "#22c55e" },
-      //   { name: "Completed", value: batchData.completed_trainees || 0, color: "#3b82f6" },
-      //   { name: "Dropped", value: batchData.dropped_trainees || 0, color: "#ef4444" },
-      //   { name: "Not Started", value: batchData.not_started_trainees || 0, color: "#f59e0b" }
-      // ];
-
-      setData(mockData);
-    } catch (error) {
-      console.error("Error fetching trainee status data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTraineeStatusData();
-  }, []);
+  const allZero = chartData.every((d) => d.value === 0);
+  const finalChartData = allZero
+    ? [{ name: "No Data", value: 1, color: "#e5e7eb" }]
+    : chartData;
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height={320}>
       <PieChart width={250} height={250}>
         <Pie
-          data={data}
+          data={finalChartData}
           cx="50%"
           cy="50%"
           outerRadius={96}
           innerRadius={60}
           dataKey="value"
           stroke="none"
-          isAnimationActive={true}
+          isAnimationActive
         >
-          {data.map((entry, index) => (
+          {finalChartData.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
               fill={entry.color}
@@ -134,7 +83,7 @@ export default function TraineeStatusPieChart() {
                       x={cx}
                       className="fill-foreground text-3xl font-bold"
                     >
-                      1,125
+                      {total}
                     </tspan>
                     <tspan
                       x={cx}
@@ -155,3 +104,44 @@ export default function TraineeStatusPieChart() {
     </ResponsiveContainer>
   );
 }
+
+const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+  if (active && payload && payload.length) {
+    const entry = payload[0];
+    const isNoData = entry.name === "No Data";
+
+    return (
+      <div className="border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
+        <div className="grid gap-1.5">
+          {isNoData ? (
+            <div className="text-muted-foreground flex w-full items-center justify-center">
+              No Data
+            </div>
+          ) : (
+            payload.map((item: any, index: number) => (
+              <div
+                key={`tooltip-item-${index}`}
+                className="flex w-full flex-wrap items-center gap-2"
+              >
+                <div
+                  className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                  style={{
+                    backgroundColor: item.payload.color,
+                    border: `1px solid ${item.payload.color}`,
+                  }}
+                />
+                <div className="flex flex-1 items-center justify-between leading-none">
+                  <span className="text-muted-foreground">{item.name}</span>
+                  <span className="text-foreground font-mono font-medium tabular-nums">
+                    {item.value}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};

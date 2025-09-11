@@ -1,0 +1,68 @@
+import * as React from "react";
+import Image from "next/image";
+
+import type { User } from "@supabase/supabase-js";
+
+import { OJTStatus } from "@/lib/constants";
+
+import { Tables } from "@/utils/supabase/supabase.types";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
+
+import { ProfileAccountDropdownContainer } from "./personal-account-dropdown-container";
+import { SidebarNavigationWrapper } from "./sidebar-navigation-wrapper";
+
+export function AppSidebar(props: {
+  account: Tables<"users">;
+  user: User;
+  ojtstatus?: OJTStatus;
+}) {
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader className={"h-16 justify-center"}>
+        <AppSidebarHeader />
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarNavigationWrapper
+          userRole={props.account.role}
+          ojtStatus={props.ojtstatus}
+        />
+      </SidebarContent>
+
+      <SidebarFooter>
+        <ProfileAccountDropdownContainer
+          user={props.user}
+          account={props.account}
+        />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+function AppSidebarHeader() {
+  return (
+    <div className="flex items-center justify-between space-x-2">
+      <div className="flex aspect-square size-8 items-center justify-center">
+        <Image
+          src="/nu_logo.png"
+          alt="NU Logo"
+          width={26}
+          height={26}
+          className="h-auto w-auto"
+        />
+      </div>
+      <div className="grid flex-1 text-left text-sm">
+        <span className="truncate leading-none font-semibold">SumikAPP</span>
+        <span className="truncate text-xs leading-none text-wrap">
+          On-The-Job Training Management and Placement System
+        </span>
+      </div>
+    </div>
+  );
+}

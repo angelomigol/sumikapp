@@ -359,7 +359,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "coordinator_id_fkey"
+            foreignKeyName: "coordinators_id_fkey"
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "users"
@@ -511,9 +511,10 @@ export type Database = {
       industry_partners: {
         Row: {
           company_address: string | null
+          company_contact_number: string | null
           company_name: string
           created_at: string
-          date_of_signing: string
+          date_of_signing: string | null
           file_name: string | null
           id: string
           moa_file_path: string | null
@@ -521,9 +522,10 @@ export type Database = {
         }
         Insert: {
           company_address?: string | null
+          company_contact_number?: string | null
           company_name: string
           created_at?: string
-          date_of_signing: string
+          date_of_signing?: string | null
           file_name?: string | null
           id?: string
           moa_file_path?: string | null
@@ -531,9 +533,10 @@ export type Database = {
         }
         Update: {
           company_address?: string | null
+          company_contact_number?: string | null
           company_name?: string
           created_at?: string
-          date_of_signing?: string
+          date_of_signing?: string | null
           file_name?: string | null
           id?: string
           moa_file_path?: string | null
@@ -543,55 +546,61 @@ export type Database = {
       }
       internship_details: {
         Row: {
-          address: string | null
-          company_name: string | null
-          contact_number: string | null
+          address: string
+          company_name: string
+          contact_number: string
           created_at: string
-          daily_schedule: string | null
+          daily_schedule: string
           end_date: string
-          end_time: string | null
+          end_time: string
           enrollment_id: string
+          feedback: string | null
           id: string
-          job_role: string | null
-          nature_of_business: string | null
+          job_role: string
+          nature_of_business: string
           start_date: string
-          start_time: string | null
+          start_time: string
           status: Database["public"]["Enums"]["document_status"]
           supervisor_id: string | null
+          temp_email: string | null
         }
         Insert: {
-          address?: string | null
-          company_name?: string | null
-          contact_number?: string | null
+          address: string
+          company_name: string
+          contact_number: string
           created_at?: string
-          daily_schedule?: string | null
+          daily_schedule: string
           end_date: string
-          end_time?: string | null
+          end_time: string
           enrollment_id: string
+          feedback?: string | null
           id?: string
-          job_role?: string | null
-          nature_of_business?: string | null
+          job_role: string
+          nature_of_business: string
           start_date: string
-          start_time?: string | null
+          start_time: string
           status: Database["public"]["Enums"]["document_status"]
           supervisor_id?: string | null
+          temp_email?: string | null
         }
         Update: {
-          address?: string | null
-          company_name?: string | null
-          contact_number?: string | null
+          address?: string
+          company_name?: string
+          contact_number?: string
           created_at?: string
-          daily_schedule?: string | null
+          daily_schedule?: string
           end_date?: string
-          end_time?: string | null
+          end_time?: string
           enrollment_id?: string
+          feedback?: string | null
           id?: string
-          job_role?: string | null
-          nature_of_business?: string | null
+          job_role?: string
+          nature_of_business?: string
           start_date?: string
-          start_time?: string | null
+          start_time?: string
           status?: Database["public"]["Enums"]["document_status"]
           supervisor_id?: string | null
+          temp_email?: string | null
         }
         Relationships: [
           {
@@ -998,37 +1007,37 @@ export type Database = {
           company_contact_no: string | null
           company_name: string | null
           created_at: string
-          department: string
+          department: string | null
           id: string
           nature_of_business: string | null
-          position: string
-          telephone_number: string
+          position: string | null
+          telephone_number: string | null
         }
         Insert: {
           company_address?: string | null
           company_contact_no?: string | null
           company_name?: string | null
           created_at: string
-          department: string
+          department?: string | null
           id: string
           nature_of_business?: string | null
-          position: string
-          telephone_number: string
+          position?: string | null
+          telephone_number?: string | null
         }
         Update: {
           company_address?: string | null
           company_contact_no?: string | null
           company_name?: string | null
           created_at?: string
-          department?: string
+          department?: string | null
           id?: string
           nature_of_business?: string | null
-          position?: string
-          telephone_number?: string
+          position?: string | null
+          telephone_number?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "supervisor_id_fkey"
+            foreignKeyName: "supervisors_id_fkey"
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "users"
@@ -1040,18 +1049,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          ojt_status: Database["public"]["Enums"]["ojt_status"]
           program_batch_id: string
           trainee_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          ojt_status?: Database["public"]["Enums"]["ojt_status"]
           program_batch_id: string
           trainee_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          ojt_status?: Database["public"]["Enums"]["ojt_status"]
           program_batch_id?: string
           trainee_id?: string
         }
@@ -1139,32 +1151,32 @@ export type Database = {
       trainees: {
         Row: {
           address: string | null
-          course: string
+          course: string | null
           created_at: string
           id: string
           mobile_number: string | null
           ojt_status: Database["public"]["Enums"]["ojt_status"]
-          section: string
+          section: string | null
           student_id_number: string
         }
         Insert: {
           address?: string | null
-          course: string
+          course?: string | null
           created_at?: string
           id: string
           mobile_number?: string | null
           ojt_status?: Database["public"]["Enums"]["ojt_status"]
-          section: string
+          section?: string | null
           student_id_number: string
         }
         Update: {
           address?: string | null
-          course?: string
+          course?: string | null
           created_at?: string
           id?: string
           mobile_number?: string | null
           ojt_status?: Database["public"]["Enums"]["ojt_status"]
-          section?: string
+          section?: string | null
           student_id_number?: string
         }
         Relationships: [
@@ -1221,6 +1233,17 @@ export type Database = {
       }
     }
     Views: {
+      admin_overview_dashboard: {
+        Row: {
+          recent_activities: Json | null
+          total_admins: number | null
+          total_coordinators: number | null
+          total_industry_partners: number | null
+          total_supervisors: number | null
+          total_trainees: number | null
+        }
+        Relationships: []
+      }
       batch_requirements_compliance_summary: {
         Row: {
           batch_requirement_id: string | null
@@ -1269,7 +1292,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "coordinator_id_fkey"
+            foreignKeyName: "coordinators_id_fkey"
             columns: ["coordinator_id"]
             isOneToOne: true
             referencedRelation: "users"
@@ -1370,7 +1393,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "supervisor_id_fkey"
+            foreignKeyName: "supervisors_id_fkey"
             columns: ["supervisor_id"]
             isOneToOne: true
             referencedRelation: "users"

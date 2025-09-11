@@ -1,7 +1,7 @@
 "use client";
 
 import { IconActivity, IconBrandAmongUs } from "@tabler/icons-react";
-import { BookOpen, FileText, Users2 } from "lucide-react";
+import { AlertCircle, BookOpen, FileText, Users2 } from "lucide-react";
 
 import { useFetchCoordinatorDashboard } from "@/hooks/use-coordinator-dashboard";
 
@@ -13,33 +13,29 @@ import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
+import { Alert, AlertDescription } from "../ui/alert";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
 import { ScrollArea } from "../ui/scroll-area";
 import DashboardStatsCard from "./dashboard-stats-card";
 
 export default function CoordinatorDashboard() {
-  const coordinator = useFetchCoordinatorDashboard();
-
-  if (coordinator.isLoading) {
-    return <LoadingOverlay fullPage />;
-  }
+  const {
+    data: coordinatorData,
+    isLoading,
+    error,
+    isError,
+  } = useFetchCoordinatorDashboard();
 
   const dashboard = [
     {
       name: "Total Students",
       icon: Users2,
       data: {
-        main: coordinator.isLoading
+        main: isLoading
           ? "..."
-          : `${coordinator.data?.dashboardStats.total_students || 0}`,
+          : `${coordinatorData?.dashboardStats.totalStudents}`,
       },
       tooltip: "Total number of students currently enrolled",
     },
@@ -47,9 +43,9 @@ export default function CoordinatorDashboard() {
       name: "Total Sections",
       icon: BookOpen,
       data: {
-        main: coordinator.isLoading
+        main: isLoading
           ? "..."
-          : `${coordinator.data?.dashboardStats.total_sections || 0}`,
+          : `${coordinatorData?.dashboardStats.totalSections}`,
       },
       tooltip: "Total number of class/sections you are managing",
     },
@@ -57,14 +53,34 @@ export default function CoordinatorDashboard() {
       name: "Pending Requirements",
       icon: FileText,
       data: {
-        main: coordinator.isLoading
+        main: isLoading
           ? "..."
-          : `${coordinator.data?.dashboardStats.pending_requirements || 0}`,
+          : `${coordinatorData?.dashboardStats.pendingRequirements}`,
       },
       tooltip:
         "Number of requirements submitted by students that are waiting for your review",
     },
   ];
+
+  if (isLoading) {
+    return <LoadingOverlay fullPage />;
+  }
+
+  if (isError && !coordinatorData) {
+    return (
+      <div className="space-y-6">
+        <PageTitle text={"Dashboard"} />
+
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" />
+          <AlertDescription>
+            Unable to load dashboard data. Please try refreshing the page.
+            {error instanceof Error && ` (${error.message})`}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -93,14 +109,14 @@ export default function CoordinatorDashboard() {
           <CardContent className="flex h-full max-h-80 flex-col px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-6">
-                {coordinator.data?.recentActivities.length === 0 ? (
+                {coordinatorData?.recentActivities.length === 0 ? (
                   <div className="flex h-80 items-center justify-center">
                     <p className="text-muted-foreground text-sm">
                       No recent activities
                     </p>
                   </div>
                 ) : (
-                  coordinator.data?.recentActivities.map((activity) => (
+                  coordinatorData?.recentActivities.map((activity) => (
                     <div
                       key={activity.id}
                       className="flex items-start space-x-4 px-6"
@@ -150,14 +166,14 @@ export default function CoordinatorDashboard() {
           <CardContent className="flex h-full max-h-80 flex-col px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-6">
-                {coordinator.data?.sectionProgress.length === 0 ? (
+                {coordinatorData?.sectionProgress.length === 0 ? (
                   <div className="flex h-80 items-center justify-center">
                     <p className="text-muted-foreground text-sm">
                       No sections created
                     </p>
                   </div>
                 ) : (
-                  coordinator.data?.sectionProgress.map((section) => (
+                  coordinatorData?.sectionProgress.map((section) => (
                     <div
                       key={section.program}
                       className="flex items-center justify-between px-6"

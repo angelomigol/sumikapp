@@ -43,26 +43,30 @@ export const sidebarRoutes = [
         path: pathsConfig.app.placement,
         Icon: <Building className={iconClasses} />,
         authorizedRoles: ["trainee"],
+        allowedOJTStatus: ["not started", "completed", "active", "dropped"],
       },
       {
         label: "Requirements",
         path: pathsConfig.app.requirements,
         Icon: <NotepadText className={iconClasses} />,
         authorizedRoles: ["trainee"],
+        allowedOJTStatus: ["not started", "completed", "active", "dropped"],
       },
 
-      // Extend trainee routes if trainee status is 'active'
+      // Extend trainee routes if trainee status is 'active' or 'completed'
       {
         label: "Attendance Reports",
         path: pathsConfig.app.attendance,
         Icon: <CalendarClock className={iconClasses} />,
         authorizedRoles: ["trainee"],
+        allowedOJTStatus: ["completed", "active"],
       },
       {
         label: "Activity Reports",
         path: pathsConfig.app.activity,
         Icon: <ClipboardCheck className={iconClasses} />,
         authorizedRoles: ["trainee"],
+        allowedOJTStatus: ["completed", "active"],
       },
 
       // Coordinator routes
@@ -72,12 +76,12 @@ export const sidebarRoutes = [
         Icon: <BookOpen className={iconClasses} />,
         authorizedRoles: ["coordinator"],
       },
-      {
-        label: "Reports",
-        path: pathsConfig.app.reports,
-        Icon: <FileBarChart className={iconClasses} />,
-        authorizedRoles: ["coordinator"],
-      },
+      // {
+      //   label: "Reports",
+      //   path: pathsConfig.app.reports,
+      //   Icon: <FileBarChart className={iconClasses} />,
+      //   authorizedRoles: ["coordinator"],
+      // },
 
       // Supervisor routes
       {

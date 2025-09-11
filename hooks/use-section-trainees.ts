@@ -1,0 +1,119 @@
+import { useCallback } from "react";
+
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+import { OJTStatus } from "@/lib/constants";
+
+import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
+
+import { addAllStudentsAction } from "@/app/dashboard/(coordinator)/sections/[slug]/trainees/add/server/server-actions";
+import {
+  getSectionTraineeByIdAction,
+  getSectionTraineesAction,
+} from "@/app/dashboard/(coordinator)/sections/[slug]/trainees/server/server-actions";
+
+import { RequirementWithHistory } from "./use-batch-requirements";
+import { TraineeFullDetails } from "./use-supervisor-trainees";
+
+export type SectionTraineeFullDetails = TraineeFullDetails &
+  RequirementWithHistory;
+
+export const SECTION_TRAINEES_QUERY_KEY = (slug: string) =>
+  ["supabase:program_batch_trainees", slug] as const;
+export const SECTION_TRAINEE_QUERY_KEY = (slug: string) =>
+  ["supabase:program_batch_trainee", slug] as const;
+export const MUTATION_KEY = ["add_all_students"] as const;
+
+export type TraineeWithUserAndHours = {
+  trainee_id: string;
+  student_id_number: string;
+  ojt_status: OJTStatus;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  email: string;
+  hours_logged: number;
+};
+
+export function useFetchSectionTrainees(slug: string) {
+  return useQuery<TraineeWithUserAndHours[]>({
+    queryKey: SECTION_TRAINEES_QUERY_KEY(slug),
+    queryFn: async () => {
+      const result = await getSectionTraineesAction(slug);
+      return result;
+    },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useFetchSectionTrainee(data: { slug: string; id: string }) {
+  return useQuery<SectionTraineeFullDetails>({
+    queryKey: SECTION_TRAINEE_QUERY_KEY(data.id),
+    queryFn: async () => {
+      const result = await getSectionTraineeByIdAction({
+        sectionName: data.slug,
+        traineeId: data.id,
+      });
+      return result;
+    },
+    enabled: !!data,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAddAllStudents(slug: string) {
+  const mutationKey = MUTATION_KEY;
+  const revalidateTrainees = useRevalidateFetchSectionTrainees();
+
+  const mutationFn = async (payload: {
+    trainees: SearchableTrainee[];
+    slug: string;
+  }) => {
+    const result = await addAllStudentsAction(payload);
+
+    return result;
+  };
+
+  return useMutation({
+    mutationKey,
+    mutationFn,
+    onSuccess: () => {
+      revalidateTrainees(slug);
+    },
+  });
+}
+
+export function useRevalidateFetchSectionTrainees() {
+  const queryClient = useQueryClient();
+
+  return useCallback(
+    (slug: string) =>
+      queryClient.invalidateQueries({
+        queryKey: SECTION_TRAINEES_QUERY_KEY(slug),
+      }),
+    [queryClient]
+  );
+}
+
+export async function prefetchSectionTrainees(
+  queryClient: QueryClient,
+  slug: string
+) {
+  await queryClient.prefetchQuery({
+    queryKey: SECTION_TRAINEES_QUERY_KEY(slug),
+    queryFn: async () => {
+      const result = await getSectionTraineesAction(slug);
+      return result;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}

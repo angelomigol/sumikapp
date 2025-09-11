@@ -21,25 +21,11 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import DashboardStatsCard from "./dashboard-stats-card";
+import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
 export default function SupervisorDashboard() {
   const supervisor = useFetchSupervisorDashboard();
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "report_submission":
-        return <FileText className="text-blue-11 size-5" />;
-      case "report":
-        return <FileQuestionMark className="size-5" />;
-      case "attendance":
-        return <Calendar className="size-5" />;
-      case "announcement":
-        return <MessageSquare className="size-5" />;
-      default:
-        return <FileQuestionMark className="size-5" />;
-    }
-  };
-
+  
   if (!supervisor.data || supervisor.isLoading) {
     return <LoadingOverlay fullPage />;
   }
@@ -123,7 +109,7 @@ export default function SupervisorDashboard() {
                       className="flex items-start space-x-4 px-6"
                     >
                       <div className="mt-1 flex size-10 items-center justify-center rounded-full border">
-                        {getActivityIcon(activity.type)}
+                        {ActivityHelper.getActivityIcon(activity.activity_type)}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
