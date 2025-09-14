@@ -50,6 +50,11 @@ class GetTraineeInternshipsService {
           trainee_batch_enrollment!inner (
             id,
             trainee_id
+          ),
+          supervisors (
+            users!inner (
+              email
+            )
           )
         `
         )
@@ -94,6 +99,7 @@ class GetTraineeInternshipsService {
         startTime: a.start_time,
         endTime: a.end_time,
         dailySchedule: a.daily_schedule,
+        supervisorEmail: a.supervisors?.users.email ?? a.temp_email,
         status: a.status,
       }));
 

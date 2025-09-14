@@ -27,6 +27,7 @@ export default function InternshipStatusCell({
     start_time: string | null;
     end_time: string | null;
     daily_schedule: string | null;
+    supervisor_email: string | null;
     status: DocumentStatus;
     created_at: string;
   } | null;
@@ -97,7 +98,7 @@ export default function InternshipStatusCell({
           endDate={internship_details.end_date}
           startTime={internship_details.start_time}
           endTime={internship_details.end_time}
-          supervisorEmail={""}
+          supervisorEmail={internship_details.supervisor_email}
           status={internship_details.status}
           slug={slug}
         />

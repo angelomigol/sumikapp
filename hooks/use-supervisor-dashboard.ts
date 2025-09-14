@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
-import { Tables } from "@/utils/supabase/supabase.types";
+import { Database, Tables } from "@/utils/supabase/supabase.types";
 
 const queryKey = ["supabase:supervisor_overview_dashboard_view"];
 
@@ -28,11 +28,13 @@ export interface SupervisorDashboardData {
 }
 
 interface RecentActivity {
-  trainee_name: string;
-  action: string;
-  date: string;
-  status: "approved";
-  type: "report_submission";
+  id: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  type: "activity" | "attendance" | "document" | "announcement";
+  activity_type: Database["public"]["Enums"]["activity_type_enum"];
+  user_name: string;
 }
 
 interface TraineesPendingEval {

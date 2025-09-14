@@ -62,10 +62,10 @@ class GetSectionTraineesService {
         .from("trainee_batch_enrollment")
         .select(
           `
+          ojt_status,
           trainees!inner (
             id,
             student_id_number,
-            ojt_status,
             users!inner (
               first_name,
               middle_name,
@@ -105,36 +105,41 @@ class GetSectionTraineesService {
         "Successfully fetched section trainees"
       );
 
-      const result = data.map((enrollment) => {
-        const trainee = enrollment.trainees;
-        const internshipDetailsList = enrollment.internship_details || [];
+      const result = data
+        .map((enrollment) => {
+          const trainee = enrollment.trainees;
+          const internshipDetailsList = enrollment.internship_details || [];
 
-        const allReports = internshipDetailsList.flatMap(
-          (internshipDetail) => internshipDetail.attendance_reports || []
-        );
+          const allReports = internshipDetailsList.flatMap(
+            (internshipDetail) => internshipDetail.attendance_reports || []
+          );
 
-        const hours_logged = allReports
-          .filter((r) => r.status === "approved")
-          .flatMap((r) => r.attendance_entries || [])
-          .filter(
-            (entry) => entry.status === "present" || entry.status === "late"
-          )
-          .reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
+          const hours_logged = allReports
+            .filter((r) => r.status === "approved")
+            .flatMap((r) => r.attendance_entries || [])
+            .filter(
+              (entry) => entry.status === "present" || entry.status === "late"
+            )
+            .reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
 
-        return {
-          trainee_id: trainee.id,
-          student_id_number: trainee.student_id_number,
-          ojt_status: trainee.ojt_status,
-          first_name: trainee.users.first_name,
-          middle_name: trainee.users.middle_name,
-          last_name: trainee.users.last_name,
-          email: trainee.users.email,
-          hours_logged,
-        };
-      });
-
-      console.log(result);
-      
+          return {
+            trainee_id: trainee.id,
+            student_id_number: trainee.student_id_number,
+            ojt_status: enrollment.ojt_status,
+            first_name: trainee.users.first_name,
+            middle_name: trainee.users.middle_name,
+            last_name: trainee.users.last_name,
+            email: trainee.users.email,
+            hours_logged,
+          };
+        })
+        .sort((a, b) => {
+          const lastNameComparison = a.last_name.localeCompare(b.last_name);
+          if (lastNameComparison !== 0) {
+            return lastNameComparison;
+          }
+          return a.first_name.localeCompare(b.first_name);
+        });
 
       return result;
     } catch (error) {
@@ -191,75 +196,75 @@ class GetSectionTraineesService {
         .from("trainee_batch_enrollment")
         .select(
           `
-        trainees!inner (
-          id,
-          student_id_number,
-          course,
-          section,
           ojt_status,
-          users!inner (
-            first_name,
-            middle_name,
-            last_name,
-            email,
-            status
-          )
-        ),
-        program_batch (
-          required_hours,
-          start_date,
-          end_date
-        ),
-        requirements (
-          id,
-          file_name,
-          file_path,
-          file_type,
-          file_size,
-          submitted_at,
-          batch_requirement_id,
-          batch_requirements:batch_requirement_id (
-            requirement_types:requirement_type_id (
-              name,
-              description
+          trainees!inner (
+            id,
+            student_id_number,
+            course,
+            section,
+            users!inner (
+              first_name,
+              middle_name,
+              last_name,
+              email,
+              status
             )
           ),
-          requirements_history (
-            document_status,
-            date
-          )
-        ),
-        internship_details (
-          job_role,
-          company_name,
-          start_date,
-          end_date,
-          attendance_reports (
-            id,
-            created_at,
+          program_batch (
+            required_hours,
             start_date,
-            end_date,
-            period_total,
-            previous_total,
-            total_hours_served,
-            status,
-            submitted_at,
-            supervisor_approved_at,
-            attendance_entries (*)
+            end_date
           ),
-          accomplishment_reports (
+          requirements (
             id,
-            created_at,
+            file_name,
+            file_path,
+            file_type,
+            file_size,
+            submitted_at,
+            batch_requirement_id,
+            batch_requirements:batch_requirement_id (
+              requirement_types:requirement_type_id (
+                name,
+                description
+              )
+            ),
+            requirements_history (
+              document_status,
+              date
+            )
+          ),
+          internship_details (
+            job_role,
+            company_name,
             start_date,
             end_date,
-            total_hours,
-            status,
-            submitted_at,
-            supervisor_approved_at,
-            accomplishment_entries (*)
+            attendance_reports (
+              id,
+              created_at,
+              start_date,
+              end_date,
+              period_total,
+              previous_total,
+              total_hours_served,
+              status,
+              submitted_at,
+              supervisor_approved_at,
+              attendance_entries (*)
+            ),
+            accomplishment_reports (
+              id,
+              created_at,
+              start_date,
+              end_date,
+              total_hours,
+              status,
+              submitted_at,
+              supervisor_approved_at,
+              accomplishment_entries (*)
+            )
           )
-        )
-      `
+        `
         )
         .eq("program_batch_id", batchData.id)
         .eq("trainee_id", traineeId)
@@ -354,7 +359,7 @@ class GetSectionTraineesService {
         last_name: trainee.users.last_name,
         email: trainee.users.email,
         hours_logged: hours_logged,
-        ojt_status: trainee.ojt_status,
+        ojt_status: data.ojt_status,
         status: trainee.users.status,
         internship_details: {
           company_name: internshipDetails.company_name,

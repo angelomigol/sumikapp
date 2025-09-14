@@ -7,7 +7,7 @@ import { RequirementWithHistory } from "@/hooks/use-requirements";
 import { DocumentStatus } from "@/lib/constants";
 
 import { getLogger } from "@/utils/logger";
-import { Constants, Database } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
 
 export function createGetRequirementsService() {
   return new GetRequirementsService();
@@ -226,6 +226,7 @@ class GetRequirementsService {
     }
   }
 }
+
 function safeNumber(val: unknown): number | null {
   const parsed = Number(val);
   return isNaN(parsed) ? null : parsed;

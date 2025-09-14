@@ -63,7 +63,7 @@ interface InternshipFormViewerModalProps {
   endDate: string;
   startTime: string | null;
   endTime: string | null;
-  supervisorEmail: string;
+  supervisorEmail: string | null;
   status: DocumentStatus;
 
   slug: string;

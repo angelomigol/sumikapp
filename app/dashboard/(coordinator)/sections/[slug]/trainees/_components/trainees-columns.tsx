@@ -60,7 +60,6 @@ export const traineeColumns: ColumnDef<TraineeWithUserAndHours>[] = [
       return <span className="max-w-20 truncate lg:max-w-32">{fullName}</span>;
     },
     enableHiding: false,
-    enableSorting: false,
   },
   {
     accessorKey: "email",

@@ -68,6 +68,7 @@ export interface TraineeWithRequirementsAndInternship
     end_time: string | null;
     daily_schedule: string | null;
     status: DocumentStatus;
+    supervisor_email: string | null;
     created_at: string;
   } | null;
 }

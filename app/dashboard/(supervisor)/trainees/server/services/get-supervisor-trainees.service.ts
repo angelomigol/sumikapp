@@ -58,11 +58,11 @@ class GetSupervisorTraineesService {
             )
           ),
           trainee_batch_enrollment!inner (
+            ojt_status,
             trainee:trainee_id (
               id,
               student_id_number,
               course,
-              ojt_status,
               user:users (
                 id,
                 first_name,
@@ -117,7 +117,7 @@ class GetSupervisorTraineesService {
           last_name: trainee.user.last_name,
           email: trainee.user.email,
           course: trainee.course,
-          ojt_status: trainee.ojt_status,
+          ojt_status: supervisor.trainee_batch_enrollment.ojt_status,
           hours_logged,
         };
       });

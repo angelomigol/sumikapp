@@ -1,8 +1,6 @@
 import "server-only";
 
-import { SupabaseClient } from "@supabase/supabase-js";
-
-import { DocumentStatus } from "@/lib/constants";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
@@ -74,7 +72,9 @@ class UploadRequirementService {
           `No active enrollment found: ${enrollmentError.message}`
         );
 
-        throw new Error("No active enrollment found");
+        throw new Error(
+          `No active enrollment found: ${enrollmentError.message}`
+        );
       }
 
       // Step 2a: First get the requirement type ID
@@ -98,7 +98,7 @@ class UploadRequirementService {
 
           `Requirement type not found: ${reqTypeError.message}`
         );
-        throw new Error("Invalid requirement type");
+        throw new Error(`Requirement type not found: ${reqTypeError.message}`);
       }
 
       // Step 2b: Then get the batch requirement
@@ -133,7 +133,9 @@ class UploadRequirementService {
 
           `Invalid batch requirement for user's enrollment: ${batchReqError.message}`
         );
-        throw new Error("Invalid requirement for your current batch");
+        throw new Error(
+          `Invalid requirement for your current batch: ${batchReqError.message}`
+        );
       }
 
       // Step 3: Generate file path and upload to storage
@@ -157,7 +159,7 @@ class UploadRequirementService {
 
           `Supabase error while uploading file to storage: ${uploadError.message}`
         );
-        throw new Error("Failed to upload file to storage");
+        throw new Error(`Failed to upload file: ${uploadError.message}`);
       }
 
       // Step 4: Check if requirement already exists (update) or create new
@@ -199,7 +201,9 @@ class UploadRequirementService {
 
             `Supabase error while updating requirement: ${updateError.message}`
           );
-          throw new Error("Failed to update requirement");
+          throw new Error(
+            `Failed to update requirement: ${updateError.message}`
+          );
         }
 
         requirementId = updatedReq.id;
@@ -234,7 +238,9 @@ class UploadRequirementService {
             `Supabase error while creating requirement: ${createError.message}`
           );
 
-          throw new Error("Failed to create requirement");
+          throw new Error(
+            `Failed to create requirement: ${createError.message}`
+          );
         }
 
         requirementId = newReq.id;
@@ -329,7 +335,9 @@ class UploadRequirementService {
           `Supabase error while creating submission history: ${historyError.message}`
         );
 
-        throw new Error("Failed to create submission history");
+        throw new Error(
+          `Failed to create submission history: ${historyError.message}`
+        );
       }
 
       logger.info(ctx, "Document submitted successfully");

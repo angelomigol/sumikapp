@@ -55,7 +55,7 @@ export default function FileOptions({
 
     toast.promise(promise, {
       loading: "Uploading file...",
-      success: "File uploaded successfully",
+      success: "File uploaded successfully!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -73,7 +73,7 @@ export default function FileOptions({
 
       toast.promise(promise, {
         loading: "Submitting document...",
-        success: "Document submitted for review",
+        success: "Document submitted for review!",
         error: (err) => {
           if (err instanceof Error) {
             return err.message;
@@ -92,7 +92,7 @@ export default function FileOptions({
 
       toast.promise(promise, {
         loading: "Deleting file...",
-        success: "File deleted successfully",
+        success: "File deleted successfully!",
         error: (err) => {
           if (err instanceof Error) {
             return err.message;

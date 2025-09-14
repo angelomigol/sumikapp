@@ -2,10 +2,7 @@ import "server-only";
 
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  SupervisorTrainees,
-  SupervisorTraineesForEvaluationTable,
-} from "@/hooks/use-supervisor-trainees";
+import { SupervisorTraineesForEvaluationTable } from "@/hooks/use-supervisor-trainees";
 
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
@@ -49,23 +46,24 @@ class GetTraineesForEvaluationService {
         .from("internship_details")
         .select(
           `
-            trainee_batch_enrollment!inner (
-                trainees!inner (
-                    id,
-                    student_id_number,
-                    course,
-                    users!inner (
-                        first_name,
-                        middle_name,
-                        last_name,
-                        email
-                    )
-                )
+          trainee_batch_enrollment!inner (
+            ojt_status,
+            trainees!inner (
+              id,
+              student_id_number,
+              course,
+              users!inner (
+                first_name,
+                middle_name,
+                last_name,
+                email
+              )
             )
+          )
         `
         )
         .eq("supervisor_id", userId)
-        .eq("trainee_batch_enrollment.trainees.ojt_status", "completed")
+        .eq("trainee_batch_enrollment.ojt_status", "completed")
         .is("trainee_batch_enrollment.trainees.users.deleted_at", null);
 
       if (error) {

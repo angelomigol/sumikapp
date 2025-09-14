@@ -70,7 +70,7 @@ export default function AddActivityReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Form {...form}>
-        <form id="add-report-form" onSubmit={form.handleSubmit(onSubmit)}>
+        <form id="add-activity-report-form" onSubmit={form.handleSubmit(onSubmit)}>
           <DialogTrigger asChild>
             <Button size="sm">
               <PlusCircle />
@@ -135,6 +135,7 @@ export default function AddActivityReportDialog() {
               <Button
                 size={"sm"}
                 type="submit"
+                form="add-activity-report-form"
                 className="cursor-pointer"
                 onClick={() => form.handleSubmit(onSubmit)()}
                 disabled={form.formState.isSubmitting}

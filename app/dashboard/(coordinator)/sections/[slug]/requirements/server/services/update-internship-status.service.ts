@@ -171,6 +171,7 @@ class UpdateInternshipStatusService {
           `
           id,
           temp_email,
+          enrollment_id,
           trainee_batch_enrollment!inner (
             trainee_id
           )
@@ -243,11 +244,11 @@ class UpdateInternshipStatusService {
       }
 
       const { error: ojtStatusError } = await client
-        .from("trainees")
+        .from("trainee_batch_enrollment")
         .update({
           ojt_status: "active",
         })
-        .eq("id", internship.trainee_batch_enrollment.trainee_id);
+        .eq("id", internship.enrollment_id);
 
       if (ojtStatusError) {
         logger.error(

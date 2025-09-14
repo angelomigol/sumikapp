@@ -64,6 +64,9 @@ type SupervisorDetails = {
   position: string;
   department: string;
   telephone_number: string;
+  company_name: string;
+  company_address: string;
+  company_contact_no: string;
 };
 
 type AdminDetails = {

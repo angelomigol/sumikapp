@@ -101,7 +101,13 @@ class GetTraineeRequirementsService {
           end_time,
           daily_schedule,
           status,
-          created_at
+          temp_email,
+          created_at,
+          supervisors (
+            users!inner(
+              email
+            )
+          )
         )
       `
         )
@@ -130,73 +136,110 @@ class GetTraineeRequirementsService {
         "Successfully fetched trainee requirements"
       );
 
-      const result = data.map((enrollment) => {
-        const trainee = enrollment.trainees;
-        const requirements = enrollment.requirements || [];
-        const internshipDetails = enrollment.internship_details || [];
+      const result = data
+        .map((enrollment) => {
+          const trainee = enrollment.trainees;
+          const requirements = enrollment.requirements || [];
+          const internshipDetails = enrollment.internship_details || [];
 
-        const processedRequirements = requirements.map((req) => {
-          const history = req.requirements_history || [];
+          const processedRequirements = requirements.map((req) => {
+            const history = req.requirements_history || [];
 
-          const latestHistoryEntry = history.reduce(
-            (latest, current) => {
-              if (!latest) return current;
-              return new Date(current.date) > new Date(latest.date)
-                ? current
-                : latest;
-            },
-            null as (typeof history)[0] | null
-          );
+            const latestHistoryEntry = history.reduce(
+              (latest, current) => {
+                if (!latest) return current;
+                return new Date(current.date) > new Date(latest.date)
+                  ? current
+                  : latest;
+              },
+              null as (typeof history)[0] | null
+            );
 
-          const requirementType = req.batch_requirements?.requirement_types;
+            const requirementType = req.batch_requirements?.requirement_types;
+
+            return {
+              id: req.id,
+              requirement_name: requirementType?.name || "Unknown Requirement",
+              requirement_description: requirementType?.description || null,
+              file_name: req.file_name,
+              file_path: req.file_path,
+              file_type: req.file_type,
+              file_size: req.file_size,
+              submitted_at: req.submitted_at,
+              status: latestHistoryEntry?.document_status || "not submitted",
+              history: history.map((h) => ({
+                document_status: h.document_status,
+                date: h.date,
+              })),
+            } as RequirementWithHistory;
+          });
+
+          const latestInternship =
+            internshipDetails && internshipDetails.length > 0
+              ? (() => {
+                  // First try to find approved internships
+                  const approvedInternships = internshipDetails
+                    .filter((internship) => internship.status === "approved")
+                    .sort(
+                      (a, b) =>
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                    );
+
+                  if (approvedInternships.length > 0) {
+                    return approvedInternships[0]; // Return latest approved
+                  }
+
+                  // If no approved, get latest pending
+                  const pendingInternships = internshipDetails
+                    .filter((internship) => internship.status === "pending")
+                    .sort(
+                      (a, b) =>
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                    );
+
+                  return pendingInternships.length > 0
+                    ? pendingInternships[0]
+                    : null;
+                })()
+              : null;
 
           return {
-            id: req.id,
-            requirement_name: requirementType?.name || "Unknown Requirement",
-            requirement_description: requirementType?.description || null,
-            file_name: req.file_name,
-            file_path: req.file_path,
-            file_type: req.file_type,
-            file_size: req.file_size,
-            submitted_at: req.submitted_at,
-            status: latestHistoryEntry?.document_status || "not submitted",
-            history: history.map((h) => ({
-              document_status: h.document_status,
-              date: h.date,
-            })),
-          } as RequirementWithHistory;
+            trainee_id: trainee.id,
+            first_name: trainee.users.first_name,
+            middle_name: trainee.users.middle_name,
+            last_name: trainee.users.last_name,
+            requirements: processedRequirements,
+            internship_details: latestInternship
+              ? {
+                  id: latestInternship.id,
+                  company_name: latestInternship.company_name,
+                  contact_number: latestInternship.contact_number,
+                  nature_of_business: latestInternship.nature_of_business,
+                  address: latestInternship.address,
+                  job_role: latestInternship.job_role,
+                  start_date: latestInternship.start_date,
+                  end_date: latestInternship.end_date,
+                  start_time: latestInternship.start_time,
+                  end_time: latestInternship.end_time,
+                  daily_schedule: latestInternship.daily_schedule,
+                  supervisor_email:
+                    latestInternship.supervisors?.users.email ??
+                    latestInternship.temp_email,
+                  status: latestInternship.status,
+                  created_at: latestInternship.created_at,
+                }
+              : null,
+          } as TraineeWithRequirementsAndInternship;
+        })
+        .sort((a, b) => {
+          const lastNameComparison = a.last_name.localeCompare(b.last_name);
+          if (lastNameComparison !== 0) {
+            return lastNameComparison;
+          }
+          return a.first_name.localeCompare(b.first_name);
         });
-
-        const latestInternship =
-          internshipDetails && internshipDetails.length > 0
-            ? internshipDetails[0]
-            : null;
-
-        return {
-          trainee_id: trainee.id,
-          first_name: trainee.users.first_name,
-          middle_name: trainee.users.middle_name,
-          last_name: trainee.users.last_name,
-          requirements: processedRequirements,
-          internship_details: latestInternship
-            ? {
-                id: latestInternship.id,
-                company_name: latestInternship.company_name,
-                contact_number: latestInternship.contact_number,
-                nature_of_business: latestInternship.nature_of_business,
-                address: latestInternship.address,
-                job_role: latestInternship.job_role,
-                start_date: latestInternship.start_date,
-                end_date: latestInternship.end_date,
-                start_time: latestInternship.start_time,
-                end_time: latestInternship.end_time,
-                daily_schedule: latestInternship.daily_schedule,
-                status: latestInternship.status,
-                created_at: latestInternship.created_at,
-              }
-            : null,
-        } as TraineeWithRequirementsAndInternship;
-      });
 
       return result;
     } catch (error) {

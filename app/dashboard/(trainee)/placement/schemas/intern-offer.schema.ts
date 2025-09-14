@@ -8,7 +8,7 @@ export const internshipOfferSchema = z.object({
   type: z.string(),
   company: z.string(),
   location: z.string(),
-  deadline: z.date(),
+  deadline: z.date().nullable(),
   view_details: z.url(),
 });
 export type InternOffer = z.infer<typeof internshipOfferSchema>;

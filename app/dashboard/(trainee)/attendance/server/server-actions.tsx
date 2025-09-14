@@ -127,7 +127,7 @@ export const createAttendanceReportAction = enhanceAction(
       userId: user.id,
     };
 
-    logger.info(ctx, "Creating attendance...");
+    logger.info(ctx, "Creating attendance report...");
 
     try {
       const client = getSupabaseServerClient();

@@ -5,6 +5,8 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
+const REQS_BUCKET = "static-submissions";
+
 export function createDeleteRequirementService() {
   return new DeleteRequirementService();
 }
@@ -38,7 +40,7 @@ class DeleteRequirementService {
     try {
       const { data: requirement, error: fetchError } = await client
         .from("requirements")
-        .select("file_name, enrollment_id")
+        .select("file_name, file_path, enrollment_id")
         .eq("id", requirementId)
         .single();
 
@@ -55,6 +57,7 @@ class DeleteRequirementService {
       }
 
       const enrollmentId = requirement.enrollment_id;
+      const filePath = requirement.file_path;
 
       const { data: enrollment, error: enrollmentError } = await client
         .from("trainee_batch_enrollment")
@@ -79,6 +82,33 @@ class DeleteRequirementService {
         );
 
         throw new Error("Unauthorized to delete this requirement");
+      }
+
+      if (filePath) {
+        const { error: storageDeleteError } = await client.storage
+          .from(REQS_BUCKET)
+          .remove([filePath]);
+
+        if (storageDeleteError) {
+          logger.warn(
+            {
+              ...ctx,
+              storageError: {
+                message: storageDeleteError.message,
+              },
+              filePath,
+            },
+            `Failed to delete file from storage: ${storageDeleteError.message}`
+          );
+        } else {
+          logger.info(
+            {
+              ...ctx,
+              filePath,
+            },
+            "Successfully deleted file from storage"
+          );
+        }
       }
 
       const { error: deleteError } = await client

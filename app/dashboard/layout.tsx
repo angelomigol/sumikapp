@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 
 import { navigationConfig } from "@/config/navigation.config";
 
-import { Role } from "@/lib/constants";
+import { Role, OJTStatus as Status } from "@/lib/constants";
 import { requireUserInServerComponent } from "@/lib/server/require-user-in-server-component";
 
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
-import { Database, Tables } from "@/utils/supabase/supabase.types";
+import { Tables } from "@/utils/supabase/supabase.types";
 
 import {
   SidebarInset,
@@ -17,7 +17,7 @@ import { AppBreadcrumbs } from "@/components/sumikapp/app-breadcrumbs";
 
 import { AppSidebar } from "./_components/app-sidebar";
 
-type OJTStatus = Database["public"]["Enums"]["ojt_status"];
+type OJTStatus = Status;
 
 function DashboardLayout({ children }: React.PropsWithChildren) {
   return <SidebarLayout>{children}</SidebarLayout>;
@@ -56,7 +56,6 @@ async function SidebarLayout({ children }: React.PropsWithChildren) {
   );
 }
 
-// More efficient approach using the dashboard view for trainees
 async function getUserDetailsWithOJTStatus(): Promise<{
   account: Tables<"users"> | null;
   ojtStatus?: OJTStatus;

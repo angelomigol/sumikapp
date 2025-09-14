@@ -1155,7 +1155,6 @@ export type Database = {
           created_at: string
           id: string
           mobile_number: string | null
-          ojt_status: Database["public"]["Enums"]["ojt_status"]
           section: string | null
           student_id_number: string
         }
@@ -1165,7 +1164,6 @@ export type Database = {
           created_at?: string
           id: string
           mobile_number?: string | null
-          ojt_status?: Database["public"]["Enums"]["ojt_status"]
           section?: string | null
           student_id_number: string
         }
@@ -1175,7 +1173,6 @@ export type Database = {
           created_at?: string
           id?: string
           mobile_number?: string | null
-          ojt_status?: Database["public"]["Enums"]["ojt_status"]
           section?: string | null
           student_id_number?: string
         }
@@ -1546,7 +1543,7 @@ export type Database = {
         | "batch_announcement_posted"
         | "batch_requirement_added"
         | "evaluation_submitted"
-        | "evaluation_completed"
+        | "evaluation_pending"
         | "evaluation_approved"
         | "notification_sent"
         | "notification_read"
@@ -1736,7 +1733,7 @@ export const Constants = {
         "batch_announcement_posted",
         "batch_requirement_added",
         "evaluation_submitted",
-        "evaluation_completed",
+        "evaluation_pending",
         "evaluation_approved",
         "notification_sent",
         "notification_read",

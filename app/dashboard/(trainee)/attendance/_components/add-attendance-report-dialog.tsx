@@ -70,7 +70,10 @@ export default function AddAttendanceReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          id="add-attendance-report-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <DialogTrigger asChild>
             <Button size={"sm"}>
               <PlusCircle />
@@ -136,6 +139,7 @@ export default function AddAttendanceReportDialog() {
               <Button
                 size={"sm"}
                 type="submit"
+                form="add-attendance-report-form"
                 className="cursor-pointer"
                 onClick={() => form.handleSubmit(onSubmit)}
                 disabled={form.formState.isSubmitting}

@@ -162,7 +162,9 @@ export const createTraineeRequirementColumns = (
           );
         }
 
-        return <InternshipStatusCell internship_details={internship} />;
+        return (
+          <InternshipStatusCell internship_details={internship} slug={slug} />
+        );
       },
       enableSorting: false,
     },

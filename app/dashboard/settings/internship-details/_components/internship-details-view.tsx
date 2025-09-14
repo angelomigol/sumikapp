@@ -259,13 +259,21 @@ export default function InternshipDetailsView({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h4 className="text-muted-foreground mb-1 text-sm font-medium">
-                Job Role
-              </h4>
-              <p className="text-sm">{getJobRoleDisplay()}</p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+                  Job Role
+                </h4>
+                <p className="text-sm">{getJobRoleDisplay()}</p>
+              </div>
+              <div>
+                <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+                  Supervisor Email
+                </h4>
+                <p className="text-sm">{internship.supervisorEmail}</p>
+              </div>
             </div>
-
+            
             <Separator />
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

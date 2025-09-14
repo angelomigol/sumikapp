@@ -29,10 +29,11 @@ export type InternshipDetails = {
   startTime: string | null;
   endTime: string | null;
   dailySchedule: string | null;
+  supervisorEmail: string | null;
   status: DocumentStatus;
 };
 
-export const INTERNSHIPS_QUERY_KEY = ["supabase:interships"] as const;
+export const INTERNSHIPS_QUERY_KEY = ["supabase:intership_details"] as const;
 export const CREATE_INTERNSHIP_MUTATION_KEY = ["create_internship"] as const;
 export const UPDATE_INTERNSHIP_MUTATION_KEY = ["update_internship"] as const;
 export const SUBMIT_INTERNSHIP_MUTATION_KEY = ["submit_internship"] as const;

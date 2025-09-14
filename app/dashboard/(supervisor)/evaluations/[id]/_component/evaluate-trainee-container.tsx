@@ -165,7 +165,6 @@ export default function EvaluateTraineeContainer(params: {
   };
 
   console.log(prediction);
-  
 
   return (
     <>
@@ -368,30 +367,42 @@ export default function EvaluateTraineeContainer(params: {
             </div>
           </CardFooter>
 
-           {prediction && showResults && (
+          {prediction && showResults && (
             <div className="space-y-4 border-t pt-6">
-              <h3 className="text-lg font-semibold">Employability Prediction Results</h3>
-              
+              <h3 className="text-lg font-semibold">
+                Employability Prediction Results
+              </h3>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardContent className="p-4">
-                    <h4 className="font-medium mb-2">Prediction Summary</h4>
+                    <h4 className="mb-2 font-medium">Prediction Summary</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Classification:</span>
-                        <span className={`font-medium ${
-                          prediction.prediction_class ? 'text-green-600' : 'text-orange-600'
-                        }`}>
-                          {prediction.prediction_label}
+                        <span
+                          className={`font-medium ${
+                            prediction.prediction_class
+                              ? "text-green-600"
+                              : "text-orange-600"
+                          }`}
+                        >
+                          {prediction.prediction_label}{" "}
+                          {(prediction.prediction_probability * 100).toFixed(1)}
+                          %
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Confidence:</span>
-                        <span>{(prediction.prediction_probability * 100).toFixed(1)}%</span>
+                        <span>{prediction.confidence_level}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Reliability:</span>
-                        <span>{prediction.confidence_level}</span>
+                        <span>Average Score:</span>
+                        <span>
+                          {prediction.analysis.overall_statistics.original_scores_avg.toFixed(
+                            2
+                          )}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -399,19 +410,30 @@ export default function EvaluateTraineeContainer(params: {
 
                 <Card>
                   <CardContent className="p-4">
-                    <h4 className="font-medium mb-2">Key Insights</h4>
+                    <h4 className="mb-2 font-medium">Key Insights</h4>
                     <div className="space-y-2 text-sm">
                       <div>
                         <span className="text-green-600">Strong Areas:</span>
-                        <span className="ml-1">{prediction.analysis.strong_areas.length}</span>
+                        <span className="ml-1">
+                          {prediction.analysis.strong_areas.length}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-orange-600">Areas for Improvement:</span>
-                        <span className="ml-1">{prediction.analysis.weak_areas.length}</span>
+                        <span className="text-orange-600">
+                          Areas for Improvement:
+                        </span>
+                        <span className="ml-1">
+                          {prediction.analysis.weak_areas.length}
+                        </span>
                       </div>
                       <div>
                         <span>Overall Score:</span>
-                        <span className="ml-1">{prediction.analysis.overall_statistics.mapped_features_avg.toFixed(1)}/5.0</span>
+                        <span className="ml-1">
+                          {prediction.analysis.overall_statistics.mapped_features_avg.toFixed(
+                            1
+                          )}
+                          /5.0
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -419,30 +441,46 @@ export default function EvaluateTraineeContainer(params: {
               </div>
 
               {/* Recommendations */}
-              {prediction.recommendations && prediction.recommendations.length > 0 && (
-                <Card>
-                  <CardContent className="p-4">
-                    <h4 className="font-medium mb-3">AI-Generated Recommendations</h4>
-                    <div className="space-y-3">
-                      {prediction.recommendations.slice(0, 3).map((rec, index) => (
-                        <div key={index} className="border-l-4 border-blue-200 pl-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">{rec.category}</span>
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              rec.priority === 'High' ? 'bg-red-100 text-red-700' :
-                              rec.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-blue-100 text-blue-700'
-                            }`}>
-                              {rec.priority} Priority
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600">{rec.recommendation}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {prediction.recommendations &&
+                prediction.recommendations.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <h4 className="mb-3 font-medium">
+                        AI-Generated Recommendations
+                      </h4>
+                      <div className="space-y-3">
+                        {prediction.recommendations
+                          .slice(0, 3)
+                          .map((rec, index) => (
+                            <div
+                              key={index}
+                              className="border-l-4 border-blue-200 pl-3"
+                            >
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="text-sm font-medium">
+                                  {rec.category}
+                                </span>
+                                <span
+                                  className={`rounded px-2 py-1 text-xs ${
+                                    rec.priority === "High"
+                                      ? "bg-red-100 text-red-700"
+                                      : rec.priority === "Medium"
+                                        ? "bg-yellow-100 text-yellow-700"
+                                        : "bg-blue-100 text-blue-700"
+                                  }`}
+                                >
+                                  {rec.priority} Priority
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                {rec.recommendation}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
             </div>
           )}
         </CardContent>

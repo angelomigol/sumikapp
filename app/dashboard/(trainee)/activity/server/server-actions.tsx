@@ -124,7 +124,7 @@ export const createActivityReportAction = enhanceAction(
       userId: user.id,
     };
 
-    logger.info(ctx, "Creating activity report for user...");
+    logger.info(ctx, "Creating activity report...");
 
     try {
       const client = getSupabaseServerClient();

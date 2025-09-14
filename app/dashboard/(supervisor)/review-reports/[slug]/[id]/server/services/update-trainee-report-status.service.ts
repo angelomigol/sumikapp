@@ -89,9 +89,10 @@ class UpdateTraineeReportService {
 
       if (actData && !actError) {
         const { error } = await client
-          .from("attendance_reports")
+          .from("accomplishment_reports")
           .update({
             status: "approved",
+            supervisor_approved_at: new Date().toISOString(),
           })
           .eq("id", reportId);
 

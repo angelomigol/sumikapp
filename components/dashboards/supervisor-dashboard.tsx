@@ -114,10 +114,10 @@ export default function SupervisorDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium tracking-tight">
-                            {activity.action}
+                            {activity.description}
                           </p>
                           <span className="text-muted-foreground text-xs">
-                            {formatTimestamp(activity.date)}
+                            {formatTimestamp(activity.timestamp)}
                           </span>
                         </div>
 
@@ -125,11 +125,11 @@ export default function SupervisorDashboard() {
                         <div className="flex items-center pt-2">
                           <Avatar className="mr-2 font-medium">
                             <AvatarFallback>
-                              {activity.trainee_name.slice(0, 1)}
+                              {activity.user_name.slice(0, 1)}
                             </AvatarFallback>
                           </Avatar>
                           <p className="text-muted-foreground text-xs">
-                            {activity.trainee_name}
+                            {activity.user_name}
                           </p>
                         </div>
                       </div>

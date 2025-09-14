@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 import CustomSearchbar from "@/components/sumikapp/custom-search-bar";
 import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
 import { InternOffer } from "../schemas/intern-offer.schema";
-import { fetchInternOffers } from "../server/server-actions";
+import {
+  fetchInternOffers,
+  fetchInternOffersWithPagination,
+} from "../server/server-actions";
 import InternOfferCard from "./intern-offer-card";
 import JobRoleFilter from "./job-role-filter";
 import NoMatchingInternships from "./no-matching-internships";
+import ScrollToTop from "./scroll-to-top";
 
 export default function PlacementContainer({
   initialOffers,
@@ -23,17 +28,44 @@ export default function PlacementContainer({
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const {
-    data: offers = initialOffers,
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     error,
-  } = useQuery({
+  } = useInfiniteQuery({
     queryKey: ["intern-offers"],
-    queryFn: fetchInternOffers,
-    initialData: initialOffers,
+    queryFn: ({ pageParam = 0 }) => fetchInternOffersWithPagination(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      return lastPage.pagination.hasMore
+        ? lastPage.pagination.nextOffset
+        : undefined;
+    },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
+  const intObserver = useRef<IntersectionObserver | null>(null);
+  const lastOfferElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (isFetchingNextPage) return;
+
+      if (intObserver.current) intObserver.current.disconnect();
+
+      intObserver.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage();
+        }
+      });
+
+      if (node) intObserver.current.observe(node);
+    },
+    [isFetchingNextPage, fetchNextPage, hasNextPage]
+  );
+
+  const offers = data?.pages.flatMap((page) => page.data) || initialOffers;
   const filteredOffers = filterOffers(offers, searchQuery, selectedRoles);
 
   if (isLoading) {
@@ -60,8 +92,15 @@ export default function PlacementContainer({
         </h4>
 
         <If condition={!isLoading && !error}>
-          {filteredOffers.map((offer) => (
-            <InternOfferCard key={offer.id} offer={offer} />
+          {filteredOffers.map((offer, index) => (
+            <If
+              condition={filteredOffers.length === index + 1}
+              fallback={<InternOfferCard key={offer.id} offer={offer} />}
+            >
+              <div key={offer.id} ref={lastOfferElementRef}>
+                <InternOfferCard key={offer.id} offer={offer} />
+              </div>
+            </If>
           ))}
         </If>
 
@@ -71,7 +110,27 @@ export default function PlacementContainer({
             setSelectedRoles={setSelectedRoles}
           />
         </If>
+
+        <If condition={isFetchingNextPage}>
+          <div className="flex justify-center py-6">
+            <Loader2 className="size-5 animate-spin" />
+          </div>
+        </If>
+
+        <If
+          condition={
+            !isLoading && !error && !hasNextPage && filteredOffers.length > 0
+          }
+        >
+          <div className="flex justify-center py-6">
+            <span className="text-sm text-gray-500">
+              You've reached the end of the internship listings
+            </span>
+          </div>
+        </If>
       </div>
+
+      <ScrollToTop />
     </>
   );
 }
