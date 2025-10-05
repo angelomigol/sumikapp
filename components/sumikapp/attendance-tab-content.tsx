@@ -26,7 +26,7 @@ export default function AttendanceTabContent({
   reports: NormalizedAttendanceReport[];
 }) {
   return (
-    <Table>
+    <Table className="max-h-[100px]">
       <TableHeader>
         <TableRow>
           <TableHead>Period</TableHead>

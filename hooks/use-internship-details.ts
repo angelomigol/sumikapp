@@ -19,18 +19,19 @@ import {
 
 export type InternshipDetails = {
   id: string;
-  companyName: string | null;
-  contactNumber: string | null;
-  natureOfBusiness: string | null;
-  companyAddress: string | null;
-  job_role: string | null;
+  companyName: string;
+  contactNumber: string;
+  natureOfBusiness: string;
+  companyAddress: string;
+  job_role: string;
   startDate: string;
   endDate: string;
-  startTime: string | null;
-  endTime: string | null;
-  dailySchedule: string | null;
+  startTime: string;
+  endTime: string;
+  dailySchedule: string[];
   supervisorEmail: string | null;
   status: DocumentStatus;
+  lunchBreak: number;
 };
 
 export const INTERNSHIPS_QUERY_KEY = ["supabase:intership_details"] as const;
@@ -69,6 +70,7 @@ export function useCreateInternshipPlacement() {
     formData.append("startDate", payload.startDate);
     formData.append("startTime", payload.startTime);
     formData.append("supervisorEmail", payload.supervisorEmail);
+    formData.append("lunchBreak", payload.lunchBreak.toLocaleString());
 
     const result = await createInternshipAction(formData);
     return result;
@@ -104,6 +106,7 @@ export function useUpdateInternshipPlacement() {
     formData.append("startDate", payload.startDate);
     formData.append("startTime", payload.startTime);
     formData.append("supervisorEmail", payload.supervisorEmail);
+    formData.append("lunchBreak", payload.lunchBreak.toLocaleString());
 
     const result = await updateInternshipAction(formData);
     return result;

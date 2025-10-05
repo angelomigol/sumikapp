@@ -22,7 +22,7 @@ export function EvaluationsTableRowActions({
       size={"sm"}
       className="text-primary-foreground cursor-pointer bg-green-600 shadow-xs hover:bg-green-600/90"
     >
-      <Link href={pathsConfig.dynamic.evaluteTrainee(row.original.trainee_id)}>
+      <Link href={pathsConfig.dynamic.evaluteTrainee(row.original.tbe_id)}>
         Evaluate
       </Link>
     </Button>

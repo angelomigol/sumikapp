@@ -3,7 +3,9 @@ import "server-only";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 import { getLogger } from "@/utils/logger";
-import { Database, TablesInsert } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
+
+const REQS_BUCKET = "moa-files";
 
 export function createDeleteIndustryPartnerService() {
   return new DeleteIndustryPartnerService();
@@ -43,7 +45,7 @@ class DeleteIndustryPartnerService {
     try {
       const { data, error: fetchError } = await client
         .from("industry_partners")
-        .select("id")
+        .select("moa_file_path")
         .eq("id", partnerId)
         .single();
 
@@ -64,23 +66,25 @@ class DeleteIndustryPartnerService {
         throw new Error("Failed to fetch industry partner");
       }
 
-      const { error: storageError } = await client.storage
-        .from("avatars")
-        .remove([data.id]);
+      if (data.moa_file_path) {
+        const { error: storageError } = await client.storage
+          .from(REQS_BUCKET)
+          .remove([data.moa_file_path]);
 
-      if (storageError) {
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              message: storageError.message,
+        if (storageError) {
+          logger.error(
+            {
+              ...ctx,
+              supabaseError: {
+                message: storageError.message,
+              },
             },
-          },
 
-          `Supabase error while deleting file from storage: ${storageError.message}`
-        );
+            `Supabase error while deleting file from storage: ${storageError.message}`
+          );
 
-        throw new Error("Failed to delete file from storage");
+          throw new Error("Failed to delete MOA file from storage");
+        }
       }
 
       const { error: partnerError } = await client

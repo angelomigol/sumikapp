@@ -100,7 +100,7 @@ export default function UpdateSectionDetailsForm({
   const onSubmit = async (data: SectionFormValues) => {
     toast.promise(updateSectionMutation.mutateAsync(data), {
       loading: "Updating section...",
-      success: "Section successfully updated!",
+      success: "Section updated successfully!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -287,6 +287,7 @@ export default function UpdateSectionDetailsForm({
               <If condition={isEdit}>
                 <div className="flex items-center gap-4">
                   <Button
+                    type="button"
                     size={"sm"}
                     variant={"outline"}
                     onClick={handleCancel}
@@ -354,7 +355,12 @@ function CancelDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setIsCancelDialogOpen(false)}>
+          <AlertDialogCancel
+            onClick={(e) => {
+              e.preventDefault();
+              setIsCancelDialogOpen(false);
+            }}
+          >
             <Edit className="size-4" />
             Keep Editing
           </AlertDialogCancel>

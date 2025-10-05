@@ -33,9 +33,6 @@ export default function InternshipDetailsContainer() {
 
   const { data: internships = [], isLoading } = useFetchInternships();
 
-  console.log(internships);
-  
-
   if (isLoading) {
     return <LoadingOverlay />;
   }

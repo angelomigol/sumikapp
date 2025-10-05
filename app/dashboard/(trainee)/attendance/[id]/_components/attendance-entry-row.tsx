@@ -61,7 +61,7 @@ export default function AttendanceEntryRow({
         <CheckboxEntryDialog
           disabled={isLoading}
           isConfirmed={isConfirmed}
-          canConfirm={isEditable && entry.time_in && entry.time_out}
+          canConfirm={isEditable}
           onConfirm={() => onConfirmEntry(entry.id)}
         />
       </TableCell>

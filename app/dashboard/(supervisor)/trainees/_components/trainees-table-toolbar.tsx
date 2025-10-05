@@ -31,7 +31,7 @@ export function TraineesTableToolbar<TData>({
           setSearchQuery={(value) =>
             table.getColumn("fullName")?.setFilterValue(value)
           }
-          placeholder="Search students..."
+          placeholder="Search trainees..."
         />
         {table.getColumn("ojt_status") && (
           <DataTableFacetedFilter

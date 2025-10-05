@@ -75,7 +75,12 @@ export const createTraineeRequirementColumns = (
           trainee.middle_name ? trainee.middle_name + " " : ""
         }`;
         return (
-          <span className="max-w-20 truncate lg:max-w-32">{fullName}</span>
+          <span
+            className="block max-w-20 truncate lg:max-w-32"
+            title={fullName}
+          >
+            {fullName}
+          </span>
         );
       },
       enableHiding: false,
@@ -194,16 +199,20 @@ export const createTraineeRequirementColumns = (
                 )[0]
               : null;
 
-            documents[req.requirement_name] = {
-              id: req.id,
-              status:
-                latestHistory?.document_status || req.status || "not submitted",
-              filePath: req.file_path,
-              fileName: req.file_name,
-              fileSize: req.file_size,
-              fileType: req.file_type,
-              submitted: req.submitted_at,
-            };
+            const status =
+              latestHistory?.document_status || req.status || "not submitted";
+
+            if (status !== "not submitted") {
+              documents[req.requirement_name] = {
+                id: req.id,
+                status: status,
+                filePath: req.file_path,
+                fileName: req.file_name,
+                fileSize: req.file_size,
+                fileType: req.file_type,
+                submitted: req.submitted_at,
+              };
+            }
           });
         }
 

@@ -31,8 +31,8 @@ export default function AttendanceTable({
 }: AttendanceTableProps) {
   const canEditEntry = (entry: AttendanceEntry) => {
     return (
-      !entry.is_confirmed &&
-      (status === "not submitted" || status === "rejected")
+      (!entry.is_confirmed && status === "not submitted") ||
+      status === "rejected"
     );
   };
 

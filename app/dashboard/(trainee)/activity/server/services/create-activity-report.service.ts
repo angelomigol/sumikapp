@@ -53,6 +53,7 @@ class CreateActivityReportService {
         `
         )
         .eq("trainee_batch_enrollment.trainee_id", userId)
+        .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(1)
         .single();

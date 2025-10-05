@@ -30,9 +30,9 @@ export default function FileOptions({
   id: string;
   status: DocumentStatus;
   requirement_name: string;
+  file_type?: string[] | null;
   file_name?: string | null;
   file_size?: number | null;
-  file_type?: string | null;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,7 +40,7 @@ export default function FileOptions({
   const submitRequirementMutation = useSubmitRequirement();
   const deleteRequirementMutation = useDeleteRequirement();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -65,7 +65,7 @@ export default function FileOptions({
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!id.startsWith("placeholder-")) {
       const promise = async () => {
         await submitRequirementMutation.mutateAsync(id);
@@ -84,7 +84,7 @@ export default function FileOptions({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!id.startsWith("placeholder-")) {
       const promise = async () => {
         await deleteRequirementMutation.mutateAsync(id);
@@ -110,77 +110,104 @@ export default function FileOptions({
   const isPlaceholder = id.startsWith("placeholder-");
 
   return (
-    <>
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
       <Input
         type="file"
-        accept="application/pdf"
+        accept={file_type ? file_type.join(",") : undefined}
         ref={fileInputRef}
         hidden
         onChange={handleFileChange}
         disabled={isOperationInProgress}
       />
 
-      {status === "not submitted" && !file_name ? (
-        <Button
-          size={"sm"}
-          className="cursor-pointer gap-1"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isOperationInProgress}
-        >
-          <Upload className="size-4" />
-          {uploadRequiementMutation.isPending ? "Uploading..." : "Upload File"}
-        </Button>
-      ) : (
-        <div className="flex gap-5">
-          <If
-            condition={
-              status === "not submitted" && !!file_name && !isPlaceholder
-            }
-          >
-            <Button
-              size={"sm"}
-              className="cursor-pointer gap-1"
-              onClick={handleSubmit}
-              disabled={isOperationInProgress}
-            >
-              <FileInput className="size-4" />
-              {submitRequirementMutation.isPending
-                ? "Submitting..."
-                : "Submit File"}
-            </Button>
-          </If>
-
-          <div className="flex items-center gap-1">
-            <div className="flex gap-1 font-medium">
-              <p className="line-clamp-1 text-sm">{file_name}</p>
-              <p className="text-muted-foreground text-[11px]">
-                {file_size && formatFileSize(file_size)}
-              </p>
-            </div>
-
+      <If
+        condition={status === "not submitted" && !file_name}
+        fallback={
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
             <If
               condition={
-                (status === "not submitted" || status === "rejected") &&
-                !isPlaceholder
+                status === "not submitted" && !!file_name && !isPlaceholder
               }
             >
               <Button
-                variant={"ghost"}
                 size={"sm"}
-                className="hover:bg-destructive/20 cursor-pointer"
-                onClick={handleDelete}
+                className="w-full cursor-pointer sm:w-auto"
+                onClick={handleSubmit}
                 disabled={isOperationInProgress}
               >
-                {deleteRequirementMutation.isPending ? (
+                <If
+                  condition={submitRequirementMutation.isPending}
+                  fallback={
+                    <>
+                      <FileInput className="size-4" />
+                      Submit File
+                    </>
+                  }
+                >
                   <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <X className="text-destructive size-4" />
-                )}
+                  Submitting...
+                </If>
               </Button>
             </If>
+
+            <div className="flex items-center gap-1">
+              <div className="flex max-w-2xs gap-1 font-medium">
+                <p
+                  className="block truncate text-sm"
+                  title={file_name ?? undefined}
+                >
+                  {file_name}
+                </p>
+                <p className="text-muted-foreground text-[11px]">
+                  {file_size && formatFileSize(file_size)}
+                </p>
+              </div>
+
+              <If
+                condition={
+                  (status === "not submitted" || status === "rejected") &&
+                  !isPlaceholder
+                }
+              >
+                <Button
+                  variant={"ghost"}
+                  size={"sm"}
+                  className="hover:bg-destructive/20 cursor-pointer"
+                  onClick={handleDelete}
+                  disabled={isOperationInProgress}
+                >
+                  <If
+                    condition={deleteRequirementMutation.isPending}
+                    fallback={<X className="text-destructive size-4" />}
+                  >
+                    <Loader2 className="size-4 animate-spin" />
+                  </If>
+                </Button>
+              </If>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        }
+      >
+        <Button
+          size={"sm"}
+          className="w-full cursor-pointer sm:w-auto"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isOperationInProgress}
+        >
+          <If
+            condition={uploadRequiementMutation.isPending}
+            fallback={
+              <>
+                <Upload className="size-4" />
+                Upload File
+              </>
+            }
+          >
+            <Loader2 className="size-4 animate-spin" />
+            Uploading...
+          </If>
+        </Button>
+      </If>
+    </div>
   );
 }

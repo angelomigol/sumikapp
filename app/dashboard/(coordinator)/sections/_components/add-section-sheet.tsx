@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import DateRangePicker from "@/components/sumikapp/date-range-picker";
+import { If } from "@/components/sumikapp/if";
 
 import { SectionFormValues, sectionSchema } from "../schemas/section.schema";
 
@@ -67,7 +68,7 @@ export default function AddSectionSheet() {
   async function onSubmit(data: SectionFormValues) {
     const sanitizedData = {
       ...data,
-      title: (data.title),
+      title: data.title,
       description: sanitizeText(data.description),
       internship_code: sanitizeText(data.internship_code),
     };
@@ -95,8 +96,8 @@ export default function AddSectionSheet() {
       <Form {...form}>
         <form id="add-section-form" onSubmit={form.handleSubmit(onSubmit)}>
           <SheetTrigger asChild>
-            <Button size="sm">
-              <PlusCircle />
+            <Button size={"sm"}>
+              <PlusCircle className="size-4" />
               New Section
             </Button>
           </SheetTrigger>
@@ -253,11 +254,15 @@ export default function AddSectionSheet() {
                   size={"sm"}
                   type="submit"
                   form="add-section-form"
+                  className="cursor-pointer"
                   disabled={form.formState.isSubmitting}
                 >
-                  {form.formState.isSubmitting
-                    ? "Creating..."
-                    : "Create Section"}
+                  <If
+                    condition={form.formState.isSubmitting}
+                    fallback={"Create Section"}
+                  >
+                    Creating...
+                  </If>
                 </Button>
               </div>
             </SheetFooter>

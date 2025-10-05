@@ -22,6 +22,7 @@ export const internshipDetailsFormSchema = z
     dailySchedule: z.array(z.string()).min(1, "Please select at least one day"),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
+    lunchBreak: z.number().int().positive(),
   })
   .refine(
     (data) => {
@@ -45,18 +46,6 @@ export const internshipDetailsFormSchema = z
     {
       error: "End date must be after start date",
       path: ["endDate"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.startTime && data.endTime) {
-        return data.endTime > data.startTime;
-      }
-      return true;
-    },
-    {
-      error: "End time must be after start time",
-      path: ["endTime"],
     }
   );
 

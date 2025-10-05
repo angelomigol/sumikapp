@@ -13,6 +13,8 @@ import {
 
 import { WeeklyAttendanceData } from "@/hooks/use-trainee-dashboard";
 
+export const description = "A pie chart shows the distribution of students";
+
 export default function TraineeAttendanceChart({
   entries = [],
 }: {

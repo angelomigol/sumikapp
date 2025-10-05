@@ -1,14 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { Database } from "../supabase.types";
-import { useSupabase } from "./use-supabase";
 import { getSupabaseServerAdminClient } from "../client/server-admin-client";
-
-type UserRole = Database["public"]["Enums"]["role"];
+import { Database } from "../supabase.types";
 
 interface InviteUserByEmailMutationParams {
   email: string;
-  role: string;
+  role: Database["public"]["Enums"]["role"];
   redirectTo: string;
 }
 

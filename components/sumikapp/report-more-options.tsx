@@ -18,10 +18,14 @@ import { Database } from "@/utils/supabase/supabase.types";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -99,22 +103,48 @@ export default function ReportMoreOptions({
         <DropdownMenu>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MoreHorizontal className="size-4" />
+              <Button variant={"outline"} size={"icon-sm"}>
+                <MoreHorizontal />
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
 
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconFileTypePdf />
-                Export to PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconFileTypeDocx />
-                Export to DOCX
-              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Export Attendance Report
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <IconFileTypePdf />
+                      To PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <IconFileTypeDocx />
+                      To DOCX
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Export Accomplishment Report
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <IconFileTypePdf />
+                      To PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <IconFileTypeDocx />
+                      To DOCX
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuGroup>
 
             <If condition={canDelete}>

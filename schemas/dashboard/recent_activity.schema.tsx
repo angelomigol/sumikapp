@@ -1,15 +1,21 @@
 import { JSX } from "react";
 
 import {
+  BadgeCheck,
   BadgeQuestionMark,
+  BadgeX,
   BookOpen,
   BookOpenCheck,
+  BriefcaseBusiness,
   CalendarClock,
   ClipboardCheck,
   FilePlus2,
   FileText,
   Info,
   MessageSquare,
+  UserCheck2,
+  UserMinus2,
+  UserPlus2,
 } from "lucide-react";
 
 import { Database } from "@/utils/supabase/supabase.types";
@@ -26,7 +32,7 @@ const iconClasses = "size-5";
 const activityConfigs: Partial<Record<ActivityType, ActivityConfig>> = {
   // Accomplishment reports
   accomplishment_report_created: {
-    color: "text-green-11",
+    color: "",
     icon: <FileText className={iconClasses} />,
   },
   accomplishment_report_submitted: {
@@ -52,7 +58,7 @@ const activityConfigs: Partial<Record<ActivityType, ActivityConfig>> = {
 
   // Attendance reports
   attendance_report_created: {
-    color: "text-green-11",
+    color: "",
     icon: <CalendarClock className={iconClasses} />,
   },
   attendance_report_submitted: {
@@ -118,6 +124,50 @@ const activityConfigs: Partial<Record<ActivityType, ActivityConfig>> = {
   batch_requirement_added: {
     color: "text-green-11",
     icon: <FilePlus2 className={iconClasses} />,
+  },
+
+  // User-related Activities
+  user_login: {
+    color: "",
+    icon: <UserCheck2 className={iconClasses} />,
+  },
+  user_registered: {
+    color: "text-green-11",
+    icon: <UserPlus2 className={iconClasses} />,
+  },
+  user_deleted: {
+    color: "text-red-11",
+    icon: <UserMinus2 className={iconClasses} />,
+  },
+
+  // Internship Form
+  internship_created: {
+    color: "",
+    icon: <BriefcaseBusiness className={iconClasses} />,
+  },
+  internship_started: {
+    color: "text-green-11",
+    icon: <BriefcaseBusiness className={iconClasses} />,
+  },
+  internship_completed: {
+    color: "text-green-11",
+    icon: <BadgeCheck className={iconClasses} />,
+  },
+  internship_updated: {
+    color: "text-blue-11",
+    icon: <BriefcaseBusiness className={iconClasses} />,
+  },
+  internship_submitted: {
+    color: "text-blue-11",
+    icon: <BriefcaseBusiness className={iconClasses} />,
+  },
+  internship_rejected: {
+    color: "text-red-11",
+    icon: <BadgeX className={iconClasses} />,
+  },
+  internship_deleted: {
+    color: "text-red-11",
+    icon: <BriefcaseBusiness className={iconClasses} />,
   },
 };
 

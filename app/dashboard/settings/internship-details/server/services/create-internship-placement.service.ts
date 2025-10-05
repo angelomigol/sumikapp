@@ -80,7 +80,7 @@ class CreateInternshipPlacementService {
             end_date: data.endDate,
             start_time: data.startTime,
             end_time: data.endTime,
-            daily_schedule: JSON.stringify(data.dailySchedule),
+            daily_schedule: data.dailySchedule,
             status: "not submitted" as const,
             temp_email: data.supervisorEmail,
           })

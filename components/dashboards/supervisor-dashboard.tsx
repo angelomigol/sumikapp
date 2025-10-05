@@ -1,19 +1,13 @@
 "use client";
 
 import { IconActivity, IconClipboardCheck } from "@tabler/icons-react";
-import {
-  Calendar,
-  FileClock,
-  FileEdit,
-  FileQuestionMark,
-  FileText,
-  MessageSquare,
-  Users2,
-} from "lucide-react";
+import { FileClock, FileEdit, Users2 } from "lucide-react";
 
 import { useFetchSupervisorDashboard } from "@/hooks/use-supervisor-dashboard";
 
 import { formatTimestamp } from "@/utils/shared";
+
+import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
@@ -21,11 +15,10 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import DashboardStatsCard from "./dashboard-stats-card";
-import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
 export default function SupervisorDashboard() {
   const supervisor = useFetchSupervisorDashboard();
-  
+
   if (!supervisor.data || supervisor.isLoading) {
     return <LoadingOverlay fullPage />;
   }
@@ -105,7 +98,7 @@ export default function SupervisorDashboard() {
                 ) : (
                   supervisor.data.recentActivities.map((activity, index) => (
                     <div
-                      key={index}
+                      key={`${activity.id}-${index}`}
                       className="flex items-start space-x-4 px-6"
                     >
                       <div className="mt-1 flex size-10 items-center justify-center rounded-full border">
@@ -114,14 +107,16 @@ export default function SupervisorDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium tracking-tight">
-                            {activity.description}
+                            {activity.title}
                           </p>
                           <span className="text-muted-foreground text-xs">
                             {formatTimestamp(activity.timestamp)}
                           </span>
                         </div>
 
-                        <p className="text-muted-foreground text-xs">{""}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {activity.description}
+                        </p>
                         <div className="flex items-center pt-2">
                           <Avatar className="mr-2 font-medium">
                             <AvatarFallback>
@@ -158,25 +153,30 @@ export default function SupervisorDashboard() {
                     </p>
                   </div>
                 ) : (
-                  supervisor.data.traineesPendingEvaluation.map((trainee) => (
-                    <div key={trainee.trainee_id} className="flex px-6">
-                      <Avatar className="mr-2 size-10 font-medium">
-                        <AvatarFallback>
-                          {trainee.trainee_name.slice(0, 1)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium tracking-tight">
-                          {trainee.trainee_name}
-                        </p>
-                        <div className="text-muted-foreground flex gap-2 text-xs">
-                          <p>{trainee.section}</p>
+                  supervisor.data.traineesPendingEvaluation.map(
+                    (trainee, index) => (
+                      <div
+                        key={`${trainee.trainee_id}-${index}`}
+                        className="flex px-6"
+                      >
+                        <Avatar className="mr-2 size-10 font-medium">
+                          <AvatarFallback>
+                            {trainee.trainee_name.slice(0, 1)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-sm font-medium tracking-tight">
+                            {trainee.trainee_name}
+                          </p>
+                          <div className="text-muted-foreground flex gap-2 text-xs">
+                            <p>{trainee.section}</p>
 
-                          <p>{trainee.course}</p>
+                            <p>{trainee.course}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  )
                 )}
               </div>
             </ScrollArea>

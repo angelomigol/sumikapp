@@ -15,8 +15,8 @@ import {
 
 import { documentStatusMap, internCodeMap } from "@/lib/constants";
 
-import { safeFormatDate } from "@/utils/shared";
-import { calculateTotalHours, createTableEntries } from "@/utils/shared/index";
+import { createAttendanceTableEntries, safeFormatDate } from "@/utils/shared";
+import { calculateTotalHours } from "@/utils/shared/index";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export default function AttendanceReportDetailsContainer(params: {
 
   useEffect(() => {
     if (attendance.data) {
-      const entries = createTableEntries(
+      const entries = createAttendanceTableEntries(
         startDate,
         endDate,
         attendance.data?.attendance_entries,
@@ -132,7 +132,7 @@ export default function AttendanceReportDetailsContainer(params: {
             return entry;
           })
         );
-        return "Entry successfully saved";
+        return "Entry saved successfully!";
       },
       error: (err) => {
         if (err instanceof Error) {
@@ -160,7 +160,7 @@ export default function AttendanceReportDetailsContainer(params: {
 
     toast.promise(promise, {
       loading: "Submitting report...",
-      success: "Attendance report successfully submitted",
+      success: "Attendance report successfully submitted!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -193,7 +193,7 @@ export default function AttendanceReportDetailsContainer(params: {
           link={pathsConfig.app.attendance}
         />
 
-        <div className="flex flex-1 justify-end">
+        <div className="flex-end">
           <ReportMoreOptions
             id={attendance.data.id}
             deleteAction={deleteAttendanceReportAction}
@@ -222,7 +222,7 @@ export default function AttendanceReportDetailsContainer(params: {
 
         <div className="px-6">
           <p className="text-muted-foreground text-sm font-medium">
-            Company Name:
+            Company Name: {attendance.data.company_name}
           </p>
         </div>
 

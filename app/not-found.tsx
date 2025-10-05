@@ -27,7 +27,7 @@ export default function NotFoundPage() {
               </p>
             </div>
 
-            <Button variant="outline" onClick={() => router.back()}>
+            <Button variant={"outline"} onClick={() => router.back()}>
               <ArrowLeft className="mr-2 h-4" />
               Go back
             </Button>

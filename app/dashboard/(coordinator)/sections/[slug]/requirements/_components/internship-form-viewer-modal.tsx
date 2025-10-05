@@ -22,7 +22,7 @@ import {
 
 import { DocumentStatus, jobRoles } from "@/lib/constants";
 
-import { safeFormatDate } from "@/utils/shared";
+import { displayDays, safeFormatDate } from "@/utils/shared";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,22 +38,12 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { If } from "@/components/sumikapp/if";
 
-const weekDays = [
-  { label: "Monday", value: "monday" },
-  { label: "Tuesday", value: "tuesday" },
-  { label: "Wednesday", value: "wednesday" },
-  { label: "Thursday", value: "thursday" },
-  { label: "Friday", value: "friday" },
-  { label: "Saturday", value: "saturday" },
-  { label: "Sunday", value: "sunday" },
-];
-
 interface InternshipFormViewerModalProps {
   isOpen: boolean;
   onClose: () => void;
 
   internshipId: string;
-  dailySchedule: string | null;
+  dailySchedule: string[] | null;
   jobRole: string | null;
   companyName: string | null;
   contactNumber: string | null;
@@ -93,38 +83,18 @@ export default function InternshipFormViewerModal({
   const approveFormMutation = useApproveInternshipForm(slug);
   const rejectFormMutation = useRejectInternshipForm(slug);
 
-  let scheduleDays: string[] = [];
-
   useEffect(() => {
     if (isOpen) {
       setFeedback("");
       setShowFeedbackForm(false);
     }
   }, [isOpen]);
-
-  if (dailySchedule) {
-    try {
-      scheduleDays = JSON.parse(dailySchedule);
-    } catch (e) {
-      console.error("Error parsing daily schedule:", e);
-    }
-  }
-
+  
   const getJobRoleDisplay = () => {
     if (!jobRole) return "Not specified";
 
     const predefinedRole = jobRoles.find((role) => role.value === jobRole);
     return predefinedRole ? predefinedRole.label : jobRole;
-  };
-
-  const getScheduleDisplay = () => {
-    if (scheduleDays.length === 0) return "Not specified";
-
-    const displayDays = scheduleDays.map(
-      (day) => weekDays.find((wd) => wd.value === day)?.label || day
-    );
-
-    return displayDays.join(", ");
   };
 
   const formatTime = (time: string | null) => {
@@ -173,7 +143,7 @@ export default function InternshipFormViewerModal({
 
     toast.promise(promise, {
       loading: "Updating internship form...",
-      success: `Internship form successfully rejected"`,
+      success: `Internship form successfully rejected`,
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -287,7 +257,11 @@ export default function InternshipFormViewerModal({
                   <h4 className="text-muted-foreground mb-1 text-sm font-medium">
                     Schedule
                   </h4>
-                  <p className="text-sm">{getScheduleDisplay()}</p>
+                  <p className="text-sm">
+                    {dailySchedule?.length
+                      ? displayDays(dailySchedule)
+                      : "Not Specified"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -295,8 +269,40 @@ export default function InternshipFormViewerModal({
         </div>
         <If condition={status === "pending"}>
           <DialogFooter className="border-t p-6 sm:justify-between">
-            {showFeedbackForm ? (
-              <div className="space-y-4">
+            <If
+              condition={showFeedbackForm}
+              fallback={
+                <>
+                  <Button
+                    variant={"destructive"}
+                    size={"sm"}
+                    onClick={() => setShowFeedbackForm(true)}
+                    disabled={
+                      approveFormMutation.isPending ||
+                      rejectFormMutation.isPending
+                    }
+                    className="cursor-pointer"
+                  >
+                    <XCircle className="size-4" />
+                    Reject
+                  </Button>
+
+                  <Button
+                    size={"sm"}
+                    className="bg-green-600 hover:bg-green-600/80"
+                    disabled={
+                      approveFormMutation.isPending ||
+                      rejectFormMutation.isPending
+                    }
+                    onClick={handleApproveForm}
+                  >
+                    <CheckCircle className="size-4" />
+                    Approve
+                  </Button>
+                </>
+              }
+            >
+              <div className="w-full space-y-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="size-4" />
                   <Label htmlFor="feedback" className="text-base font-medium">
@@ -343,36 +349,7 @@ export default function InternshipFormViewerModal({
                   </Button>
                 </div>
               </div>
-            ) : (
-              <>
-                <Button
-                  variant={"destructive"}
-                  size={"sm"}
-                  onClick={() => setShowFeedbackForm(true)}
-                  disabled={
-                    approveFormMutation.isPending ||
-                    rejectFormMutation.isPending
-                  }
-                  className="cursor-pointer"
-                >
-                  <XCircle className="size-4" />
-                  Reject
-                </Button>
-
-                <Button
-                  size={"sm"}
-                  className="bg-green-600 hover:bg-green-600/80"
-                  disabled={
-                    approveFormMutation.isPending ||
-                    rejectFormMutation.isPending
-                  }
-                  onClick={handleApproveForm}
-                >
-                  <CheckCircle className="size-4" />
-                  Approve
-                </Button>
-              </>
-            )}
+            </If>
           </DialogFooter>
         </If>
       </DialogContent>

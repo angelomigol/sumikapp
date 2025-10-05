@@ -33,12 +33,12 @@ export const sendEmailInviteAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = sendEmailInviteSchema.safeParse(
+    const { data, success, error } = sendEmailInviteSchema.safeParse(
       Object.fromEntries(formData.entries())
     );
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(`Invalid form data: ${error.message}`);
     }
 
     const ctx = {
@@ -350,12 +350,12 @@ export const createUserAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = addAccountSchema.safeParse(
+    const { data, success, error } = addAccountSchema.safeParse(
       Object.fromEntries(formData.entries())
     );
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(`Invalid form data: ${error.message}`);
     }
 
     const ctx = {

@@ -187,12 +187,38 @@ export const createCustomRequirementAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = customRequirementSchema.safeParse(
-      Object.fromEntries(formData.entries())
-    );
+    const formObject = Object.fromEntries(formData.entries()) as Record<
+      string,
+      unknown
+    >;
+
+    if (
+      formObject.allowedFileTypes &&
+      typeof formObject.allowedFileTypes === "string"
+    ) {
+      try {
+        formObject.allowedFileTypes = JSON.parse(
+          formObject.allowedFileTypes as string
+        );
+      } catch (error) {
+        throw new Error("Invalid allowedFileTypes format");
+      }
+    }
+
+    if (
+      formObject.maxFileSizeBytes &&
+      typeof formObject.maxFileSizeBytes === "string"
+    ) {
+      formObject.maxFileSizeBytes = Number(formObject.maxFileSizeBytes);
+    }
+
+    const { data, success, error } =
+      customRequirementSchema.safeParse(formObject);
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(
+        `Invalid form data: ${JSON.stringify(error.issues, null, 2)}`
+      );
     }
 
     const ctx = {
@@ -209,11 +235,12 @@ export const createCustomRequirementAction = enhanceAction(
       const result = await service.createCustomRequirement({
         client,
         userId: user.id,
-        slug: data.slug,
         data: {
           name: data.name,
           description: data.description,
-          created_by: user.id,
+          allowedFileTypes: data.allowedFileTypes,
+          maxFileSizeBytes: data.maxFileSizeBytes,
+          slug: data.slug,
         },
       });
 
@@ -268,13 +295,37 @@ export const updateCustomRequirementAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = customRequirementSchema.safeParse(
-      Object.fromEntries(formData.entries())
-    );
+    const formObject = Object.fromEntries(formData.entries());
+
+    if (
+      formObject.allowedFileTypes &&
+      typeof formObject.allowedFileTypes === "string"
+    ) {
+      try {
+        formObject.allowedFileTypes = JSON.parse(
+          formObject.allowedFileTypes as string
+        );
+      } catch (error) {
+        throw new Error("Invalid allowed file types format");
+      }
+    }
+
+    if (
+      formObject.maxFileSizeBytes &&
+      typeof formObject.maxFileSizeBytes === "string"
+    ) {
+      formObject.maxFileSizeBytes = Number(formObject.maxFileSizeBytes);
+    }
+
+    const { data, success, error } =
+      customRequirementSchema.safeParse(formObject);
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(
+        `Invalid form data: ${JSON.stringify(error.issues, null, 2)}`
+      );
     }
+
     const ctx = {
       name: "requirement_type.update",
       userId: user.id,
@@ -294,6 +345,9 @@ export const updateCustomRequirementAction = enhanceAction(
           id: data.id,
           name: data.name,
           description: data.description,
+          allowedFileTypes: data.allowedFileTypes,
+          maxFileSizeBytes: data.maxFileSizeBytes,
+          slug: data.slug,
         },
       });
 

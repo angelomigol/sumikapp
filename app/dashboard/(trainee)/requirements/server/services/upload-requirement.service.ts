@@ -48,7 +48,8 @@ class UploadRequirementService {
           id,
           program_batch (
             id,
-            title
+            title,
+            internship_code
           )
         `
         )
@@ -77,32 +78,8 @@ class UploadRequirementService {
         );
       }
 
-      // Step 2a: First get the requirement type ID
-      const { data: requirementType, error: reqTypeError } = await client
-        .from("requirement_types")
-        .select("id")
-        .eq("name", requirementName)
-        .single();
-
-      if (reqTypeError || !requirementType) {
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              code: reqTypeError.code,
-              message: reqTypeError.message,
-              hint: reqTypeError.hint,
-              details: reqTypeError.details,
-            },
-          },
-
-          `Requirement type not found: ${reqTypeError.message}`
-        );
-        throw new Error(`Requirement type not found: ${reqTypeError.message}`);
-      }
-
-      // Step 2b: Then get the batch requirement
-      const { data: batchRequirement, error: batchReqError } = await client
+      // Step 2: Then get the batch requirement
+      const { data: batchRequirements, error: batchReqError } = await client
         .from("batch_requirements")
         .select(
           `
@@ -111,15 +88,15 @@ class UploadRequirementService {
           requirement_types:requirement_type_id (
             id,
             name,
-            description
+            description,
+            allowed_file_types, 
+            max_file_size_bytes
           )
         `
         )
-        .eq("requirement_type_id", requirementType.id)
-        .eq("program_batch_id", enrollment.program_batch.id)
-        .single();
+        .eq("program_batch_id", enrollment.program_batch.id);
 
-      if (batchReqError || !batchRequirement) {
+      if (batchReqError) {
         logger.error(
           {
             ...ctx,
@@ -130,16 +107,86 @@ class UploadRequirementService {
               details: batchReqError.details,
             },
           },
-
-          `Invalid batch requirement for user's enrollment: ${batchReqError.message}`
+          `Error fetching batch requirements: ${batchReqError.message}`
         );
         throw new Error(
-          `Invalid requirement for your current batch: ${batchReqError.message}`
+          `Error fetching requirements for your batch: ${batchReqError.message}`
         );
       }
 
-      // Step 3: Generate file path and upload to storage
-      const filePath = `submissions/${userId}/${requirementName.replace(/[\s/]+/g, "_").toLowerCase()}`;
+      const batchRequirement = batchRequirements?.find(
+        (req) => req.requirement_types?.name === requirementName
+      );
+
+      if (!batchRequirement || !batchRequirement.requirement_types) {
+        logger.error(
+          {
+            ...ctx,
+            availableRequirements: batchRequirements
+              ?.map((r) => r.requirement_types?.name)
+              .filter(Boolean),
+            requestedRequirement: requirementName,
+          },
+          `Requirement '${requirementName}' not found for user's batch`
+        );
+        throw new Error(
+          `Requirement '${requirementName}' is not available for your current batch`
+        );
+      }
+
+      // Step 3: Validate file
+      if (
+        batchRequirement.requirement_types.allowed_file_types &&
+        batchRequirement.requirement_types.allowed_file_types.length > 0
+      ) {
+        const fileExtension = docFile.name.split(".").pop()?.toLowerCase();
+        const mimeType = docFile.type;
+
+        // Check both file extension and MIME type
+        const isValidType =
+          batchRequirement.requirement_types.allowed_file_types.some(
+            (allowedType) => {
+              const normalizedType = allowedType.toLowerCase();
+
+              // Check if it's a file extension (starts with .)
+              if (normalizedType.startsWith(".")) {
+                return fileExtension === normalizedType.substring(1);
+              }
+
+              // Check if it's a MIME type
+              if (normalizedType.includes("/")) {
+                return mimeType === normalizedType;
+              }
+
+              // Check if it's just the extension without dot
+              return fileExtension === normalizedType;
+            }
+          );
+
+        if (!isValidType) {
+          const allowedTypesStr =
+            batchRequirement.requirement_types.allowed_file_types.join(", ");
+          throw new Error(
+            `Invalid file type. Allowed types: ${allowedTypesStr}`
+          );
+        }
+      }
+
+      // Validate file size
+      if (
+        docFile.size > batchRequirement.requirement_types.max_file_size_bytes
+      ) {
+        const maxSizeMB = (
+          batchRequirement.requirement_types.max_file_size_bytes /
+          (1024 * 1024)
+        ).toFixed(1);
+        throw new Error(
+          `File size exceeds maximum allowed size of ${maxSizeMB}MB`
+        );
+      }
+
+      // Step 4: Generate file path and upload to storage
+      const filePath = `submissions/${userId}/${enrollment.program_batch.internship_code}/${requirementName.replace(/[\s/]+/g, "_").toLowerCase()}`;
 
       const { data: uploadData, error: uploadError } = await client.storage
         .from(REQS_BUCKET)
@@ -181,7 +228,6 @@ class UploadRequirementService {
             file_path: uploadData.path,
             file_type: docFile.type,
             file_size: docFile.size.toString(),
-            submitted_at: new Date().toISOString(),
           })
           .eq("id", existingRequirement.id)
           .select("id")
@@ -218,7 +264,6 @@ class UploadRequirementService {
             file_path: uploadData.path,
             file_type: docFile.type,
             file_size: docFile.size.toString(),
-            submitted_at: new Date().toISOString(),
           })
           .select("id")
           .single();
@@ -309,6 +354,34 @@ class UploadRequirementService {
     logger.info(ctx, "Submitting document for review...");
 
     try {
+      const { error: updateError } = await client
+        .from("requirements")
+        .update({
+          submitted_at: new Date().toISOString(),
+        })
+        .eq("id", requirementId)
+        .single();
+
+      if (updateError) {
+        logger.error(
+          {
+            ...ctx,
+            supabaseError: {
+              code: updateError.code,
+              message: updateError.message,
+              hint: updateError.hint,
+              details: updateError.details,
+            },
+          },
+
+          `Supabase error while updating requirement submission date: ${updateError.message}`
+        );
+
+        throw new Error(
+          `Failed to update requirement submission date: ${updateError.message}`
+        );
+      }
+
       // Add history entry for submission
       const { error: historyError } = await client
         .from("requirements_history")

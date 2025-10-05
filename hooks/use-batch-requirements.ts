@@ -66,7 +66,7 @@ export interface TraineeWithRequirementsAndInternship
     end_date: string;
     start_time: string | null;
     end_time: string | null;
-    daily_schedule: string | null;
+    daily_schedule: string[] | null;
     status: DocumentStatus;
     supervisor_email: string | null;
     created_at: string;
@@ -119,6 +119,11 @@ export function useCreateCustomRequirement(slug: string) {
     }
     formData.append("name", payload.name);
     formData.append("slug", payload.slug || slug);
+    formData.append(
+      "allowedFileTypes",
+      JSON.stringify(payload.allowedFileTypes)
+    );
+    formData.append("maxFileSizeBytes", payload.maxFileSizeBytes.toString());
 
     const result = await createCustomRequirementAction(formData);
 
@@ -148,6 +153,11 @@ export function useUpdateCustomRequirement(slug: string) {
       formData.append("description", payload.description);
     }
     formData.append("name", payload.name);
+    formData.append(
+      "allowedFileTypes",
+      JSON.stringify(payload.allowedFileTypes)
+    );
+    formData.append("maxFileSizeBytes", payload.maxFileSizeBytes.toString());
     formData.append("slug", payload.slug || slug);
 
     const result = await updateCustomRequirementAction(formData);

@@ -1,12 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { TriangleAlert } from "lucide-react";
+
+import { useGenerateMoaUrl } from "@/hooks/use-industry-partner";
 
 import { safeFormatDate } from "@/utils/shared";
 import { Tables } from "@/utils/supabase/supabase.types";
 
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 
@@ -119,21 +124,64 @@ export const industryPartnerColumns: ColumnDef<Tables<"industry_partners">>[] =
       },
     },
     {
-      accessorKey: "MOA File Link",
+      accessorKey: "MOA File",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="MOA File Link" />
+        <DataTableColumnHeader column={column} title="MOA File" />
       ),
       cell: ({ row }) => {
-        const fileLink = row.original.moa_file_path;
+        const filePath = row.original.moa_file_path;
         const fileName = row.original.file_name;
-        if (!fileLink || !fileName) {
+        if (!filePath || !fileName) {
           return;
         }
 
+        const { generateSignedUrl } = useGenerateMoaUrl();
+        const [signedUrl, setSignedUrl] = useState<string | null>(null);
+        const [isLoading, setIsLoading] = useState(false);
+
+        useEffect(() => {
+          const getSignedUrl = async () => {
+            if (!filePath) return;
+
+            setIsLoading(true);
+            try {
+              const url = await generateSignedUrl(filePath, 3600);
+              setSignedUrl(url);
+            } catch (error) {
+              console.error("Error generating signed URL:", error);
+            } finally {
+              setIsLoading(false);
+            }
+          };
+
+          getSignedUrl();
+        }, [filePath, generateSignedUrl]);
+
+        if (isLoading) {
+          return null;
+        }
+
+        if (!signedUrl) {
+          return (
+            <Badge className="bg-red-3 text-red-11">
+              <TriangleAlert className="size-3" />
+              File Unavailable
+            </Badge>
+          );
+        }
+
         return (
-          <Link href={fileLink} title={fileName}>
-            {fileName}
-          </Link>
+          <div className="max-w-36 lg:max-w-52">
+            <Link
+              href={signedUrl}
+              title={fileName}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block truncate underline-offset-4 hover:underline"
+            >
+              {fileName}
+            </Link>
+          </div>
         );
       },
       enableSorting: false,

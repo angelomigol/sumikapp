@@ -25,6 +25,8 @@ export type RequirementWithHistory = {
   file_type: string | null;
   submitted_at: string | null;
   status: DocumentStatus;
+  allowed_file_types: string[] | null;
+  max_file_size_bytes: number | null;
   history: {
     id: string;
     document_id: string;

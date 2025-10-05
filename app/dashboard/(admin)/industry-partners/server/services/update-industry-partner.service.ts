@@ -73,8 +73,7 @@ class UpdateIndustryPartnerService {
           throw new Error("Failed to fetch existing industry partner");
         }
 
-        const fileExtension = moaFile.name.split(".").pop();
-        const fileName = `${Date.now()}.${fileExtension}`;
+        const fileName = moaFile.name;
         filePath = `${data.company_name}/${fileName}`;
         originalFileName = moaFile.name;
 

@@ -15,6 +15,7 @@ const StaticPathsSchema = z.object({
     requirements: z.string().min(1),
     attendance: z.string().min(1),
     activity: z.string().min(1),
+    weeklyReports: z.string().min(1),
     sections: z.string().min(1),
     reports: z.string().min(1),
     reviewReports: z.string().min(1),
@@ -44,6 +45,7 @@ const staticPaths = StaticPathsSchema.parse({
     requirements: "/dashboard/requirements",
     attendance: "/dashboard/attendance",
     activity: "/dashboard/activity",
+    weeklyReports: "/dashboard/weekly-reports",
     sections: "/dashboard/sections",
     reviewReports: "/dashboard/review-reports",
     reports: "/dashboard/reports",
@@ -54,7 +56,7 @@ const staticPaths = StaticPathsSchema.parse({
     partners: "/dashboard/industry-partners",
     logs: "/dashboard/logs",
     settings: "/dashboard/settings",
-    internshipDetails: "/dashboard/settings/internship-details"
+    internshipDetails: "/dashboard/settings/internship-details",
   },
 });
 
@@ -82,6 +84,7 @@ const dynamicPaths = {
 
   attendanceReport: (id: string) => `/dashboard/attendance/${id}`,
   activityReport: (id: string) => `/dashboard/activity/${id}`,
+  weeklyReport: (id: string) => `/dashboard/weekly-reports/${id}`,
 
   reviewReport: (id: string, slug: string) =>
     `/dashboard/review-reports/${slug}/${id}`,

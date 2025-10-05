@@ -204,4 +204,16 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1 {
+    @apply text-2xl font-bold;
+  }
+  h2 {
+    @apply text-xl font-bold;
+  }
+  h3 {
+    @apply text-lg font-bold;
+  }
+  blockquote {
+    @apply border-l-gray-3 mx-0 my-6 border-l-2 border-solid pl-4;
+  }
 }

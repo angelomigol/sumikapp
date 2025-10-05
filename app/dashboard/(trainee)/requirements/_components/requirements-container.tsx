@@ -79,6 +79,8 @@ export default function RequirementsContainer() {
                     file_type: null,
                     submitted_at: null,
                     status: "not submitted",
+                    allowed_file_types: [".pdf"],
+                    max_file_size_bytes: 50 * 1024 * 1024,
                     history: [],
                   }
                 }

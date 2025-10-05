@@ -90,7 +90,7 @@ class DeleteRequirementService {
           .remove([filePath]);
 
         if (storageDeleteError) {
-          logger.warn(
+          logger.error(
             {
               ...ctx,
               storageError: {
@@ -98,7 +98,8 @@ class DeleteRequirementService {
               },
               filePath,
             },
-            `Failed to delete file from storage: ${storageDeleteError.message}`
+
+            `Supabase error while deleting file from storage: ${storageDeleteError.message}`
           );
         } else {
           logger.info(
@@ -131,7 +132,7 @@ class DeleteRequirementService {
           `Supabase error while deleting requirement: ${deleteError.message}`
         );
 
-        throw new Error("Failed to delete requirement");
+        throw new Error("Failed to delete requirement from storage");
       }
 
       logger.info(

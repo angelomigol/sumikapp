@@ -256,7 +256,6 @@ export default function ManualAddUserTab() {
                             value={formatPhone(field.value ?? "")}
                             placeholder="Optional"
                             inputMode="numeric"
-                            pattern="[0-9]*"
                             maxLength={13}
                             onChange={(e) => {
                               const raw = e.target.value.replace(/\D/g, "");
@@ -353,7 +352,6 @@ export default function ManualAddUserTab() {
                           <Input
                             value={formatPhone(field.value ?? "")}
                             inputMode="numeric"
-                            pattern="[0-9]*"
                             maxLength={13}
                             onChange={(e) => {
                               const raw = e.target.value.replace(/\D/g, "");
@@ -389,7 +387,6 @@ export default function ManualAddUserTab() {
                             value={formatPhone(field.value ?? "")}
                             placeholder="Optional"
                             inputMode="numeric"
-                            pattern="[0-9]*"
                             maxLength={13}
                             onChange={(e) => {
                               const raw = e.target.value.replace(/\D/g, "");

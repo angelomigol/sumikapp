@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 import { Check, CircleAlert, X } from "lucide-react";
 import { toast } from "sonner";
@@ -68,6 +68,8 @@ export default function ReviewReportDetailsContainer(params: {
 }) {
   const reportData = useFetchTraineeReport(params.reportId);
 
+  console.log(reportData.data);
+
   const approveMutation = useApproveTraineeReport(params.reportId);
   const rejectMutation = useRejectTraineeReport(params.reportId);
   const updateEntryMutation = useUpdateEntryStatus(params.reportId);
@@ -92,6 +94,10 @@ export default function ReviewReportDetailsContainer(params: {
     .filter(Boolean)
     .join(" ");
 
+  const hasEntriesWithNullStatus = reportData.data.entries.some(
+    (entry) => entry.status === null || entry.status === undefined
+  );
+
   const isAttendanceEntry = (entry: any): entry is AttendanceEntryData => {
     return reportData.data.report_type === "attendance";
   };
@@ -109,7 +115,7 @@ export default function ReviewReportDetailsContainer(params: {
 
     toast.promise(promise, {
       loading: "Updating report...",
-      success: `${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} report successfully approved`,
+      success: `${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} report successfully approved!`,
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -126,7 +132,7 @@ export default function ReviewReportDetailsContainer(params: {
 
     toast.promise(promise, {
       loading: "Updating report...",
-      success: `${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} report successfully rejected`,
+      success: `${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} report successfully rejected!`,
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -142,8 +148,8 @@ export default function ReviewReportDetailsContainer(params: {
     };
 
     toast.promise(promise, {
-      loading: "Updating entry statuses...",
-      success: "Entry statuses successfully updated",
+      loading: "Updating entry status...",
+      success: "Entry status successfully updated!",
       error: (err) =>
         err instanceof Error
           ? err.message
@@ -286,7 +292,7 @@ export default function ReviewReportDetailsContainer(params: {
                   ) : (
                     <TableCell>
                       {isAccomplishmentEntry(entry) ? (
-                        <div className="max-w-md">
+                        <div className="max-w-md text-wrap">
                           <p className="text-sm">
                             {entry.daily_accomplishment ||
                               "No accomplishments recorded"}
@@ -360,7 +366,27 @@ export default function ReviewReportDetailsContainer(params: {
             </div>
           </div>
 
-          <If condition={reportData.data.status === "pending"}>
+          <If
+            condition={reportData.data.status === "pending"}
+            fallback={
+              <>
+                {reportData.data.supervisor_approved_at && (
+                  <>
+                    <Separator />
+                    <div className="flex justify-end gap-2">
+                      <Label>
+                        You approved this report on{" "}
+                        {safeFormatDate(
+                          reportData.data.supervisor_approved_at,
+                          "PPPP"
+                        )}
+                      </Label>
+                    </div>
+                  </>
+                )}
+              </>
+            }
+          >
             <Separator />
             <div className="flex justify-end gap-2">
               <Button
@@ -374,6 +400,7 @@ export default function ReviewReportDetailsContainer(params: {
               <Button
                 className="bg-green-600 hover:bg-green-700"
                 onClick={handleApproveReport}
+                disabled={hasEntriesWithNullStatus}
               >
                 <Check className="size-4" />
                 Approve Report

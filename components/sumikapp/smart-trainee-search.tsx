@@ -21,7 +21,6 @@ export type SearchableTrainee = {
   email: string;
   course: string | null;
   section: string | null;
-  ojt_status: OJTStatus;
 };
 
 interface SmartTraineeSearchProps {
@@ -79,20 +78,19 @@ const SmartTraineeSearch = React.forwardRef<
             .from("trainees")
             .select(
               `
-            id,
-            student_id_number,
-            course,
-            section,
-            ojt_status,
-            users!inner (
               id,
-              first_name,
-              last_name,
-              middle_name,
-              email,
-              deleted_at
-            )
-          `
+              student_id_number,
+              course,
+              section,
+              users!inner (
+                id,
+                first_name,
+                last_name,
+                middle_name,
+                email,
+                deleted_at
+              )
+            `
             )
             .is("users.deleted_at", null);
 
@@ -113,7 +111,6 @@ const SmartTraineeSearch = React.forwardRef<
                 email: item.users.email,
                 course: item.course,
                 section: item.section,
-                ojt_status: item.ojt_status as OJTStatus,
               })
             );
 
@@ -345,14 +342,6 @@ const SmartTraineeSearch = React.forwardRef<
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  <div className="ml-2 flex-shrink-0">
-                    <Badge
-                      className={`${getOJTStatusConfig(trainee.ojt_status)?.badgeColor}`}
-                    >
-                      {getOJTStatusConfig(trainee.ojt_status)?.label}
-                    </Badge>
                   </div>
                 </div>
               </div>

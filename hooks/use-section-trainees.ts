@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { OJTStatus } from "@/lib/constants";
+import { DocumentStatus, OJTStatus, UserStatus } from "@/lib/constants";
 
 import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 
@@ -17,11 +17,63 @@ import {
   getSectionTraineesAction,
 } from "@/app/dashboard/(coordinator)/sections/[slug]/trainees/server/server-actions";
 
+import { NormalizedAccomplishmentReport } from "./use-activity-reports";
+import { NormalizedAttendanceReport } from "./use-attendance-reports";
 import { RequirementWithHistory } from "./use-batch-requirements";
-import { TraineeFullDetails } from "./use-supervisor-trainees";
 
-export type SectionTraineeFullDetails = TraineeFullDetails &
-  RequirementWithHistory;
+export type SectionTraineeFullDetails = {
+  trainee_id: string;
+  student_id_number: string;
+  course: string | null;
+  section: string | null;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  email: string;
+  hours_logged: number;
+  ojt_status: OJTStatus;
+  status: UserStatus;
+  internship_details?: {
+    company_name: string;
+    job_role: string;
+    start_date: string;
+    end_date: string;
+  };
+  program_batch: {
+    required_hours: number;
+    start_date: string;
+    end_date: string;
+  };
+  attendance_reports?: {
+    id: string;
+    created_at: string;
+    start_date: string;
+    end_date: string;
+    period_total: number;
+    status: DocumentStatus;
+    submitted_at: string | null;
+  }[];
+  accomplishment_reports?: {
+    id: string;
+    created_at: string;
+    start_date: string;
+    end_date: string;
+    total_hours: number;
+    status: DocumentStatus;
+    submitted_at: string | null;
+  }[];
+  submitted_requirements?: RequirementWithHistory[];
+  evaluation_results?: {
+    prediction_label: string | null;
+    prediction_probability: number | null;
+    confidence_level: string | null;
+    prediction_date: string | null;
+    evaluation_scores: Record<string, any> | null;
+    feature_scores: Record<string, any> | null;
+    recommendations: Record<string, any> | null;
+    risk_factors: Record<string, any> | null;
+  };
+};
 
 export const SECTION_TRAINEES_QUERY_KEY = (slug: string) =>
   ["supabase:program_batch_trainees", slug] as const;

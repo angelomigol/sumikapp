@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import ConfirmationDialog from "@/components/sumikapp/confirmation-dialog";
 import CustomSearchbar from "@/components/sumikapp/custom-search-bar";
+import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 import PageTitle from "@/components/sumikapp/page-title";
 
@@ -35,7 +36,8 @@ import AddEditAnnouncementDialog from "./add-edit-announcement-dialog";
 
 export default function AnnouncementContainer(params: { slug: string }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
   const [selectedAnnouncement, setSelectedAnnouncement] =
     useState<Announcement | null>(null);
 
@@ -64,6 +66,10 @@ export default function AnnouncementContainer(params: { slug: string }) {
     setAnnouncementDialogOpen(true);
   };
 
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   if (isLoading) {
     return <LoadingOverlay />;
   }
@@ -72,10 +78,23 @@ export default function AnnouncementContainer(params: { slug: string }) {
     return <NotFoundPage />;
   }
 
+  // const getExcerpt = (json: SerializedEditorState, length = 120) => {
+  //   const plain = JSON.stringify(json);
+  //   return plain.length <= length ? plain : plain.slice(0, length) + "...";
+  // };
+
   const getExcerpt = (text: string, length = 120) => {
     if (text.length <= length) return text;
     return text.slice(0, length) + "...";
   };
+
+  const filteredAnnouncements = announcements.filter((a) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      a.title.toLowerCase().includes(query) ||
+      a.content.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <>
@@ -100,10 +119,110 @@ export default function AnnouncementContainer(params: { slug: string }) {
       </div>
 
       <div className="flex-1 space-y-6">
-        {announcements.length === 0 ? (
+        <If
+          condition={announcements.length === 0}
+          fallback={
+            <>
+              <If
+                condition={filteredAnnouncements.length === 0}
+                fallback={
+                  <>
+                    {filteredAnnouncements.map((a) => (
+                      <Card key={a.id} className="rounded-2xl">
+                        <CardHeader className="pb-2">
+                          <CardTitle>{a.title}</CardTitle>
+                          <CardDescription>
+                            {safeFormatDate(a.createdAt, "PPp")}
+                          </CardDescription>
+                          <CardAction className="text-muted-foreground">
+                            <Button
+                              size={"icon"}
+                              variant={"ghost"}
+                              onClick={() => handleEdit(a)}
+                            >
+                              <Edit className="size-4" />
+                            </Button>
+                            <Button
+                              size={"icon"}
+                              variant={"ghost"}
+                              onClick={() => {
+                                const formData = new FormData();
+                                formData.append("id", a.id);
+
+                                openConfirmDialog({
+                                  title: `Delete ${a.title}`,
+                                  description: `Are you sure you want to delete this announcement? This action cannot be undone.`,
+                                  onConfirm: () => {
+                                    toast.promise(
+                                      deleteAnnouncementAction(formData),
+                                      {
+                                        loading: `Deleting announcement...`,
+                                        success: () => {
+                                          revalidateAnnouncements(params.slug);
+                                          return `Announcement deleted successfully!`;
+                                        },
+                                        error: (err) =>
+                                          err instanceof Error
+                                            ? err.message
+                                            : `Something went wrong while deleting announcement.`,
+                                      }
+                                    );
+                                  },
+                                  confirmText: "Delete",
+                                  variant: "destructive",
+                                });
+                              }}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </CardAction>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm">
+                            <If
+                              condition={expanded[a.id]}
+                              fallback={getExcerpt(a.content)}
+                            >
+                              {a.content}
+                            </If>
+                          </p>
+                        </CardContent>
+                        <CardFooter className="flex justify-end">
+                          <If condition={a.content.length > 120}>
+                            <Button
+                              size={"sm"}
+                              variant={"ghost"}
+                              onClick={() => toggleExpanded(a.id)}
+                            >
+                              <If
+                                condition={expanded[a.id]}
+                                fallback={"View more"}
+                              >
+                                View less
+                              </If>
+                            </Button>
+                          </If>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </>
+                }
+              >
+                <div className="text-muted-foreground flex size-full flex-col items-center justify-center text-center">
+                  <Megaphone className="text-muted-foreground/70 mb-4 size-12" />
+                  <h3 className="text-foreground text-lg font-semibold">
+                    No announcements found
+                  </h3>
+                  <p className="text-muted-foreground max-w-sm text-sm">
+                    Try searching with a different keyword.
+                  </p>
+                </div>
+              </If>
+            </>
+          }
+        >
           <div className="text-muted-foreground flex size-full flex-col items-center justify-center text-center">
             <Megaphone className="text-muted-foreground/70 mb-4 size-12" />
-
             <h3 className="text-foreground text-lg font-semibold">
               No announcements posted
             </h3>
@@ -112,73 +231,7 @@ export default function AnnouncementContainer(params: { slug: string }) {
               reminders, or deadlines by creating your first announcement.
             </p>
           </div>
-        ) : (
-          announcements.map((a) => (
-            <Card key={a.id} className="rounded-2xl">
-              <CardHeader className="pb-2">
-                <CardTitle>{a.title}</CardTitle>
-                <CardDescription>
-                  {safeFormatDate(a.createdAt, "PPp")}
-                </CardDescription>
-                <CardAction className="text-muted-foreground">
-                  <Button
-                    size={"icon"}
-                    variant={"ghost"}
-                    onClick={() => handleEdit(a)}
-                  >
-                    <Edit className="size-4" />
-                  </Button>
-                  <Button
-                    size={"icon"}
-                    variant={"ghost"}
-                    onClick={() => {
-                      const formData = new FormData();
-                      formData.append("id", a.id);
-
-                      openConfirmDialog({
-                        title: `Delete ${a.title}`,
-                        description: `Are you sure you want to delete this announcement? This action cannot be undone.`,
-                        onConfirm: () => {
-                          toast.promise(deleteAnnouncementAction(formData), {
-                            loading: `Deleting announcement...`,
-                            success: () => {
-                              revalidateAnnouncements(params.slug);
-                              return `Announcement deleted successfully!`;
-                            },
-                            error: (err) =>
-                              err instanceof Error
-                                ? err.message
-                                : `Something went wrong while deleting announcement.`,
-                          });
-                        },
-                        confirmText: "Delete",
-                        variant: "destructive",
-                      });
-                    }}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </CardAction>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  {expanded ? a.content : getExcerpt(a.content)}
-                </p>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                {a.content.length > 120 && (
-                  <Button
-                    size={"sm"}
-                    variant={"ghost"}
-                    onClick={() => setExpanded(!expanded)}
-                  >
-                    {expanded ? "View less" : "View more"}
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          ))
-        )}
+        </If>
       </div>
 
       {dialogConfig && (

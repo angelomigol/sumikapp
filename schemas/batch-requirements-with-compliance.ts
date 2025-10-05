@@ -1,4 +1,5 @@
 export type BatchRequirementsWithCompliance = {
+  allowed_file_types: string[] | null;
   batch_requirement_id: string | null;
   batch_title: string | null;
   compliance_percentage: number | null;
@@ -10,6 +11,7 @@ export type BatchRequirementsWithCompliance = {
   program_batch_id: string | null;
   requirement_description: string | null;
   requirement_name: string | null;
+  max_file_size_bytes: number | null;
   requirement_type_id: string | null;
   submitted: number | null;
   submitted_count: number | null;

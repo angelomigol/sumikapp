@@ -22,11 +22,10 @@ const baseUserSchema = {
 // Trainee schema
 const traineeSchema = z.object({
   ...baseUserSchema,
-  role: z.literal("trainee"),
+  role: z.literal("trainee", { error: "Role is required" }),
   studentIdNumber: z
     .string()
-    .min(1, { error: "Student ID number is required" })
-    .max(11, { error: "Exceeded number limit" }),
+    .length(11, { message: "Student ID number must be exactly 11 digits" }),
   course: z.enum(["BSIT-MWA", "BSCS"], { error: "Course is required" }),
   section: z.string().min(1, { error: "Section is required" }),
   address: optionalString,
@@ -36,14 +35,14 @@ const traineeSchema = z.object({
 // Coordinator schema
 const coordinatorSchema = z.object({
   ...baseUserSchema,
-  role: z.literal("coordinator"),
+  role: z.literal("coordinator", { error: "Role is required" }),
   coordinatorDepartment: z.enum(["SECA"], { error: "Department is required" }),
 });
 
 // Supervisor schema
 const supervisorSchema = z.object({
   ...baseUserSchema,
-  role: z.literal("supervisor"),
+  role: z.literal("supervisor", { error: "Role is required" }),
   position: z.string().min(1, { error: "Position is required" }),
   supervisorDepartment: z.string().min(1, { error: "Department is required" }),
   telephoneNumber: z
@@ -62,7 +61,7 @@ const supervisorSchema = z.object({
 // Admin schema
 const adminSchema = z.object({
   ...baseUserSchema,
-  role: z.literal("admin"),
+  role: z.literal("admin", { error: "Role is required" }),
 });
 
 // Use a more robust approach for the discriminated union
@@ -76,6 +75,17 @@ export const addAccountSchema = z
         message: "Role is required",
         path: ["role"],
       });
+    }
+
+    if (data.role === "trainee") {
+      const allowedDomain = "@students.nu-dasma.edu.ph";
+      if (!data.email.endsWith(allowedDomain)) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Trainee email must end with ${allowedDomain}`,
+          path: ["email"],
+        });
+      }
     }
   });
 

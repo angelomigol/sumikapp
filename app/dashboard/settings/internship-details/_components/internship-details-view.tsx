@@ -38,16 +38,6 @@ import { If } from "@/components/sumikapp/if";
 
 import { deleteInternshipAction } from "../server/server-actions";
 
-const weekDays = [
-  { label: "Monday", value: "monday" },
-  { label: "Tuesday", value: "tuesday" },
-  { label: "Wednesday", value: "wednesday" },
-  { label: "Thursday", value: "thursday" },
-  { label: "Friday", value: "friday" },
-  { label: "Saturday", value: "saturday" },
-  { label: "Sunday", value: "sunday" },
-];
-
 interface InternshipDetailsViewProps {
   internship: InternshipDetails;
   allInternships: InternshipDetails[];
@@ -61,8 +51,6 @@ export default function InternshipDetailsView({
   onEdit,
   onClose,
 }: InternshipDetailsViewProps) {
-  let scheduleDays: string[] = [];
-
   const submitInternshipFormMutation = useSubmitInternshipForm();
   const revalidateInternships = useRevalidateFetchInternships();
 
@@ -84,14 +72,6 @@ export default function InternshipDetailsView({
     setDialogOpen(true);
   };
 
-  if (internship.dailySchedule) {
-    try {
-      scheduleDays = JSON.parse(internship.dailySchedule);
-    } catch (e) {
-      console.error("Error parsing daily schedule:", e);
-    }
-  }
-
   const getJobRoleDisplay = () => {
     if (!internship.job_role) return "Not specified";
 
@@ -102,13 +82,11 @@ export default function InternshipDetailsView({
   };
 
   const getScheduleDisplay = () => {
-    if (scheduleDays.length === 0) return "Not specified";
+    if (!internship.dailySchedule || internship.dailySchedule.length === 0) {
+      return "Not specified";
+    }
 
-    const displayDays = scheduleDays.map(
-      (day) => weekDays.find((wd) => wd.value === day)?.label || day
-    );
-
-    return displayDays.join(", ");
+    return internship.dailySchedule.join(", ");
   };
 
   const formatTime = (time: string | null) => {
@@ -273,7 +251,7 @@ export default function InternshipDetailsView({
                 <p className="text-sm">{internship.supervisorEmail}</p>
               </div>
             </div>
-            
+
             <Separator />
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

@@ -13,7 +13,7 @@ import {
   useUpdateInternshipPlacement,
 } from "@/hooks/use-internship-details";
 
-import { jobRoles } from "@/lib/constants";
+import { jobRoles, weekDays } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 import { formatPhone } from "@/utils/shared";
@@ -50,16 +50,6 @@ import {
   internshipDetailsFormSchema,
   InternshipDetailsFormValues,
 } from "../schema/internship-details-form.schema";
-
-const weekDays = [
-  { label: "Mon", value: "monday" },
-  { label: "Tue", value: "tuesday" },
-  { label: "Wed", value: "wednesday" },
-  { label: "Thu", value: "thursday" },
-  { label: "Fri", value: "friday" },
-  { label: "Sat", value: "saturday" },
-  { label: "Sun", value: "sunday" },
-];
 
 interface InternshipDetailsFormProps {
   internship?: InternshipDetails | null;
@@ -98,6 +88,7 @@ export default function InternshipDetailsForm({
       dailySchedule: [],
       startTime: "",
       endTime: "",
+      lunchBreak: 0,
     },
   });
 
@@ -119,16 +110,6 @@ export default function InternshipDetailsForm({
         (role) => role.value === internship.job_role
       );
 
-      let parsedSchedule: string[] = [];
-      if (internship.dailySchedule) {
-        try {
-          parsedSchedule = JSON.parse(internship.dailySchedule);
-          console.log("Parsed daily schedule:", parsedSchedule);
-        } catch (e) {
-          console.error("Error parsing daily schedule:", e);
-        }
-      }
-
       const formData = {
         id: internship.id,
         companyName: internship.companyName || "",
@@ -140,9 +121,10 @@ export default function InternshipDetailsForm({
         customJobRole: existingRole ? "" : internship.job_role || "",
         startDate: internship.startDate || "",
         endDate: internship.endDate || "",
-        dailySchedule: parsedSchedule,
+        dailySchedule: internship.dailySchedule || [],
         startTime: internship.startTime || "",
         endTime: internship.endTime || "",
+        lunchBreak: internship.lunchBreak || 0,
       };
 
       form.reset(formData);
@@ -161,6 +143,7 @@ export default function InternshipDetailsForm({
         dailySchedule: [],
         startTime: "",
         endTime: "",
+        lunchBreak: 0,
       });
     }
   }, [internship, form]);
@@ -515,6 +498,20 @@ export default function InternshipDetailsForm({
                 />
               </div>
             )}
+
+            <FormField
+              control={form.control}
+              name="lunchBreak"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lunch Break ()</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., " />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <div className="flex gap-2 pt-4">

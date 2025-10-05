@@ -12,9 +12,12 @@ import { AlertCircle, Clock } from "lucide-react";
 
 import { useFetchSectionDashboard } from "@/hooks/use-section-dashboard";
 
+import { formatTimestamp } from "@/utils/shared";
+
 import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -58,10 +61,6 @@ export default function SectionDashboardContainer(params: { slug: string }) {
       </div>
     );
   }
-
-  const pbActivities = {
-    recentActivities: [],
-  };
 
   return (
     <>
@@ -142,7 +141,7 @@ export default function SectionDashboardContainer(params: { slug: string }) {
             <CardContent className="flex h-80 max-h-80 flex-col gap-4 px-0">
               <ScrollArea className="flex flex-col overflow-hidden">
                 <div className="space-y-6">
-                  {pbActivities?.recentActivities.length === 0 ? (
+                  {sectionData?.recentActivities.length === 0 ? (
                     <div className="flex h-80 items-center justify-center">
                       <div className="text-center">
                         <IconActivity className="text-muted-foreground mx-auto mb-2 size-8" />
@@ -152,29 +151,42 @@ export default function SectionDashboardContainer(params: { slug: string }) {
                       </div>
                     </div>
                   ) : (
-                    // pbActivities?.recentActivities.map((activity) => (
-                    //   <div key={activity.id} className="flex px-6">
-                    //     <div className="mr-4 flex size-10 items-center justify-center rounded-full border">
-                    //       {ActivityHelper.getActivityIcon(
-                    //         activity.activity_type
-                    //       )}
-                    //     </div>
-                    //     <div className="flex-1 space-y-1">
-                    //       <div className="flex items-center justify-between">
-                    //         <p className="text-sm font-medium tracking-tight">
-                    //           {activity.title}
-                    //         </p>
-                    //         <p className="text-muted-foreground text-xs">
-                    //           {formatTimestamp(activity.timestamp)}
-                    //         </p>
-                    //       </div>
-                    //       <p className="text-muted-foreground text-xs">
-                    //         {activity.description}
-                    //       </p>
-                    //     </div>
-                    //   </div>
-                    // )
-                    <></>
+                    sectionData?.recentActivities.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="flex items-start space-x-4 px-6"
+                      >
+                        <div className="mt-1 flex size-10 items-center justify-center rounded-full border">
+                          {ActivityHelper.getActivityIcon(
+                            activity.activity_type
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium tracking-tight">
+                              {activity.title}
+                            </p>
+                            <span className="text-muted-foreground text-xs">
+                              {formatTimestamp(activity.timestamp)}
+                            </span>
+                          </div>
+
+                          <p className="text-muted-foreground text-xs">
+                            {activity.description}
+                          </p>
+                          <div className="flex items-center pt-2">
+                            <Avatar className="mr-2 font-medium">
+                              <AvatarFallback>
+                                {activity.user_name.slice(0, 1)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="text-muted-foreground text-xs">
+                              {activity.user_name}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               </ScrollArea>

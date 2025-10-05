@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/rich-text-editor";
 
 import {
   AnnouncementFormValues,
@@ -101,7 +102,7 @@ export default function AddEditAnnouncementDialog({
 
       toast.promise(promise, {
         loading: "Updating announcement...",
-        success: "Announcement successfully updated!",
+        success: "Announcement updated successfully!",
         error: (err) => {
           if (err instanceof Error) {
             return err.message;
@@ -114,7 +115,7 @@ export default function AddEditAnnouncementDialog({
 
       toast.promise(promise, {
         loading: "Posting announcement...",
-        success: "Annnoucement successfully posted!",
+        success: "Annnoucement posted successfully!",
         error: (error) => {
           if (error instanceof Error) {
             return error.message;
@@ -142,6 +143,7 @@ export default function AddEditAnnouncementDialog({
           <DialogContent
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
+            className="w-full"
           >
             <DialogHeader>
               <DialogTitle>
@@ -153,7 +155,7 @@ export default function AddEditAnnouncementDialog({
                   : 'Fill in the details for creating new announcement. Click "create" when you\'re done.'}
               </DialogDescription>
             </DialogHeader>
-            <fieldset disabled={isLoading} className="space-y-4 pt-4">
+            <fieldset disabled={isLoading} className="w-full space-y-6 pt-4">
               <FormField
                 control={form.control}
                 name="title"
@@ -161,7 +163,7 @@ export default function AddEditAnnouncementDialog({
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="Announcement title" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -173,20 +175,19 @@ export default function AddEditAnnouncementDialog({
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Content</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder="Write your announcement here..."
-                        className="max-h-60"
+                        className="h-40 max-h-40 resize-none"
                       />
+                      {/* <RichTextEditor {...field} /> */}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </fieldset>
-            <DialogFooter>
+            <DialogFooter className="md:justify-between">
               <DialogClose asChild>
                 <Button
                   size={"sm"}

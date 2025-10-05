@@ -371,43 +371,66 @@ export type Database = {
         Row: {
           confidence_level: string | null
           created_at: string
+          evaluation_scores: Json | null
+          evaluator_id: string | null
           feature_scores: Json | null
           id: string
-          model_id: string
-          prediction_class: boolean | null
+          model_id: string | null
           prediction_date: string | null
+          prediction_label: string
           prediction_probability: number | null
           recommendations: Json | null
+          remarks: Json | null
           risk_factors: Json | null
-          trainee_id: string
+          trainee_batch_enrollment_id: string | null
         }
         Insert: {
           confidence_level?: string | null
           created_at?: string
+          evaluation_scores?: Json | null
+          evaluator_id?: string | null
           feature_scores?: Json | null
           id?: string
-          model_id: string
-          prediction_class?: boolean | null
+          model_id?: string | null
           prediction_date?: string | null
+          prediction_label: string
           prediction_probability?: number | null
           recommendations?: Json | null
+          remarks?: Json | null
           risk_factors?: Json | null
-          trainee_id: string
+          trainee_batch_enrollment_id?: string | null
         }
         Update: {
           confidence_level?: string | null
           created_at?: string
+          evaluation_scores?: Json | null
+          evaluator_id?: string | null
           feature_scores?: Json | null
           id?: string
-          model_id?: string
-          prediction_class?: boolean | null
+          model_id?: string | null
           prediction_date?: string | null
+          prediction_label?: string
           prediction_probability?: number | null
           recommendations?: Json | null
+          remarks?: Json | null
           risk_factors?: Json | null
-          trainee_id?: string
+          trainee_batch_enrollment_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "employability_predictions_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "supervisor_overview_dashboard"
+            referencedColumns: ["supervisor_id"]
+          },
+          {
+            foreignKeyName: "employability_predictions_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "supervisors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employability_predictions_model_id_fkey"
             columns: ["model_id"]
@@ -416,65 +439,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "employability_predictions_trainee_id_fkey"
-            columns: ["trainee_id"]
+            foreignKeyName: "employability_predictions_trainee_batch_enrollment_id_fkey"
+            columns: ["trainee_batch_enrollment_id"]
             isOneToOne: false
-            referencedRelation: "trainee_overview_dashboard"
-            referencedColumns: ["trainee_id"]
-          },
-          {
-            foreignKeyName: "employability_predictions_trainee_id_fkey"
-            columns: ["trainee_id"]
-            isOneToOne: false
-            referencedRelation: "trainees"
+            referencedRelation: "trainee_batch_enrollment"
             referencedColumns: ["id"]
           },
         ]
-      }
-      evaluation_training_data: {
-        Row: {
-          ability_to_present_ideas: number
-          communication_skills: number
-          created_at: string
-          employability_outcome: boolean
-          general_appearance: number
-          id: string
-          manner_of_speaking: number
-          mental_alertness: number
-          physical_condition: number
-          self_confidence: number
-          student_name: string
-          updated_at: string
-        }
-        Insert: {
-          ability_to_present_ideas: number
-          communication_skills: number
-          created_at?: string
-          employability_outcome: boolean
-          general_appearance: number
-          id?: string
-          manner_of_speaking: number
-          mental_alertness: number
-          physical_condition: number
-          self_confidence: number
-          student_name: string
-          updated_at?: string
-        }
-        Update: {
-          ability_to_present_ideas?: number
-          communication_skills?: number
-          created_at?: string
-          employability_outcome?: boolean
-          general_appearance?: number
-          id?: string
-          manner_of_speaking?: number
-          mental_alertness?: number
-          physical_condition?: number
-          self_confidence?: number
-          student_name?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       feature_importance: {
         Row: {
@@ -550,13 +521,14 @@ export type Database = {
           company_name: string
           contact_number: string
           created_at: string
-          daily_schedule: string
+          daily_schedule: string[]
           end_date: string
           end_time: string
           enrollment_id: string
           feedback: string | null
           id: string
           job_role: string
+          lunch_break_in_mins: number
           nature_of_business: string
           start_date: string
           start_time: string
@@ -569,13 +541,14 @@ export type Database = {
           company_name: string
           contact_number: string
           created_at?: string
-          daily_schedule: string
+          daily_schedule: string[]
           end_date: string
           end_time: string
           enrollment_id: string
           feedback?: string | null
           id?: string
           job_role: string
+          lunch_break_in_mins?: number
           nature_of_business: string
           start_date: string
           start_time: string
@@ -588,13 +561,14 @@ export type Database = {
           company_name?: string
           contact_number?: string
           created_at?: string
-          daily_schedule?: string
+          daily_schedule?: string[]
           end_date?: string
           end_time?: string
           enrollment_id?: string
           feedback?: string | null
           id?: string
           job_role?: string
+          lunch_break_in_mins?: number
           nature_of_business?: string
           start_date?: string
           start_time?: string
@@ -677,6 +651,30 @@ export type Database = {
           training_date?: string
           training_samples?: number
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notification_tokens: {
+        Row: {
+          created_at: string | null
+          id: string
+          platform: string | null
+          token: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          platform?: string | null
+          token: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          platform?: string | null
+          token?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -785,8 +783,8 @@ export type Database = {
           program_batch_id: string | null
           reference_id: string
           reference_type: string
-          user_id: string
-          user_role: Database["public"]["Enums"]["role"]
+          user_id: string | null
+          user_role: Database["public"]["Enums"]["role"] | null
         }
         Insert: {
           activity_description?: string | null
@@ -800,8 +798,8 @@ export type Database = {
           program_batch_id?: string | null
           reference_id: string
           reference_type: string
-          user_id: string
-          user_role: Database["public"]["Enums"]["role"]
+          user_id?: string | null
+          user_role?: Database["public"]["Enums"]["role"] | null
         }
         Update: {
           activity_description?: string | null
@@ -815,8 +813,8 @@ export type Database = {
           program_batch_id?: string | null
           reference_id?: string
           reference_type?: string
-          user_id?: string
-          user_role?: Database["public"]["Enums"]["role"]
+          user_id?: string | null
+          user_role?: Database["public"]["Enums"]["role"] | null
         }
         Relationships: [
           {
@@ -851,29 +849,35 @@ export type Database = {
       }
       requirement_types: {
         Row: {
+          allowed_file_types: string[]
           created_at: string
-          created_by: string | null
+          created_by: string
           description: string | null
           id: string
           is_predefined: boolean
+          max_file_size_bytes: number
           name: string
           updated_at: string
         }
         Insert: {
+          allowed_file_types: string[]
           created_at?: string
-          created_by?: string | null
+          created_by: string
           description?: string | null
           id?: string
           is_predefined?: boolean
+          max_file_size_bytes?: number
           name: string
           updated_at?: string
         }
         Update: {
+          allowed_file_types?: string[]
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           description?: string | null
           id?: string
           is_predefined?: boolean
+          max_file_size_bytes?: number
           name?: string
           updated_at?: string
         }
@@ -897,7 +901,7 @@ export type Database = {
           file_size: string
           file_type: string
           id: string
-          submitted_at: string
+          submitted_at: string | null
         }
         Insert: {
           batch_requirement_id: string
@@ -908,7 +912,7 @@ export type Database = {
           file_size: string
           file_type: string
           id?: string
-          submitted_at?: string
+          submitted_at?: string | null
         }
         Update: {
           batch_requirement_id?: string
@@ -919,7 +923,7 @@ export type Database = {
           file_size?: string
           file_type?: string
           id?: string
-          submitted_at?: string
+          submitted_at?: string | null
         }
         Relationships: [
           {
@@ -1193,7 +1197,6 @@ export type Database = {
           email: string
           first_name: string
           id: string
-          is_deleted: boolean
           last_login: string | null
           last_name: string
           middle_name: string | null
@@ -1206,7 +1209,6 @@ export type Database = {
           email: string
           first_name?: string
           id?: string
-          is_deleted?: boolean
           last_login?: string | null
           last_name?: string
           middle_name?: string | null
@@ -1219,7 +1221,6 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
-          is_deleted?: boolean
           last_login?: string | null
           last_name?: string
           middle_name?: string | null
@@ -1227,6 +1228,110 @@ export type Database = {
           status?: Database["public"]["Enums"]["user_status"]
         }
         Relationships: []
+      }
+      weekly_report_entries: {
+        Row: {
+          additional_notes: string | null
+          created_at: string
+          daily_accomplishments: string | null
+          entry_date: string
+          feedback: string | null
+          id: string
+          is_confirmed: boolean
+          report_id: string
+          status: Database["public"]["Enums"]["entry_status"] | null
+          time_in: string | null
+          time_out: string | null
+          total_hours: number
+        }
+        Insert: {
+          additional_notes?: string | null
+          created_at?: string
+          daily_accomplishments?: string | null
+          entry_date: string
+          feedback?: string | null
+          id?: string
+          is_confirmed?: boolean
+          report_id: string
+          status?: Database["public"]["Enums"]["entry_status"] | null
+          time_in?: string | null
+          time_out?: string | null
+          total_hours?: number
+        }
+        Update: {
+          additional_notes?: string | null
+          created_at?: string
+          daily_accomplishments?: string | null
+          entry_date?: string
+          feedback?: string | null
+          id?: string
+          is_confirmed?: boolean
+          report_id?: string
+          status?: Database["public"]["Enums"]["entry_status"] | null
+          time_in?: string | null
+          time_out?: string | null
+          total_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_report_entries_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_reports: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          internship_id: string
+          period_total: number
+          start_date: string
+          status: Database["public"]["Enums"]["document_status"]
+          submitted_at: string | null
+          supervisor_approved_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          internship_id: string
+          period_total?: number
+          start_date: string
+          status?: Database["public"]["Enums"]["document_status"]
+          submitted_at?: string | null
+          supervisor_approved_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          internship_id?: string
+          period_total?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          submitted_at?: string | null
+          supervisor_approved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly-reports_internship_id_fkey"
+            columns: ["internship_id"]
+            isOneToOne: false
+            referencedRelation: "internship_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly-reports_internship_id_fkey"
+            columns: ["internship_id"]
+            isOneToOne: false
+            referencedRelation: "trainee_overview_dashboard"
+            referencedColumns: ["internship_id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1243,15 +1348,21 @@ export type Database = {
       }
       batch_requirements_compliance_summary: {
         Row: {
+          allowed_file_types: string[] | null
+          approved: number | null
+          approved_count: number | null
           batch_requirement_id: string | null
           batch_title: string | null
           compliance_percentage: number | null
           coordinator_id: string | null
           is_mandatory: boolean | null
           is_predefined: boolean | null
+          max_file_size_bytes: number | null
           not_submitted: number | null
           pending_count: number | null
+          pending_review: number | null
           program_batch_id: string | null
+          rejected: number | null
           requirement_description: string | null
           requirement_name: string | null
           requirement_type_id: string | null
@@ -1317,18 +1428,13 @@ export type Database = {
           coordinator_email: string | null
           coordinator_id: string | null
           coordinator_name: string | null
-          course_distribution: Json | null
           days_remaining: number | null
           dropped_trainees: number | null
           duration_days: number | null
           end_date: string | null
           internship_code: Database["public"]["Enums"]["internship_code"] | null
-          latest_activity_date: string | null
-          latest_announcement: string | null
+          job_role_distribution: Json | null
           mandatory_requirements: number | null
-          most_common_activity_type:
-            | Database["public"]["Enums"]["activity_type_enum"]
-            | null
           not_started_trainees: number | null
           not_submitted_internships: number | null
           optional_requirements: number | null
@@ -1336,21 +1442,20 @@ export type Database = {
           pending_attendance_reports: number | null
           pending_internships: number | null
           progress_percentage: number | null
-          recent_activities_count: number | null
+          recent_activities: Json | null
+          rejected_accomplishment_reports: number | null
+          rejected_attendance_reports: number | null
           rejected_internships: number | null
           required_hours: number | null
-          section_distribution: Json | null
           start_date: string | null
           top_companies: Json | null
           total_accomplishment_reports: number | null
-          total_announcements: number | null
           total_attendance_reports: number | null
           total_companies: number | null
           total_enrolled_trainees: number | null
           total_hours_logged: number | null
           total_internships: number | null
           total_requirements: number | null
-          unread_announcements_avg: number | null
         }
         Relationships: [
           {
@@ -1405,20 +1510,8 @@ export type Database = {
           approved_attendance_reports: number | null
           attendance_rate_percentage: number | null
           avg_hours_per_day: number | null
-          batch_title: string | null
-          company_name: string | null
-          course: string | null
           days_present_week: number | null
-          email: string | null
-          first_name: string | null
-          internship_end: string | null
           internship_id: string | null
-          internship_start: string | null
-          internship_status:
-            | Database["public"]["Enums"]["document_status"]
-            | null
-          job_role: string | null
-          last_name: string | null
           ojt_status: Database["public"]["Enums"]["ojt_status"] | null
           pending_accomplishment_reports: number | null
           recent_activities: Json | null
@@ -1426,8 +1519,6 @@ export type Database = {
           recent_reports: Json | null
           rejected_accomplishment_reports: number | null
           required_hours: number | null
-          section: string | null
-          student_id_number: string | null
           total_accomplishment_reports: number | null
           total_hours_logged: number | null
           total_submitted_reports: number | null
@@ -1471,24 +1562,6 @@ export type Database = {
       }
     }
     Functions: {
-      get_trainees_with_hours: {
-        Args: { batch_name: string }
-        Returns: {
-          address: string
-          avatar_url: string
-          course: string
-          email: string
-          first_name: string
-          hours_logged: number
-          last_name: string
-          middle_name: string
-          mobile_number: string
-          ojt_status: string
-          section: string
-          student_id_number: string
-          trainee_id: string
-        }[]
-      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
@@ -1532,9 +1605,12 @@ export type Database = {
         | "requirement_rejected"
         | "requirement_deleted"
         | "internship_started"
+        | "internship_created"
         | "internship_completed"
+        | "internship_submitted"
         | "internship_updated"
-        | "internship_status_changed"
+        | "internship_deleted"
+        | "internship_rejected"
         | "user_registered"
         | "user_status_changed"
         | "user_profile_updated"
@@ -1555,6 +1631,7 @@ export type Database = {
         | "batch_deleted"
         | "batch_archived"
         | "batch_updated"
+        | "user_deleted"
       document_status: "approved" | "rejected" | "pending" | "not submitted"
       entry_status: "present" | "absent" | "late" | "holiday"
       internship_code: "CTNTERN1" | "CTNTERN2"
@@ -1722,9 +1799,12 @@ export const Constants = {
         "requirement_rejected",
         "requirement_deleted",
         "internship_started",
+        "internship_created",
         "internship_completed",
+        "internship_submitted",
         "internship_updated",
-        "internship_status_changed",
+        "internship_deleted",
+        "internship_rejected",
         "user_registered",
         "user_status_changed",
         "user_profile_updated",
@@ -1745,6 +1825,7 @@ export const Constants = {
         "batch_deleted",
         "batch_archived",
         "batch_updated",
+        "user_deleted",
       ],
       document_status: ["approved", "rejected", "pending", "not submitted"],
       entry_status: ["present", "absent", "late", "holiday"],

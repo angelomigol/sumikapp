@@ -1,12 +1,22 @@
 import React from "react";
 import { redirect } from "next/navigation";
 
+import { Edit } from "lucide-react";
+
 import { prefetchUser } from "@/hooks/use-users";
 
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getQueryClient } from "@/components/get-query-client";
+import { MultiFactorAuthFactorsList } from "@/components/mfa/multi-factor-auth-list";
 import { If } from "@/components/sumikapp/if";
 
 import AdminSettings from "../_components/admin-settings";
@@ -34,7 +44,7 @@ export default async function SettingsPage() {
 
   const { data } = await supabase
     .from("users")
-    .select("role")
+    .select("id, role")
     .eq("id", user.id)
     .single();
 
@@ -47,7 +57,8 @@ export default async function SettingsPage() {
     coordinator: (id) => <CoordinatorSettings userId={id} />,
   };
 
-  const SettingsComponent = roleComponents[data.role]?.(user.id) ?? redirect("/");
+  const SettingsComponent =
+    roleComponents[data.role]?.(user.id) ?? redirect("/");
 
   await prefetchUser(queryClient, user.id);
 
@@ -56,13 +67,23 @@ export default async function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
+          <If condition={data.role !== "trainee"}>
+            <CardAction>
+              <Button size={"sm"}>
+                <Edit className="size-4" />
+                Edit Profile
+              </Button>
+            </CardAction>
+          </If>
         </CardHeader>
         <CardContent className="space-y-4">{SettingsComponent}</CardContent>
       </Card>
 
-      {/* <If condition={data.role !== "trainee"}>
+      <MultiFactorAuthFactorsList userId={data.id} />
+
+      <If condition={data.role !== "trainee"}>
         <ProfileDangerZone />
-      </If> */}
+      </If>
     </>
   );
 }

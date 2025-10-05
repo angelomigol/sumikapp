@@ -2,31 +2,20 @@
 
 import React, { useState } from "react";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { RadioGroup } from "@radix-ui/react-radio-group";
 import { Loader2, Save } from "lucide-react";
-import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { evaluationConfig } from "@/config/evaluation-config";
 import pathsConfig from "@/config/paths.config";
 import {
   EvaluationScores,
-  PredictionResponse,
   transformFormToApiPayload,
 } from "@/hooks/use-evaluation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -39,7 +28,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import BackButton from "@/components/sumikapp/back-button";
 
-import { employabilityPrediction } from "@/app/dashboard/(coordinator)/sections/[slug]/(overview)/server/services/employability-prediction.service";
+import { employabilityPrediction } from "@/app/dashboard/(supervisor)/evaluations/server/services/employability-prediction.service";
+
+import EvaluationStatusDialog from "./evaluation-status-dialog";
 
 const createEvaluationSchema = () => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
@@ -54,13 +45,15 @@ const createEvaluationSchema = () => {
           message: "Score must be between 1 and 5",
         });
 
-      if (criterion.hasRemarks) {
-        schemaObject[`${criterion.key}_remarks`] = z.string().optional();
-      }
+      // Make remarks required for all criteria
+      schemaObject[`${criterion.key}_remarks`] = z
+        .string()
+        .min(1, "Remarks are required for this criterion")
+        .min(3, "Remarks must be at least 3 characters long");
     });
   });
 
-  schemaObject["overall_performance"] = z
+  schemaObject["overall_rating"] = z
     .string()
     .min(1, "Overall performance rating is required")
     .transform((val) => parseInt(val, 10))
@@ -68,7 +61,11 @@ const createEvaluationSchema = () => {
       message: "Score must be between 1 and 5",
     });
 
-  schemaObject["overall_performance_remarks"] = z.string().optional();
+  // Make overall performance remarks required
+  schemaObject["overall_rating_remarks"] = z
+    .string()
+    .min(1, "Overall performance remarks are required")
+    .min(3, "Remarks must be at least 3 characters long");
 
   return z.object(schemaObject);
 };
@@ -77,15 +74,31 @@ const evaluationSchema = createEvaluationSchema();
 type EvaluationFormValues = z.infer<typeof evaluationSchema>;
 
 export default function EvaluateTraineeContainer(params: {
-  traineeId: string;
+  tbeId: string;
   evaluatorId: string;
 }) {
   const [responses, setResponses] = useState<Record<string, number>>({});
   const [remarks, setRemarks] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showResults, setShowResults] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalState, setModalState] = useState<
+    "processing" | "success" | "error"
+  >("processing");
+
+  const getTotalCriteriaCount = () => {
+    const sectionCriteria = evaluationConfig.sections.reduce(
+      (sum, section) => sum + section.criteria.length,
+      0
+    );
+    return sectionCriteria + 1; // +1 for overall_rating
+  };
+
+  const totalCriteria = getTotalCriteriaCount();
 
   const results = computeEvaluationScore(responses);
 
@@ -94,6 +107,15 @@ export default function EvaluateTraineeContainer(params: {
       ...prev,
       [criterionKey]: Number(value),
     }));
+
+    // Clear validation error for this field
+    if (validationErrors[criterionKey]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[criterionKey];
+        return newErrors;
+      });
+    }
   };
 
   const handleRemarksChange = (criterionKey: string, value: string) => {
@@ -101,39 +123,70 @@ export default function EvaluateTraineeContainer(params: {
       ...prev,
       [criterionKey]: value,
     }));
+
+    // Clear validation error for this field
+    const remarksKey = `${criterionKey}_remarks`;
+    if (validationErrors[remarksKey]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[remarksKey];
+        return newErrors;
+      });
+    }
   };
 
   const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
     // Check if all criteria have scores
     const requiredKeys = evaluationConfig.sections.flatMap((section) =>
       section.criteria.map((criterion) => criterion.key)
     );
-    requiredKeys.push("overall_performance");
+    requiredKeys.push("overall_rating");
 
     for (const key of requiredKeys) {
       if (!responses[key] || responses[key] < 1 || responses[key] > 5) {
-        return false;
+        errors[key] = "Score is required and must be between 1 and 5";
       }
     }
-    return true;
+
+    // Check if all criteria have remarks
+    const remarksKeys = evaluationConfig.sections.flatMap((section) =>
+      section.criteria.map((criterion) => `${criterion.key}_remarks`)
+    );
+    remarksKeys.push("overall_rating_remarks");
+
+    for (const key of remarksKeys) {
+      const criterionKey = key.replace("_remarks", "");
+      if (!remarks[criterionKey] || remarks[criterionKey].trim().length < 3) {
+        errors[key] =
+          "Remarks are required and must be at least 3 characters long";
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
+      setShowModal(true);
+      setModalState("processing");
 
       // Validate form completion
       if (!validateForm()) {
         throw new Error(
-          "Please complete all evaluation criteria before submitting"
+          "Please complete all evaluation criteria and provide remarks before submitting"
         );
       }
 
       // Transform form data to API payload
       const evaluationScores: EvaluationScores = transformFormToApiPayload(
         responses,
-        { trainee_id: params.traineeId, evaluator_id: params.evaluatorId }
+        remarks,
+        { tbe_id: params.tbeId, evaluator_id: params.evaluatorId }
       );
 
       console.log("Submitting evaluation scores:", evaluationScores);
@@ -142,8 +195,7 @@ export default function EvaluateTraineeContainer(params: {
       const predictionResult =
         await employabilityPrediction.predictEmployability(evaluationScores);
 
-      setPrediction(predictionResult);
-      setShowResults(true);
+      setModalState("success");
 
       console.log("Prediction completed:", predictionResult);
     } catch (err) {
@@ -153,18 +205,40 @@ export default function EvaluateTraineeContainer(params: {
       );
     } finally {
       setIsSubmitting(false);
+      setModalState((prev) => (prev === "processing" ? "error" : prev));
     }
   };
 
   const resetForm = () => {
     setResponses({});
     setRemarks({});
-    setPrediction(null);
     setError(null);
-    setShowResults(false);
+    setValidationErrors({});
   };
 
-  console.log(prediction);
+  const isFormValid = () => {
+    // Check scores
+    const requiredKeys = evaluationConfig.sections.flatMap((section) =>
+      section.criteria.map((criterion) => criterion.key)
+    );
+    requiredKeys.push("overall_rating");
+
+    const hasAllScores = requiredKeys.every(
+      (key) => responses[key] && responses[key] >= 1 && responses[key] <= 5
+    );
+
+    // Check remarks
+    const remarksKeys = evaluationConfig.sections.flatMap((section) =>
+      section.criteria.map((criterion) => criterion.key)
+    );
+    remarksKeys.push("overall_rating");
+
+    const hasAllRemarks = remarksKeys.every(
+      (key) => remarks[key] && remarks[key].trim().length >= 3
+    );
+
+    return hasAllScores && hasAllRemarks;
+  };
 
   return (
     <>
@@ -174,6 +248,20 @@ export default function EvaluateTraineeContainer(params: {
 
       <Card>
         <CardContent className="space-y-10">
+          {/* Display validation errors at the top */}
+          {Object.keys(validationErrors).length > 0 && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-4">
+              <h4 className="mb-2 text-sm font-medium text-red-800">
+                Please fix the following errors:
+              </h4>
+              <ul className="space-y-1 text-sm text-red-700">
+                {Object.entries(validationErrors).map(([key, message]) => (
+                  <li key={key}>• {message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {evaluationConfig.sections.map((section) => (
             <div key={section.key} className="space-y-4">
               <h2 className="text-lg font-semibold">{section.title}</h2>
@@ -197,9 +285,20 @@ export default function EvaluateTraineeContainer(params: {
                 <TableBody>
                   {section.criteria.map((criterion) => (
                     <React.Fragment key={criterion.key}>
-                      <TableRow>
+                      <TableRow
+                        className={
+                          validationErrors[criterion.key] ? "bg-red-50" : ""
+                        }
+                      >
                         <TableCell className="w-full">
-                          {criterion.label}
+                          <div className="flex flex-col">
+                            <span>{criterion.label}</span>
+                            {validationErrors[criterion.key] && (
+                              <span className="mt-1 text-xs text-red-600">
+                                {validationErrors[criterion.key]}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <RadioGroup
                           className="contents"
@@ -225,11 +324,11 @@ export default function EvaluateTraineeContainer(params: {
                         </RadioGroup>
                       </TableRow>
 
-                      {criterion.hasRemarks && (
-                        <TableRow key={`${criterion.key}-remarks`}>
-                          <TableCell colSpan={criterion.maxScore + 1}>
+                      <TableRow key={`${criterion.key}-remarks`}>
+                        <TableCell colSpan={criterion.maxScore + 1}>
+                          <div className="space-y-2">
                             <Textarea
-                              placeholder={`Remarks for: ${criterion.label}`}
+                              placeholder={`Remarks for: ${criterion.label} (Required - minimum 3 characters)`}
                               value={remarks[criterion.key] || ""}
                               onChange={(e) =>
                                 handleRemarksChange(
@@ -237,10 +336,21 @@ export default function EvaluateTraineeContainer(params: {
                                   e.target.value
                                 )
                               }
+                              className={
+                                validationErrors[`${criterion.key}_remarks`]
+                                  ? "border-red-300 focus:border-red-500"
+                                  : ""
+                              }
+                              required
                             />
-                          </TableCell>
-                        </TableRow>
-                      )}
+                            {validationErrors[`${criterion.key}_remarks`] && (
+                              <span className="text-xs text-red-600">
+                                {validationErrors[`${criterion.key}_remarks`]}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     </React.Fragment>
                   ))}
                 </TableBody>
@@ -269,13 +379,17 @@ export default function EvaluateTraineeContainer(params: {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
+                <TableRow
+                  className={
+                    validationErrors["overall_rating"] ? "bg-red-50" : ""
+                  }
+                >
                   <RadioGroup
                     className="contents"
                     orientation="horizontal"
-                    value={String(responses["overall_performance"] ?? "")}
+                    value={String(responses["overall_rating"] ?? "")}
                     onValueChange={(val) =>
-                      handleScoreChange("overall_performance", val)
+                      handleScoreChange("overall_rating", val)
                     }
                   >
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -291,16 +405,26 @@ export default function EvaluateTraineeContainer(params: {
 
                 <TableRow>
                   <TableCell colSpan={6}>
-                    <Textarea
-                      placeholder="Remarks for: Overall performance rating"
-                      value={remarks["overall_performance"] || ""}
-                      onChange={(e) =>
-                        handleRemarksChange(
-                          "overall_performance",
-                          e.target.value
-                        )
-                      }
-                    />
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Remarks for: Overall performance rating (Required - minimum 3 characters)"
+                        value={remarks["overall_rating"] || ""}
+                        onChange={(e) =>
+                          handleRemarksChange("overall_rating", e.target.value)
+                        }
+                        className={
+                          validationErrors["overall_rating_remarks"]
+                            ? "border-red-300 focus:border-red-500"
+                            : ""
+                        }
+                        required
+                      />
+                      {validationErrors["overall_rating_remarks"] && (
+                        <span className="text-xs text-red-600">
+                          {validationErrors["overall_rating_remarks"]}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -324,7 +448,7 @@ export default function EvaluateTraineeContainer(params: {
                 ))}
                 <span>Overall Performance Rating:</span>
                 <span className="font-medium">
-                  {responses["overall_performance"] || "—"}
+                  {responses["overall_rating"] || "—"}
                 </span>
                 <span className="font-semibold">Total:</span>
                 <span className="font-semibold">
@@ -333,24 +457,46 @@ export default function EvaluateTraineeContainer(params: {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2 self-end">
-              {showResults && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={resetForm}
+            {/* Progress indicator */}
+            <div className="w-full space-y-2">
+              <Label className="text-sm">Form Completion Status</Label>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <span>Scores completed:</span>
+                <span
+                  className={`font-medium ${
+                    Object.keys(responses).length >= totalCriteria
+                      ? "text-green-600"
+                      : "text-orange-600"
+                  }`}
                 >
-                  New Evaluation
-                </Button>
-              )}
+                  {Object.keys(responses).length} / {totalCriteria}
+                </span>
+                <span>Remarks completed:</span>
+                <span
+                  className={`font-medium ${
+                    Object.keys(remarks).filter(
+                      (key) => remarks[key]?.trim().length >= 3
+                    ).length >= totalCriteria
+                      ? "text-green-600"
+                      : "text-orange-600"
+                  }`}
+                >
+                  {
+                    Object.keys(remarks).filter(
+                      (key) => remarks[key]?.trim().length >= 3
+                    ).length
+                  }{" "}
+                  / {totalCriteria}
+                </span>
+              </div>
+            </div>
 
+            <div className="flex gap-2 self-end">
               <Button
                 type="button"
-                size="sm"
-                onClick={handleSubmit}
-                disabled={isSubmitting || !validateForm()}
+                size={"sm"}
+                onClick={() => handleSubmit()}
+                disabled={isSubmitting || !isFormValid()}
               >
                 {isSubmitting ? (
                   <>
@@ -367,124 +513,21 @@ export default function EvaluateTraineeContainer(params: {
             </div>
           </CardFooter>
 
-          {prediction && showResults && (
-            <div className="space-y-4 border-t pt-6">
-              <h3 className="text-lg font-semibold">
-                Employability Prediction Results
-              </h3>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardContent className="p-4">
-                    <h4 className="mb-2 font-medium">Prediction Summary</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Classification:</span>
-                        <span
-                          className={`font-medium ${
-                            prediction.prediction_class
-                              ? "text-green-600"
-                              : "text-orange-600"
-                          }`}
-                        >
-                          {prediction.prediction_label}{" "}
-                          {(prediction.prediction_probability * 100).toFixed(1)}
-                          %
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Confidence:</span>
-                        <span>{prediction.confidence_level}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Average Score:</span>
-                        <span>
-                          {prediction.analysis.overall_statistics.original_scores_avg.toFixed(
-                            2
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <h4 className="mb-2 font-medium">Key Insights</h4>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-green-600">Strong Areas:</span>
-                        <span className="ml-1">
-                          {prediction.analysis.strong_areas.length}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-orange-600">
-                          Areas for Improvement:
-                        </span>
-                        <span className="ml-1">
-                          {prediction.analysis.weak_areas.length}
-                        </span>
-                      </div>
-                      <div>
-                        <span>Overall Score:</span>
-                        <span className="ml-1">
-                          {prediction.analysis.overall_statistics.mapped_features_avg.toFixed(
-                            1
-                          )}
-                          /5.0
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Recommendations */}
-              {prediction.recommendations &&
-                prediction.recommendations.length > 0 && (
-                  <Card>
-                    <CardContent className="p-4">
-                      <h4 className="mb-3 font-medium">
-                        AI-Generated Recommendations
-                      </h4>
-                      <div className="space-y-3">
-                        {prediction.recommendations
-                          .slice(0, 3)
-                          .map((rec, index) => (
-                            <div
-                              key={index}
-                              className="border-l-4 border-blue-200 pl-3"
-                            >
-                              <div className="mb-1 flex items-center gap-2">
-                                <span className="text-sm font-medium">
-                                  {rec.category}
-                                </span>
-                                <span
-                                  className={`rounded px-2 py-1 text-xs ${
-                                    rec.priority === "High"
-                                      ? "bg-red-100 text-red-700"
-                                      : rec.priority === "Medium"
-                                        ? "bg-yellow-100 text-yellow-700"
-                                        : "bg-blue-100 text-blue-700"
-                                  }`}
-                                >
-                                  {rec.priority} Priority
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600">
-                                {rec.recommendation}
-                              </p>
-                            </div>
-                          ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+          {/* Error display */}
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <EvaluationStatusDialog
+        open={showModal}
+        onOpenChange={setShowModal}
+        state={modalState}
+        error={error}
+      />
     </>
   );
 }

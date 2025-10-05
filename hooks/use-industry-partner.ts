@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 import { Tables } from "@/utils/supabase/supabase.types";
 
 import { IndustryPartnerFormValues } from "@/app/dashboard/(admin)/industry-partners/schema/industry-partner.schema";
@@ -21,6 +22,7 @@ export const INDUSTRY_PARTNERS_QUERY_KEY = [
 ] as const;
 export const CREATE_PARTNER_MUTATION_KEY = ["create_industry_partner"] as const;
 export const UPDATE_PARTNER_MUTATION_KEY = ["update_industry_partner"] as const;
+const BUCKET_NAME = "moa-files";
 
 export type IndustryPartner = Tables<"industry_partners">;
 export type UpdateIndustryPartnerPayload = IndustryPartnerFormValues & {
@@ -40,6 +42,38 @@ export function useFetchIndustryPartners() {
   });
 }
 
+export function useGenerateMoaUrl() {
+  const client = useSupabase();
+
+  const generateSignedUrl = useCallback(
+    async (
+      filePath: string,
+      expiresIn: number = 3600
+    ): Promise<string | null> => {
+      if (!filePath) return null;
+
+      try {
+        const { data, error } = await client.storage
+          .from(BUCKET_NAME)
+          .createSignedUrl(filePath, expiresIn);
+
+        if (error) {
+          console.error("Error generating signed URL:", error);
+          return null;
+        }
+
+        return data?.signedUrl || null;
+      } catch (error) {
+        console.error("Error generating signed URL:", error);
+        return null;
+      }
+    },
+    [client]
+  );
+
+  return { generateSignedUrl };
+}
+
 export function useCreateIndustryPartner() {
   const mutationKey = CREATE_PARTNER_MUTATION_KEY;
   const revalidatePartners = useRevalidateFetchIndustryPartners();
@@ -53,7 +87,7 @@ export function useCreateIndustryPartner() {
       formData.append("companyAddress", payload.companyAddress);
     }
     if (payload.companyContactNumber) {
-      formData.append("companyAddress", payload.companyContactNumber);
+      formData.append("companyContactNumber", payload.companyContactNumber);
     }
     if (payload.natureOfBusiness) {
       formData.append("natureOfBusiness", payload.natureOfBusiness);
@@ -94,7 +128,7 @@ export function useUpdateIndustryPartner() {
       formData.append("companyAddress", payload.companyAddress);
     }
     if (payload.companyContactNumber) {
-      formData.append("companyAddress", payload.companyContactNumber);
+      formData.append("companyContactNumber", payload.companyContactNumber);
     }
     if (payload.natureOfBusiness) {
       formData.append("natureOfBusiness", payload.natureOfBusiness);

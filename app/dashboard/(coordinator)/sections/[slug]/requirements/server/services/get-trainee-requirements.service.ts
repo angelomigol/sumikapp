@@ -113,7 +113,8 @@ class GetTraineeRequirementsService {
         )
         .eq("program_batch_id", batchData.id)
         .eq("program_batch.coordinator_id", userId)
-        .is("trainees.users.deleted_at", null);
+        .is("trainees.users.deleted_at", null)
+        .neq("requirements.requirements_history.document_status", "not submitted");
 
       if (error) {
         logger.error(
@@ -166,7 +167,7 @@ class GetTraineeRequirementsService {
               file_type: req.file_type,
               file_size: req.file_size,
               submitted_at: req.submitted_at,
-              status: latestHistoryEntry?.document_status || "not submitted",
+              status: latestHistoryEntry?.document_status,
               history: history.map((h) => ({
                 document_status: h.document_status,
                 date: h.date,
@@ -187,7 +188,7 @@ class GetTraineeRequirementsService {
                     );
 
                   if (approvedInternships.length > 0) {
-                    return approvedInternships[0]; // Return latest approved
+                    return approvedInternships[0]; 
                   }
 
                   // If no approved, get latest pending

@@ -35,6 +35,7 @@ import {
   activityFormSchema,
   ActivityFormValues,
 } from "../schema/activity-report-schema";
+import { If } from "@/components/sumikapp/if";
 
 export default function AddActivityReportDialog() {
   const [open, setOpen] = useState(false);
@@ -70,7 +71,10 @@ export default function AddActivityReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Form {...form}>
-        <form id="add-activity-report-form" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          id="add-activity-report-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <DialogTrigger asChild>
             <Button size="sm">
               <PlusCircle />
@@ -140,7 +144,12 @@ export default function AddActivityReportDialog() {
                 onClick={() => form.handleSubmit(onSubmit)()}
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? "Creating..." : "Create Report"}
+                <If
+                  condition={form.formState.isSubmitting}
+                  fallback={"Create Report"}
+                >
+                  Creating...
+                </If>
               </Button>
             </DialogFooter>
           </DialogContent>

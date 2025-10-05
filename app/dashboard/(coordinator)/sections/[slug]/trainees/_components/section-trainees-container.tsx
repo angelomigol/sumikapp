@@ -20,9 +20,6 @@ import { TraineesTableToolbar } from "./trainees-table-toolbar";
 export default function SectionTraineesContainer(params: { slug: string }) {
   const { data = [], isLoading, error } = useFetchSectionTrainees(params.slug);
 
-  console.log(data);
-  
-
   if (isLoading) {
     return <LoadingOverlay fullPage />;
   }

@@ -10,10 +10,7 @@ import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
 import { InternOffer } from "../schemas/intern-offer.schema";
-import {
-  fetchInternOffers,
-  fetchInternOffersWithPagination,
-} from "../server/server-actions";
+import { fetchInternOffersWithPagination } from "../server/server-actions";
 import InternOfferCard from "./intern-offer-card";
 import JobRoleFilter from "./job-role-filter";
 import NoMatchingInternships from "./no-matching-internships";

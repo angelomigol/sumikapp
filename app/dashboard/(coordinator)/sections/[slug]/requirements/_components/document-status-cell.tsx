@@ -45,10 +45,9 @@ export const DocumentStatusCell = ({
   }
 
   const prefetchSignedUrl = usePrefetchSignedUrl();
-
   const documentUrl = useFetchSignedUrl(
     docInfo.filePath,
-    isModalOpen && !!docInfo.filePath
+    isModalOpen && !!docInfo?.filePath
   );
 
   const getStatusColor = (status: string) => {

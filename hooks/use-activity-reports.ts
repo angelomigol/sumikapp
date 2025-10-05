@@ -35,6 +35,7 @@ export type AccomplishmentReport = {
   total_hours: number;
   internship_code?: InternshipCode;
   supervisor_approved_at?: string | null;
+  company_name?: string;
 };
 export type AccomplishmentEntry = Tables<"accomplishment_entries">;
 

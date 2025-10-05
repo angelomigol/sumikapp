@@ -36,6 +36,7 @@ export type SupervisorTrainees = {
 };
 
 export type SupervisorTraineesForEvaluationTable = {
+  tbe_id: string;
   trainee_id: string;
   student_id_number: string;
   course: string | null;

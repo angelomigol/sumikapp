@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
-import { Tables } from "@/utils/supabase/supabase.types";
+import { Database, Tables } from "@/utils/supabase/supabase.types";
 
 const queryKey = ["supabase:program_batch_overview_dashboard_view"];
 
@@ -26,6 +26,8 @@ export interface SectionDashboardData {
   totalCompanies: number;
   companies: Companies[];
 
+  jobRoles: string[];
+
   totalHoursLogged: number;
   avgHoursPerTrainee: number;
   completionPercentage: number;
@@ -38,6 +40,8 @@ export interface SectionDashboardData {
   totalActivityReports: number;
   approvedActivityReports: number;
   pendingActivityeReports: number;
+
+  recentActivities: RecentActivity[];
 }
 
 interface Companies {
@@ -67,6 +71,8 @@ const createDefaultSectionDashboardData = (): SectionDashboardData => ({
   totalCompanies: 0,
   companies: [],
 
+  jobRoles: [],
+
   totalHoursLogged: 0,
   avgHoursPerTrainee: 0,
   completionPercentage: 0,
@@ -79,7 +85,19 @@ const createDefaultSectionDashboardData = (): SectionDashboardData => ({
   totalActivityReports: 0,
   approvedActivityReports: 0,
   pendingActivityeReports: 0,
+
+  recentActivities: [],
 });
+
+interface RecentActivity {
+  id: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  type: "activity" | "attendance" | "document" | "announcement";
+  activity_type: Database["public"]["Enums"]["activity_type_enum"];
+  user_name: string;
+}
 
 export function useFetchSectionDashboard(slug: string) {
   const client = useSupabase();
@@ -194,6 +212,14 @@ function transformTraineeDashboardData(
     companies: parseJsonField<Companies[]>(data.top_companies, []).filter(
       (company) => company?.companyName && company?.traineeCount
     ), // Filter out invalid entries
+    recent_activities: parseJsonField<RecentActivity[]>(
+      data.recent_activities,
+      []
+    ),
+    job_role_distribution: parseJsonField<string[]>(
+      data.job_role_distribution,
+      []
+    ),
   };
 
   // Safe number parsing with defaults
@@ -262,11 +288,13 @@ function transformTraineeDashboardData(
     totalCompanies,
     companies: jsonFields.companies,
 
-    totalHoursLogged,
-    avgHoursPerTrainee: Math.min(100, safeNumber(data.avg_hours_per_trainee)),
-    completionPercentage: Math.min(100, safeNumber(data.avg_compliance_rate)),
+    jobRoles: jsonFields.job_role_distribution,
 
-    avgAttendanceRate: Math.min(100, safeNumber(data.avg_attendance_rate)),
+    totalHoursLogged,
+    avgHoursPerTrainee: safeNumber(data.avg_hours_per_trainee),
+    completionPercentage: Math.min(100, safeNumber(data.completion_percentage)),
+
+    avgAttendanceRate: safeNumber(data.avg_attendance_rate),
     totalAttendanceReports,
     approvedAttendanceReports,
     pendingAttendanceReports,
@@ -274,5 +302,7 @@ function transformTraineeDashboardData(
     totalActivityReports,
     approvedActivityReports,
     pendingActivityeReports,
+
+    recentActivities: jsonFields.recent_activities,
   };
 }

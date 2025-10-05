@@ -10,13 +10,11 @@ import {
 import { useFetchSectionTraineeReport } from "@/hooks/use-section-weekly-reports";
 
 import { documentStatusMap, internCodeMap } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 
 import { safeFormatDate } from "@/utils/shared";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -28,14 +26,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -260,12 +250,12 @@ export default function ViewWeeklyReportContainer(params: {
             <Label htmlFor="supervisor-signature">Supervisor Signature</Label>
             {reportData.data.supervisor_approved_at ? (
               <Label>
-                Approved by your Supervisor on{" "}
+                Approved by the Supervisor on{" "}
                 {safeFormatDate(reportData.data.supervisor_approved_at, "PP")}
               </Label>
             ) : (
               <Label className="text-muted-foreground italic">
-                (To be reviewed by your supervisor)
+                (To be reviewed by the supervisor)
               </Label>
             )}
           </div>

@@ -76,7 +76,7 @@ export default function SectionDangerZone(params: {
                 Hide this section from active views. Can be restored anytime.
               </p>
             </div>
-            <Button variant={"destructive"} size={"sm"}>
+            <Button variant={"destructive"} size={"sm"} disabled>
               Archive
             </Button>
           </div>

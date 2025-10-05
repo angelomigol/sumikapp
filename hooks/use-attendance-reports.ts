@@ -37,6 +37,7 @@ export type AttendanceReport = {
   total_hours_served: number;
   internship_code?: InternshipCode;
   supervisor_approved_at?: string | null;
+  company_name?: string;
 };
 
 export type AttendanceEntry = Tables<"attendance_entries">;

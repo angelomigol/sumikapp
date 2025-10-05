@@ -12,7 +12,6 @@ import SmartTraineeSearch, {
   SearchableTrainee,
 } from "@/components/sumikapp/smart-trainee-search";
 
-import { AddStudentFormValues } from "../schema/add-student-form.schema";
 import BulkUploadTab from "./bulk-upload-tab";
 import UnsavedStudentsTable from "./unsaved-students-table";
 
@@ -90,7 +89,7 @@ export default function AddSectionTraineesContainer(params: { slug: string }) {
           )}
         </div>
         <p className="text-muted-foreground text-sm">
-          Review and edit student details before saving. You can make changes
+          Review student details before saving. You can make changes
           directly in the table.
         </p>
       </div>

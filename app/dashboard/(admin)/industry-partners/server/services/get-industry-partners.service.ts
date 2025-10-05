@@ -39,7 +39,7 @@ class GetIndustryPartnersService {
       const { data, error } = await params.client
         .from("industry_partners")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("company_name", { ascending: true });
 
       if (error) {
         logger.error(
@@ -63,6 +63,7 @@ class GetIndustryPartnersService {
 
       const mappedData: Tables<"industry_partners">[] = data.map((partner) => ({
         company_address: partner.company_address,
+        company_contact_number: partner.company_contact_number,
         company_name: partner.company_name,
         created_at: partner.created_at,
         date_of_signing: partner.date_of_signing,

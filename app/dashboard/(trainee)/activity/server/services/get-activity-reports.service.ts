@@ -131,6 +131,7 @@ class GetActivityReportsService {
         .select(
           `*,
           internship_details!inner(
+            company_name,
             enrollment_id,
             trainee_batch_enrollment!inner(
               trainee_id,
@@ -179,6 +180,7 @@ class GetActivityReportsService {
           data.internship_details.trainee_batch_enrollment.program_batch
             .internship_code,
         supervisor_approved_at: data.supervisor_approved_at,
+        company_name: data.internship_details.company_name,
         accomplishment_entries: data.accomplishment_entries.map(
           (entry: Tables<"accomplishment_entries">) => ({
             id: entry.id,

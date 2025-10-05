@@ -1,7 +1,8 @@
-import { format, isValid, parseISO } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
+import { format, isValid } from "date-fns";
 
 import { AttendanceEntry } from "@/hooks/use-attendance-reports";
+
+import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
 
 /**
  * @name formatDatePH
@@ -246,7 +247,62 @@ export function formatPhone(value: string) {
 export function createTableEntries(
   startDate: string,
   endDate: string,
-  attendanceEntries: AttendanceEntry[] = [],
+  weeklyReportEntries: WeeklyReportEntry[] = [],
+  reportId: string
+): WeeklyReportEntry[] {
+  if (!startDate || !endDate) return [];
+
+  const dateEntries: WeeklyReportEntry[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split("T")[0];
+
+    const existingEntry = weeklyReportEntries.find(
+      (entry) => entry.entry_date === dateStr
+    );
+
+    if (existingEntry) {
+      dateEntries.push({
+        id: existingEntry.id || `temp-${dateStr}`,
+        created_at: existingEntry.created_at || new Date().toISOString(),
+        entry_date: existingEntry.entry_date,
+        time_in: existingEntry.time_in,
+        time_out: existingEntry.time_out,
+        daily_accomplishments: existingEntry.daily_accomplishments,
+        total_hours: existingEntry.total_hours,
+        is_confirmed: existingEntry.is_confirmed || false,
+        status: existingEntry.status,
+        report_id: existingEntry.report_id || reportId,
+        additional_notes: existingEntry.additional_notes,
+        feedback: existingEntry.feedback,
+      });
+    } else {
+      dateEntries.push({
+        id: `temp-${dateStr}`,
+        created_at: new Date().toISOString(),
+        entry_date: dateStr,
+        time_in: null,
+        time_out: null,
+        daily_accomplishments: null,
+        total_hours: 0,
+        is_confirmed: false,
+        status: null,
+        report_id: reportId,
+        additional_notes: null,
+        feedback: null,
+      });
+    }
+  }
+
+  return dateEntries;
+}
+
+export function createAttendanceTableEntries(
+  startDate: string,
+  endDate: string,
+  weeklyReportEntries: AttendanceEntry[] = [],
   reportId: string
 ): AttendanceEntry[] {
   if (!startDate || !endDate) return [];
@@ -258,7 +314,7 @@ export function createTableEntries(
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     const dateStr = d.toISOString().split("T")[0];
 
-    const existingEntry = attendanceEntries.find(
+    const existingEntry = weeklyReportEntries.find(
       (entry) => entry.entry_date === dateStr
     );
 
@@ -307,4 +363,18 @@ export function calculateTotalHours(timeIn: string, timeOut: string): number {
       : 24 * 60 - inTotalMinutes + outTotalMinutes;
 
   return Math.round(diffMinutes / 60);
+}
+
+export function displayDays(days: string[] = []) {
+  const dayMap: Record<string, string> = {
+    Mon: "Monday",
+    Tue: "Tuesday",
+    Wed: "Wednesday",
+    Thu: "Thursday",
+    Fri: "Friday",
+    Sat: "Saturday",
+    Sun: "Sunday",
+  };
+
+  return days.map((d) => dayMap[d] || d).join(", ");
 }

@@ -3,7 +3,9 @@ import "server-only";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 import { getLogger } from "@/utils/logger";
-import { Database, TablesInsert } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
+
+import { CustomRequirementFormValues } from "../../../../schemas/requirement.schema";
 
 export function createCreateCustomRequirementService() {
   return new CreateCustomRequirementService();
@@ -11,7 +13,7 @@ export function createCreateCustomRequirementService() {
 
 /**
  * @name CreateCustomRequirementService
- * @description Service for creating a custom requirment for user
+ * @description Service for creating a custom requirement for user
  * @param Database - The Supabase database type to use
  * @example
  * const client = getSupabaseClient();
@@ -27,50 +29,30 @@ class CreateCustomRequirementService {
   async createCustomRequirement(params: {
     client: SupabaseClient<Database>;
     userId: string;
-    slug?: string;
-    data: TablesInsert<"requirement_types">;
+    data: CustomRequirementFormValues;
   }) {
     const logger = await getLogger();
 
-    const { userId, slug, data, client } = params;
+    const { userId, data, client } = params;
     const ctx = {
-      reuirement_name: data.name,
+      requirement_name: data.name,
       created_by: userId,
       userId,
       name: this.namespace,
     };
 
-    if (!slug) {
+    if (!data.slug) {
       throw new Error("Slug missing");
     }
 
     logger.info(ctx, "Creating custom requirement for user...");
 
     try {
-      // Step 1: Insert new custom requirement
-      const { data: reqData, error: reqError } = await client
-        .from("requirement_types")
-        .insert(data)
-        .select()
-        .single();
-
-      if (reqError) {
-        logger.error(
-          {
-            ...ctx,
-            error: reqError,
-          },
-          "Error inserting custom requirement to requirement_types"
-        );
-
-        throw new Error("Failed to create custom requirement");
-      }
-
-      // Step 2: Fetch program_batch ID
+      // Step 1: Fetch program_batch ID first
       const { data: pbData, error: pbError } = await client
         .from("program_batch")
         .select("id")
-        .eq("title", slug)
+        .eq("title", data.slug)
         .eq("coordinator_id", userId)
         .limit(1)
         .single();
@@ -84,15 +66,94 @@ class CreateCustomRequirementService {
         logger.error(
           {
             ...ctx,
-            pbError,
+            supabaseError: {
+              code: pbError.code,
+              message: pbError.message,
+              hint: pbError.hint,
+              details: pbError.details,
+            },
           },
-          "Error fetching section by slug"
+
+          `Supabase error while fetching program batch: ${pbError.message}`
         );
 
-        throw new Error("Failed to fetch attendance report");
+        throw new Error("Failed to fetch program batch");
       }
 
-      // Step 3: Insert the custom requirement to batch_requirements
+      // Step 2: Check if requirement with the same name already exists for this batch
+      const { data: existingRequirement, error: existingReqError } =
+        await client
+          .from("batch_requirements")
+          .select(
+            `
+          id,
+          requirement_types!inner(name)
+        `
+          )
+          .eq("program_batch_id", pbData.id)
+          .eq("requirement_types.name", data.name)
+          .maybeSingle();
+
+      if (existingReqError) {
+        logger.error(
+          {
+            ...ctx,
+            supabaseError: {
+              code: existingReqError.code,
+              message: existingReqError.message,
+              hint: existingReqError.hint,
+              details: existingReqError.details,
+            },
+          },
+
+          `Supabase error while checking for existing requirements: ${existingReqError.message}`
+        );
+
+        throw new Error("Failed to check for existing requirements");
+      }
+
+      if (existingRequirement) {
+        logger.warn(
+          ctx,
+          "Requirement with this name already exists in the batch"
+        );
+        throw new Error(
+          `A requirement with the name "${data.name}" already exists in this batch`
+        );
+      }
+
+      // Step 3: Insert new custom requirement
+      const { data: reqData, error: reqError } = await client
+        .from("requirement_types")
+        .insert({
+          name: data.name,
+          description: data.description || null,
+          allowed_file_types: data.allowedFileTypes,
+          max_file_size_bytes: data.maxFileSizeBytes,
+          created_by: userId,
+        })
+        .select()
+        .single();
+
+      if (reqError) {
+        logger.error(
+          {
+            ...ctx,
+            supabaseError: {
+              code: reqError.code,
+              message: reqError.message,
+              hint: reqError.hint,
+              details: reqError.details,
+            },
+          },
+
+          `Supabase error while creating custom requirement to requirement_types: ${reqError.message}`
+        );
+
+        throw new Error("Failed to create custom requirement");
+      }
+
+      // Step 4: Insert the custom requirement to batch_requirements
       const { error: batchReqError } = await client
         .from("batch_requirements")
         .insert({
@@ -101,12 +162,21 @@ class CreateCustomRequirementService {
         });
 
       if (batchReqError) {
+        // If batch_requirements insertion fails, we should clean up the requirement_types record
+        await client.from("requirement_types").delete().eq("id", reqData.id);
+
         logger.error(
           {
             ...ctx,
-            error: batchReqError,
+            supabaseError: {
+              code: batchReqError.code,
+              message: batchReqError.message,
+              hint: batchReqError.hint,
+              details: batchReqError.details,
+            },
           },
-          "Error inserting custom requirement to batch_requirements"
+
+          `Supabase error while inserting custom requirement to batch_requirements: ${batchReqError.message}`
         );
 
         throw new Error("Failed to create custom requirement");

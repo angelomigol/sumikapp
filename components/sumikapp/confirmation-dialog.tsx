@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../ui/alert-dialog";
+import { If } from "./if";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -44,7 +45,6 @@ export default function ConfirmationDialog({
       await onConfirm();
     } finally {
       setIsLoading(false);
-      onOpenChange(false);
     }
   };
 
@@ -76,11 +76,9 @@ export default function ConfirmationDialog({
             }
             disabled={isLoading}
           >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              confirmText
-            )}
+            <If condition={isLoading} fallback={confirmText}>
+              <Loader2 className="size-5 animate-spin" />
+            </If>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

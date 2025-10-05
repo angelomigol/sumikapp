@@ -77,12 +77,12 @@ export const createAnnouncementAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = announcementSchema.safeParse(
+    const { data, success, error } = announcementSchema.safeParse(
       Object.fromEntries(formData.entries())
     );
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(`Invalid form data: ${error.message}`);
     }
 
     const ctx = {
@@ -138,12 +138,12 @@ export const updateAnnouncementAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = announcementSchema.safeParse(
+    const { data, success, error } = announcementSchema.safeParse(
       Object.fromEntries(formData.entries())
     );
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(`Invalid form data: ${error.message}`);
     }
 
     const ctx = {
@@ -200,12 +200,12 @@ export const deleteAnnouncementAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = deleteAnnouncementSchema.safeParse(
+    const { data, success, error } = deleteAnnouncementSchema.safeParse(
       Object.fromEntries(formData.entries())
     );
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(`Invalid form data: ${error.message}`);
     }
 
     const ctx = {

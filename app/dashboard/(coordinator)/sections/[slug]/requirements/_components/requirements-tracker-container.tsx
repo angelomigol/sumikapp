@@ -33,7 +33,7 @@ import PageTitle from "@/components/sumikapp/page-title";
 
 import NotFoundPage from "@/app/not-found";
 
-import AddCustomRequirementDialog from "./add-edit-custom-requirement-dialog";
+import AddEditCustomRequirementSheet from "./add-edit-custom-requirement-sheet";
 import CustomRequirementRowActions from "./custom-requirements-row-actions";
 import { RequirementTableToolbar } from "./requirements-table-toolbar";
 import { createTraineeRequirementColumns } from "./trainee-requirements-columns";
@@ -46,6 +46,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
     id: string;
     name: string;
     description: string;
+    allowedFileTypes: string[];
+    maxFileSizeBytes: number;
   } | null>(null);
   const [requirementDialogOpen, setRequirementDialogOpen] = useState(false);
 
@@ -72,6 +74,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
     id: string;
     name: string;
     description: string;
+    allowedFileTypes: string[];
+    maxFileSizeBytes: number;
   }) => {
     setSelectedRequirement(requirement);
     setRequirementDialogOpen(true);
@@ -90,12 +94,12 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
       <div className="flex items-center justify-between">
         <PageTitle text={"Requirements Tracker"} />
 
-        <AddCustomRequirementDialog
+        <AddEditCustomRequirementSheet
           open={requirementDialogOpen}
           setOpen={setRequirementDialogOpen}
           editingRequirement={selectedRequirement}
-          handleAdd={() => setSelectedRequirement(null)}
           slug={params.slug}
+          handleAdd={() => setSelectedRequirement(null)}
         />
       </div>
 
@@ -150,6 +154,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
                             id: item.requirement_type_id ?? "",
                             name: item.requirement_name ?? "",
                             description: item.requirement_description ?? "",
+                            allowedFileTypes: item.allowed_file_types ?? [],
+                            maxFileSizeBytes: item.max_file_size_bytes ?? 0,
                           })
                         }
                         slug={params.slug}

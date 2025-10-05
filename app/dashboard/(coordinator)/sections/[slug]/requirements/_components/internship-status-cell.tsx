@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 
-import { InternshipDetails } from "@/hooks/use-internship-details";
-
 import { DocumentStatus } from "@/lib/constants";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +24,7 @@ export default function InternshipStatusCell({
     end_date: string;
     start_time: string | null;
     end_time: string | null;
-    daily_schedule: string | null;
+    daily_schedule: string[] | null;
     supervisor_email: string | null;
     status: DocumentStatus;
     created_at: string;

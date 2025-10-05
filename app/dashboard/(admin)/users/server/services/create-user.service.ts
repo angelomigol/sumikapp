@@ -42,6 +42,8 @@ class CreateUserService {
 
     logger.info(ctx, "Creating account...");
 
+    let userId: string | null = null;
+
     try {
       // Step 1: Create the auth user
       const { data: authData, error: authError } =
@@ -74,10 +76,10 @@ class CreateUserService {
           `Supabase error while creating auth user: ${authError.message}`
         );
 
-        throw new Error(`Failed to create auth user: ${authError.message}`);
+        throw new Error(`Failed to create account: ${authError.message}`);
       }
 
-      const userId = authData.user.id;
+      userId = authData.user.id;
 
       // Step 2: Create the base user record
       const userInsert: TablesInsert<"users"> = {
@@ -131,6 +133,29 @@ class CreateUserService {
         "Unexpected error creating account"
       );
 
+      // Cleanup: If we have a userId, ensure we clean up both auth and users table
+      if (userId) {
+        try {
+          logger.info(ctx, "Cleaning up failed account creation...");
+
+          // Delete from users table first (if it exists)
+          await client.from("users").delete().eq("id", userId);
+
+          // Delete from auth
+          await adminClient.auth.admin.deleteUser(userId);
+
+          logger.info(ctx, "Account cleanup completed");
+        } catch (cleanupError) {
+          logger.error(
+            {
+              ...ctx,
+              cleanupError,
+            },
+            "Error during account cleanup"
+          );
+        }
+      }
+
       throw error;
     }
   }
@@ -176,12 +201,20 @@ class CreateUserService {
       section: userData.section,
       address: userData.address || null,
       mobile_number: userData.mobileNumber || null,
-      ojt_status: "not started",
     };
 
     const { error } = await client.from("trainees").insert(traineeInsert);
 
     if (error) {
+      if (
+        error.code === "23505" &&
+        error.message.includes("trainees_student_id_number_key")
+      ) {
+        throw new Error(
+          `Trainee with Student ID Number: ${userData.studentIdNumber} already exists.`
+        );
+      }
+
       throw new Error(`Failed to create trainee record: ${error.message}`);
     }
   }

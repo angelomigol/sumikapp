@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Column } from "@tanstack/react-table";
-import { Filter, Users } from "lucide-react";
+import { Filter } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,11 +111,11 @@ export function DataTableFacetedFilter<TData, TValue>({
                       className="mr-2"
                     />
                     {option.icon && (
-                      <option.icon className="text-muted-foreground h-4 w-4" />
+                      <option.icon className="text-muted-foreground size-4" />
                     )}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                      <span className="ml-auto flex size-4 items-center justify-center font-mono text-xs">
                         {facets.get(option.value)}
                       </span>
                     )}

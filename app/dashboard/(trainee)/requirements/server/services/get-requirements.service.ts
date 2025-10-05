@@ -79,7 +79,9 @@ class GetRequirementsService {
           requirement_types:requirement_type_id (
             id,
             name,
-            description
+            description,
+            allowed_file_types,
+            max_file_size_bytes
           )
         `
           )
@@ -107,7 +109,9 @@ class GetRequirementsService {
             requirement_types:requirement_type_id (
               id,
               name,
-              description
+              description,
+              allowed_file_types,
+              max_file_size_bytes
             )
           )
         `
@@ -174,6 +178,8 @@ class GetRequirementsService {
           file_name: req.file_name,
           file_size: safeNumber(req.file_size),
           file_type: req.file_type,
+          allowed_file_types: requirementType?.allowed_file_types || null,
+          max_file_size_bytes: requirementType?.max_file_size_bytes || null,
           submitted_at: req.submitted_at,
           status: latestStatus,
           history: historyItems,
@@ -197,6 +203,8 @@ class GetRequirementsService {
           file_type: null,
           submitted_at: null,
           status: "not submitted" as const,
+          allowed_file_types: batchReq.requirement_types!.allowed_file_types || null,
+          max_file_size_bytes: batchReq.requirement_types!.max_file_size_bytes || null,
           history: [],
         }));
 

@@ -4,7 +4,6 @@ import Image from "next/image";
 export default function AuthLayout({ children }: React.PropsWithChildren) {
   return (
     <div className="relative h-screen max-h-screen overflow-hidden bg-[#343f83]">
-      {/* BACKGROUND IMAGE */}
       <Image
         src="/bg.png"
         alt="Background"
@@ -12,7 +11,6 @@ export default function AuthLayout({ children }: React.PropsWithChildren) {
         priority
         className="absolute inset-0 hidden bg-no-repeat md:block"
       />
-      {/* BACKGROUND SHADOW EFFECTS */}
       <div
         className="absolute inset-0 hidden md:block"
         style={{
@@ -22,7 +20,6 @@ export default function AuthLayout({ children }: React.PropsWithChildren) {
       />
 
       <div className="relative mx-auto flex h-full max-w-4xl items-center justify-center bg-[#343f83]/20">
-        {/* MAIN COMPONENT */}
         <div className="relative w-full max-w-md space-y-6 rounded-md bg-[#343f83] p-6 md:space-y-8 md:p-7">
           <div className="flex flex-col items-center justify-center gap-3.5 text-center md:flex-row md:text-left">
             <Image

@@ -30,6 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import DateRangePicker from "@/components/sumikapp/date-range-picker";
+import { If } from "@/components/sumikapp/if";
 
 import {
   attendanceFormSchema,
@@ -53,7 +54,7 @@ export default function AddAttendanceReportDialog() {
 
     toast.promise(promise, {
       loading: "Creating attendance report...",
-      success: "Attendance report successfully created",
+      success: "Attendance report successfully created!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -144,7 +145,12 @@ export default function AddAttendanceReportDialog() {
                 onClick={() => form.handleSubmit(onSubmit)}
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? "Creating..." : "Create Report"}
+                <If
+                  condition={form.formState.isSubmitting}
+                  fallback={"Create Report"}
+                >
+                  Creating...
+                </If>
               </Button>
             </DialogFooter>
           </DialogContent>

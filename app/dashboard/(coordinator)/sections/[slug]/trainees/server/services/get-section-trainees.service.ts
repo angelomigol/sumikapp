@@ -154,6 +154,7 @@ class GetSectionTraineesService {
       throw error;
     }
   }
+
   /**
    * @name getTraineeById
    * @description Fetch details of trainee enrolled in a specific section
@@ -196,6 +197,7 @@ class GetSectionTraineesService {
         .from("trainee_batch_enrollment")
         .select(
           `
+          id,
           ojt_status,
           trainees!inner (
             id,
@@ -245,11 +247,8 @@ class GetSectionTraineesService {
               start_date,
               end_date,
               period_total,
-              previous_total,
-              total_hours_served,
               status,
               submitted_at,
-              supervisor_approved_at,
               attendance_entries (*)
             ),
             accomplishment_reports (
@@ -259,9 +258,7 @@ class GetSectionTraineesService {
               end_date,
               total_hours,
               status,
-              submitted_at,
-              supervisor_approved_at,
-              accomplishment_entries (*)
+              submitted_at
             )
           )
         `
@@ -269,6 +266,16 @@ class GetSectionTraineesService {
         .eq("program_batch_id", batchData.id)
         .eq("trainee_id", traineeId)
         .is("trainees.users.deleted_at", null)
+        .in("internship_details.attendance_reports.status", [
+          "approved",
+          "pending",
+          "rejected",
+        ])
+        .in("internship_details.accomplishment_reports.status", [
+          "approved",
+          "pending",
+          "rejected",
+        ])
         .single();
 
       if (error) {
@@ -294,6 +301,34 @@ class GetSectionTraineesService {
         );
 
         throw new Error(`Supabase error: ${error.message}`);
+      }
+
+      const { data: emp_data, error: emp_error } = await client
+        .from("employability_predictions")
+        .select("*")
+        .eq("trainee_batch_enrollment_id", data.id)
+        .single();
+
+      if (emp_error) {
+        if (emp_error.code === "PGRST116") {
+          logger.warn(ctx, "Trainee evaluation not found or access denied");
+          throw new Error("Trainee evaluation not found or access denied");
+        }
+
+        logger.error(
+          {
+            ...ctx,
+            supabaseError: {
+              code: emp_error.code,
+              message: emp_error.message,
+              hint: emp_error.hint,
+              details: emp_error.details,
+            },
+          },
+          "Supabase error while fetching trainee evaluation results"
+        );
+
+        throw new Error(`Supabase error: ${emp_error.message}`);
       }
 
       logger.info(
@@ -362,10 +397,10 @@ class GetSectionTraineesService {
         ojt_status: data.ojt_status,
         status: trainee.users.status,
         internship_details: {
-          company_name: internshipDetails.company_name,
-          job_role: internshipDetails.job_role,
-          start_date: internshipDetails.start_date,
-          end_date: internshipDetails.end_date,
+          company_name: internshipDetails?.company_name,
+          job_role: internshipDetails?.job_role,
+          start_date: internshipDetails?.start_date,
+          end_date: internshipDetails?.end_date,
         },
         program_batch: {
           required_hours: data.program_batch.required_hours,
@@ -379,12 +414,8 @@ class GetSectionTraineesService {
             start_date: report.start_date,
             end_date: report.end_date,
             period_total: report.period_total,
-            previous_total: report.previous_total,
-            total_hours_served: report.total_hours_served,
             status: report.status,
             submitted_at: report.submitted_at,
-            supervisor_approved_at: report.supervisor_approved_at,
-            attendance_entries: report.attendance_entries,
           })
         ),
         accomplishment_reports: internshipDetails?.accomplishment_reports?.map(
@@ -396,11 +427,19 @@ class GetSectionTraineesService {
             total_hours: report.total_hours,
             status: report.status,
             submitted_at: report.submitted_at,
-            supervisor_approved_at: report.supervisor_approved_at,
-            accomplishment_entries: report.accomplishment_entries,
           })
         ),
         submitted_requirements: processedRequirements,
+        evaluation_results: {
+          prediction_label: emp_data.prediction_label,
+          prediction_probability: emp_data.prediction_probability,
+          confidence_level: emp_data.confidence_level,
+          prediction_date: emp_data.prediction_date,
+          evaluation_scores: emp_data.evaluation_scores,
+          feature_scores: emp_data.feature_scores,
+          recommendations: emp_data.recommendations,
+          risk_factors: emp_data.risk_factors,
+        },
       };
     } catch (error) {
       logger.error(

@@ -86,14 +86,10 @@ export default function ActivityReportDetailsContainer(params: {
   const allEntriesConfirmed =
     tableEntries.length > 0 && tableEntries.every((e) => e.is_confirmed);
 
-  // const getFirstUnconfirmedIndex = () => {
-  //   return tableEntries.findIndex((entry) => !entry.is_confirmed);
-  // };
-
   const canEditEntry = (entry: AccomplishmentEntry) => {
     return (
-      !entry.is_confirmed &&
-      (status === "not submitted" || status === "rejected")
+      (!entry.is_confirmed && status === "not submitted") ||
+      status === "rejected"
     );
   };
 
@@ -225,7 +221,7 @@ export default function ActivityReportDetailsContainer(params: {
             reportType="Accomplishment"
             status={status}
             options={{
-              canDelete: true
+              canDelete: true,
             }}
           />
         </div>
@@ -245,7 +241,7 @@ export default function ActivityReportDetailsContainer(params: {
         </CardHeader>
         <div className="px-6">
           <p className="text-muted-foreground text-sm font-medium">
-            Company Name:
+            Company Name: {activity.data.company_name}
           </p>
         </div>
 
@@ -298,23 +294,21 @@ export default function ActivityReportDetailsContainer(params: {
                             ? entry.no_of_working_hours
                             : 0
                         }
-                        onChange={(e) =>
-                          handleWorkingHoursChange(
-                            entry.id,
-                            Number(e.target.value)
-                          )
-                        }
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+
+                          // clamp value between 0 and 24
+                          const clamped = Math.max(0, Math.min(24, value));
+
+                          handleWorkingHoursChange(entry.id, clamped);
+                        }}
                       />
                     </TableCell>
                     <TableCell className="text-end">
                       <CheckboxEntryDialog
                         disabled={insertEntryMutation.isPending}
                         isConfirmed={isConfirmed}
-                        canConfirm={
-                          isEditable &&
-                          entry.daily_accomplishments &&
-                          entry.no_of_working_hours
-                        }
+                        canConfirm={isEditable}
                         onConfirm={() => handleConfirmEntry(entry.id)}
                       />
                     </TableCell>

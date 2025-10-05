@@ -53,10 +53,6 @@ export function IndustryPartnerTableRowActions({
 
   const partnerData = row.original;
 
-  const editClick = () => {
-    onEdit(partnerData);
-  };
-
   const deleteClick = () => {
     openConfirmDialog({
       title: "Delete Industry Partner",
@@ -69,12 +65,15 @@ export function IndustryPartnerTableRowActions({
           loading: `Deleting ${partnerData.company_name}...`,
           success: () => {
             revalidatePartners();
+            setDialogOpen(false);
             return `Industry partner deleted successfully.`;
           },
-          error: (err) => 
-            err instanceof Error
+          error: (err) => {
+            setDialogOpen(false);
+            return err instanceof Error
               ? err.message
-              : `Something went wrong while deleting industry partner.`,
+              : `Something went wrong while deleting industry partner.`;
+          },
         });
       },
       confirmText: "Delete",
@@ -95,13 +94,16 @@ export function IndustryPartnerTableRowActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem onClick={editClick}>
+          <DropdownMenuItem onClick={() => onEdit(partnerData)}>
             <IconEdit />
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={deleteClick}>
-            <IconTrash />
+          <DropdownMenuItem
+            onClick={deleteClick}
+            className="group hover:text-destructive focus:text-red-600"
+          >
+            <IconTrash className="group-hover:text-destructive" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -115,7 +117,6 @@ export function IndustryPartnerTableRowActions({
           description={dialogConfig.description}
           onConfirm={() => {
             dialogConfig.onConfirm();
-            setDialogOpen(false);
           }}
           confirmText={dialogConfig.confirmText}
           variant={dialogConfig.variant}

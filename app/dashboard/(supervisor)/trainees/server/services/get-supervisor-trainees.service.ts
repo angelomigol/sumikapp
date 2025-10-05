@@ -189,12 +189,12 @@ class GetSupervisorTraineesService {
             accomplishment_entries (*)
           ),
           trainee_batch_enrollment!inner (
+            ojt_status,
             trainees!inner (
               id,
               student_id_number,
               course,
               section,
-              ojt_status,
               users!inner (
                 first_name,
                 middle_name,
@@ -265,7 +265,7 @@ class GetSupervisorTraineesService {
         last_name: trainee.users.last_name,
         email: trainee.users.email,
         hours_logged: hours_logged,
-        ojt_status: trainee.ojt_status,
+        ojt_status: data.trainee_batch_enrollment.ojt_status,
         status: trainee.users.status,
         internship_details: {
           company_name: data.company_name,

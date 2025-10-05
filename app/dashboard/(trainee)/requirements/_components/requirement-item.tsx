@@ -7,11 +7,18 @@ import { ChevronUp, FileText, History, TriangleAlert } from "lucide-react";
 
 import { DocumentStatus, getDocumentStatusConfig } from "@/lib/constants";
 
+import { formatFileSize } from "@/utils/shared";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { If } from "@/components/sumikapp/if";
 
 import FileOptions from "./file-options";
+
+const DEFAULT_FILE_CONSTRAINTS = {
+  allowedTypes: [".pdf"],
+  maxSizeBytes: 50 * 1024 * 1024, // 50MB in bytes
+};
 
 export default function RequirementItem({
   title,
@@ -24,9 +31,10 @@ export default function RequirementItem({
     requirement_description?: string | null;
     file_name?: string | null;
     file_size?: number | null;
-    file_type?: string | null;
     submitted_at?: string | null;
     status: DocumentStatus;
+    allowed_file_types?: string[] | null;
+    max_file_size_bytes?: number | null;
     history: {
       id: string;
       document_id: string;
@@ -48,29 +56,46 @@ export default function RequirementItem({
   const StatusIcon = getDocumentStatusConfig(requirement.status).icon;
   const TextColor = getDocumentStatusConfig(requirement.status).textColor;
 
+  const allowedTypes =
+    requirement.allowed_file_types || DEFAULT_FILE_CONSTRAINTS.allowedTypes;
+  const maxSizeBytes =
+    requirement.max_file_size_bytes || DEFAULT_FILE_CONSTRAINTS.maxSizeBytes;
+
   return (
     <div className="border first:rounded-t-xl last:rounded-b-xl">
-      <div className="bg-muted/30 flex flex-col items-start justify-between gap-2 border-b p-4 md:flex-row md:items-center md:gap-0">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-3">
-            <FileText className="size-5" />
-            <h3 className="font-medium capitalize">{title}</h3>
+      <div className="bg-muted/30 flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start gap-3 sm:items-center">
+            <FileText className="size-5 shrink-0" />
+            <div className="w-full min-w-0">
+              <h3 className="line-clamp-2 leading-tight font-medium capitalize sm:line-clamp-1">
+                {title}
+              </h3>
+              <p className="text-muted-foreground line-clamp-2 text-sm sm:line-clamp-1">
+                {requirement.requirement_description}
+              </p>
+            </div>
           </div>
           <p className="text-muted-foreground pl-8 text-xs">
             Accepted file types:{" "}
-            <span className="text-foreground font-medium">.pdf</span> &bull; Max
-            size: <span className="text-foreground font-medium">50MB</span>
+            <span className="text-foreground font-medium">
+              {allowedTypes.join(", ")}
+            </span>{" "}
+            &bull; Max size:{" "}
+            <span className="text-foreground font-medium">
+              {formatFileSize(maxSizeBytes)}
+            </span>
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
           <FileOptions
             id={requirement.id}
             requirement_name={requirement.requirement_name}
             status={requirement.status}
+            file_type={requirement.allowed_file_types}
             file_name={requirement.file_name}
             file_size={requirement.file_size}
-            file_type={requirement.file_type}
           />
 
           <If condition={historyItems.length > 0}>
@@ -99,8 +124,11 @@ export default function RequirementItem({
             {historyItems.map((item) => {
               const config = getDocumentStatusConfig(item.status);
               return (
-                <div key={item.id} className="flex gap-4">
-                  <div className="text-muted-foreground max-w-xl text-sm leading-none">
+                <div
+                  key={item.id}
+                  className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4"
+                >
+                  <div className="text-muted-foreground shrink-0 text-xs sm:text-sm">
                     {formatDate(item.date, "PPpp")}
                   </div>
                   <div className="flex flex-col">
@@ -117,15 +145,16 @@ export default function RequirementItem({
         </div>
       </If>
 
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex flex-col items-start justify-between gap-2 px-4 py-3 sm:flex-row sm:items-center">
         <div
           className={`flex items-center gap-1.5 ${requirement.status === "not submitted" ? "text-destructive" : TextColor}`}
         >
-          {requirement.status === "not submitted" ? (
+          <If
+            condition={requirement.status === "not submitted"}
+            fallback={<StatusIcon className="size-4" />}
+          >
             <TriangleAlert className="size-4" />
-          ) : (
-            <StatusIcon className="size-4" />
-          )}
+          </If>
           <span className="text-sm font-medium capitalize">
             {requirement.status === "not submitted"
               ? "Required"

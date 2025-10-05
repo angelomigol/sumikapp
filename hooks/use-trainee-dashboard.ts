@@ -9,16 +9,6 @@ const queryKey = ["supabase:trainee_overview_dashboard_view"];
 
 export interface TraineeDashboardData {
   ojtStatus: OJTStatus;
-  batchTitle: string;
-
-  internship: {
-    id: string | null;
-    companyName: string | null;
-    jobRole: string | null;
-    status: DocumentStatus;
-    startDate: string | null;
-    endDate: string | null;
-  };
 
   hours: {
     total: number;
@@ -89,16 +79,6 @@ interface RecentReport {
 // Safe default object factory
 const createDefaultTraineeDashboardData = (): TraineeDashboardData => ({
   ojtStatus: "not started",
-  batchTitle: "",
-
-  internship: {
-    id: null,
-    companyName: null,
-    jobRole: null,
-    status: "not submitted",
-    startDate: null,
-    endDate: null,
-  },
 
   hours: {
     total: 0,
@@ -139,21 +119,52 @@ export function useFetchTraineeDashboard() {
         throw new Error("No authenticated user found");
       }
 
-      const { data, error } = await client
-        .from("trainee_overview_dashboard")
-        .select("*")
+      const { data: enrollment, error: enrollmentError } = await client
+        .from("trainee_batch_enrollment")
+        .select("id")
         .eq("trainee_id", response.data.user.id)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        throw new Error(`Database error: ${error.message}`);
+      if (enrollmentError) {
+        throw new Error(`Enrollment error: ${enrollmentError.message}`);
       }
 
-      if (!data) {
+      if (!enrollment) {
+        throw new Error("This trainee is not enrolled in any batch");
+      }
+
+      const { data: internship, error: internshipError } = await client
+        .from("internship_details")
+        .select("id")
+        .eq("enrollment_id", enrollment.id)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (internshipError) {
+        throw new Error(`Internship error: ${internshipError.message}`);
+      }
+
+      if (!internship) {
         return createDefaultTraineeDashboardData();
       }
 
-      return transformTraineeDashboardData(data);
+      const { data: traineeDB, error: traineeError } = await client
+        .from("trainee_overview_dashboard")
+        .select("*")
+        .eq("internship_id", internship?.id)
+        .maybeSingle();
+
+      if (traineeError) {
+        throw new Error(`Database error: ${traineeError.message}`);
+      }
+
+      if (!traineeDB) {
+        return createDefaultTraineeDashboardData();
+      }
+
+      return transformTraineeDashboardData(traineeDB);
     } catch (error) {
       console.error("Error fetching trainee dashboard data:", error);
 
@@ -264,31 +275,11 @@ function transformTraineeDashboardData(
 
   const totalHours = safeNumber(data.total_hours_logged);
   const requiredHours = safeNumber(data.required_hours);
-  const progressPercentage =
-    requiredHours > 0
-      ? Math.min(100, Math.round((totalHours / requiredHours) * 100))
-      : 0;
 
   const ojtStatus: OJTStatus = (data.ojt_status as OJTStatus) || "not started";
 
-  const internshipStatus: DocumentStatus =
-    (data.internship_status as DocumentStatus) || "not submitted";
-
   return {
     ojtStatus,
-
-    // Batch Info
-    batchTitle: data.batch_title?.trim() || "",
-
-    // Internship Details with null safety
-    internship: {
-      id: data.internship_id || null,
-      companyName: data.company_name?.trim() || null,
-      jobRole: data.job_role?.trim() || null,
-      status: internshipStatus,
-      startDate: data.internship_start || null,
-      endDate: data.internship_end || null,
-    },
 
     // Hours & Progress with safe calculations
     hours: {

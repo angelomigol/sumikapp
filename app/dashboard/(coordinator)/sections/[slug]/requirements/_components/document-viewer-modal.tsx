@@ -45,6 +45,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { If } from "@/components/sumikapp/if";
 
 type LoadingState = "idle" | "approving" | "rejecting" | "loading" | "error";
 
@@ -75,7 +76,7 @@ export default function DocumentViewerModal({
   error = null,
   fileSize,
   studentName,
-  slug
+  slug,
 }: DocumentViewerModalProps) {
   const [loadingState, setLoadingState] = useState<LoadingState>("idle");
   const [feedback, setFeedback] = useState("");
@@ -86,6 +87,16 @@ export default function DocumentViewerModal({
 
   const approveSubmissionMutation = useApproveTraineeSubmission(slug);
   const rejectSubmissionMutation = useRejectTraineeSubmission(slug);
+
+  console.log(
+    documentUrl,
+    documentName,
+    submittedDate,
+    documentId,
+    currentStatus,
+    fileSize,
+    studentName
+  );
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -164,7 +175,7 @@ export default function DocumentViewerModal({
 
     toast.promise(promise, {
       loading: "Updating document...",
-      success: `Document successfully approved`,
+      success: "Document approved successfully!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -172,6 +183,8 @@ export default function DocumentViewerModal({
         return "Sorry, we encountered an error while updating document. Please try again.";
       },
     });
+
+    setLoadingState("idle");
   };
 
   const handleRejectDocument = () => {
@@ -184,7 +197,7 @@ export default function DocumentViewerModal({
 
     toast.promise(promise, {
       loading: "Updating document...",
-      success: `Document successfully rejected"`,
+      success: "Document rejected successfully!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -192,6 +205,10 @@ export default function DocumentViewerModal({
         return "Sorry, we encountered an error while updating document. Please try again.";
       },
     });
+
+    setLoadingState("idle");
+    setFeedback("");
+    setShowFeedbackForm(false);
   };
 
   return (
@@ -201,7 +218,7 @@ export default function DocumentViewerModal({
         showCloseButton={false}
       >
         <DialogHeader className="flex-row justify-between border-b p-2">
-          <div className="flex items-center gap-2">
+          <div className="flex h-full items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button size={"icon"} variant={"ghost"} onClick={onClose}>
@@ -255,7 +272,7 @@ export default function DocumentViewerModal({
                 <TooltipContent>Zoom In</TooltipContent>
               </Tooltip>
 
-              {isImage && (
+              <If condition={isImage}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -268,7 +285,7 @@ export default function DocumentViewerModal({
                   </TooltipTrigger>
                   <TooltipContent>Rotate</TooltipContent>
                 </Tooltip>
-              )}
+              </If>
 
               <Button variant="outline" size="sm" onClick={handleResetView}>
                 Reset
@@ -290,6 +307,7 @@ export default function DocumentViewerModal({
             <TooltipContent>Download</TooltipContent>
           </Tooltip>
         </DialogHeader>
+
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_22rem] overflow-hidden">
           <DocumentRenderer
             isLoading={isLoading}
@@ -330,7 +348,43 @@ export default function DocumentViewerModal({
                 <span className="font-medium">Submitted By:</span> {studentName}
               </li>
             </ul>
-            {showFeedbackForm ? (
+
+            <If
+              condition={showFeedbackForm}
+              fallback={
+                <If condition={currentStatus === "pending"}>
+                  <div className="flex flex-col gap-4">
+                    <Button
+                      className="gap-2 bg-green-600 hover:bg-green-600/80"
+                      onClick={handleApproveDocument}
+                      disabled={loadingState !== "idle"}
+                    >
+                      <If
+                        condition={loadingState === "approving"}
+                        fallback={
+                          <>
+                            <CheckCircle className="size-4" />
+                            Approve
+                          </>
+                        }
+                      >
+                        <Loader2 className="size-4 animate-spin" />
+                        Approving...
+                      </If>
+                    </Button>
+                    <Button
+                      variant={"destructive"}
+                      onClick={() => setShowFeedbackForm(true)}
+                      disabled={loadingState !== "idle"}
+                      className="gap-2"
+                    >
+                      <XCircle className="size-4" />
+                      Reject
+                    </Button>
+                  </div>
+                </If>
+              }
+            >
               <Card className="w-full p-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="size-4" />
@@ -370,52 +424,22 @@ export default function DocumentViewerModal({
                     disabled={loadingState !== "idle" || !feedback.trim()}
                     className="gap-2"
                   >
-                    {loadingState === "rejecting" ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        Rejecting...
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="size-4" />
-                        Confirm Rejection
-                      </>
-                    )}
+                    <If
+                      condition={loadingState === "rejecting"}
+                      fallback={
+                        <>
+                          <AlertCircle className="size-4" />
+                          Confirm Rejection
+                        </>
+                      }
+                    >
+                      <Loader2 className="size-4 animate-spin" />
+                      Rejecting...
+                    </If>
                   </Button>
                 </div>
               </Card>
-            ) : (
-              currentStatus === "pending" && (
-                <div className="flex flex-col gap-4">
-                  <Button
-                    className="gap-2 bg-green-600 hover:bg-green-600/80"
-                    onClick={handleApproveDocument}
-                    disabled={loadingState !== "idle"}
-                  >
-                    {loadingState === "approving" ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" />
-                        Approving...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="size-4" />
-                        Approve
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant={"destructive"}
-                    onClick={() => setShowFeedbackForm(true)}
-                    disabled={loadingState !== "idle"}
-                    className="gap-2"
-                  >
-                    <XCircle className="size-4" />
-                    Reject
-                  </Button>
-                </div>
-              )
-            )}
+            </If>
           </aside>
         </div>
       </DialogContent>
@@ -542,9 +566,10 @@ function DocumentRenderer({
           the browser. Please download the file to view its contents.
         </p>
         <Button
+          type="button"
           variant={"outline"}
           size={"sm"}
-          onClick={handleDownload}
+          onClick={() => {}}
           className="gap-2"
         >
           <Download className="size-4" />

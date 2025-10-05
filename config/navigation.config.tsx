@@ -43,7 +43,7 @@ export const sidebarRoutes = [
         path: pathsConfig.app.placement,
         Icon: <Building className={iconClasses} />,
         authorizedRoles: ["trainee"],
-        allowedOJTStatus: ["not started", "completed", "active", "dropped"],
+        allowedOJTStatus: ["not started", "dropped"],
       },
       {
         label: "Requirements",
@@ -64,6 +64,13 @@ export const sidebarRoutes = [
       {
         label: "Activity Reports",
         path: pathsConfig.app.activity,
+        Icon: <ClipboardCheck className={iconClasses} />,
+        authorizedRoles: ["trainee"],
+        allowedOJTStatus: ["completed", "active"],
+      },
+      {
+        label: "Weekly Reports",
+        path: pathsConfig.app.weeklyReports,
         Icon: <ClipboardCheck className={iconClasses} />,
         authorizedRoles: ["trainee"],
         allowedOJTStatus: ["completed", "active"],

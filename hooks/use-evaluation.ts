@@ -20,9 +20,31 @@ export interface EvaluationScores {
     quality_work_performance: number;
   };
 
-  overall_rating: number;
+  work_attitude_remarks: {
+    courteous_with_superiors_peers_remarks: string;
+    interest_patience_in_tasks_remarks: string;
+    accepts_constructive_feedback_remarks: string;
+    punctuality_remarks: string;
+    trustworthy_remarks: string;
+  };
 
-  trainee_id?: string;
+  personal_appearance_remarks: {
+    good_grooming_remarks: string;
+    decent_dress_code_remarks: string;
+    poise_self_confidence_remarks: string;
+    stability_under_pressure_remarks: string;
+  };
+
+  professional_competence_remarks: {
+    understands_instructions_remarks: string;
+    submits_work_on_time_remarks: string;
+    quality_work_performance_remarks: string;
+  };
+
+  overall_rating: number;
+  overall_rating_remarks: string;
+
+  tbe_id?: string;
   evaluator_id?: string;
   evaluation_date?: string;
 }
@@ -30,13 +52,13 @@ export interface EvaluationScores {
 export interface CriterionResponse {
   key: string;
   score: number;
-  remarks?: string;
+  remarks: string;
 }
 
 export interface SectionResponse {
   key: string;
   scores: Record<string, number>;
-  remarks?: Record<string, string>;
+  remarks: Record<string, string>;
 }
 
 export interface EvaluationFormResponse {
@@ -48,7 +70,7 @@ export interface EvaluationFormResponse {
   overall_performance: number;
   remarks: Record<string, string>;
   metadata?: {
-    trainee_id?: string;
+    tbe_id?: string;
     evaluator_id?: string;
     evaluation_date?: string;
   };
@@ -183,14 +205,89 @@ export const validateEvaluationScores = (
     return false;
   }
 
+  if (
+    !scores.work_attitude_remarks ||
+    typeof scores.work_attitude_remarks !== "object"
+  )
+    return false;
+
+  const workAttitudeRemarkKeys = [
+    "courteous_with_superiors_peers_remarks",
+    "interest_patience_in_tasks_remarks",
+    "accepts_constructive_feedback_remarks",
+    "punctuality_remarks",
+    "trustworthy_remarks",
+  ];
+  for (const key of workAttitudeRemarkKeys) {
+    if (
+      typeof scores.work_attitude_remarks[key] !== "string" ||
+      scores.work_attitude_remarks[key].trim().length < 3
+    ) {
+      return false;
+    }
+  }
+
+  if (
+    !scores.personal_appearance_remarks ||
+    typeof scores.personal_appearance_remarks !== "object"
+  )
+    return false;
+
+  const appearanceRemarkKeys = [
+    "good_grooming_remarks",
+    "decent_dress_code_remarks",
+    "poise_self_confidence_remarks",
+    "stability_under_pressure_remarks",
+  ];
+  for (const key of appearanceRemarkKeys) {
+    if (
+      typeof scores.personal_appearance_remarks[key] !== "string" ||
+      scores.personal_appearance_remarks[key].trim().length < 3
+    ) {
+      return false;
+    }
+  }
+
+  if (
+    !scores.professional_competence_remarks ||
+    typeof scores.professional_competence_remarks !== "object"
+  )
+    return false;
+
+  const competenceRemarkKeys = [
+    "understands_instructions_remarks",
+    "submits_work_on_time_remarks",
+    "quality_work_performance_remarks",
+  ];
+  for (const key of competenceRemarkKeys) {
+    if (
+      typeof scores.professional_competence_remarks[key] !== "string" ||
+      scores.professional_competence_remarks[key].trim().length < 3
+    ) {
+      return false;
+    }
+  }
+
+  if (
+    typeof scores.overall_rating_remarks !== "string" ||
+    scores.overall_rating_remarks.trim().length < 3
+  ) {
+    return false;
+  }
+
   return true;
 };
 
 export const transformFormToApiPayload = (
   formResponses: Record<string, number>,
-  metadata?: { trainee_id?: string; evaluator_id?: string }
+  remarks: Record<string, string>,
+  metadata: { tbe_id: string; evaluator_id: string }
 ): EvaluationScores => {
-  return {
+  console.log("🔍 Transform Debug - Input formResponses:", formResponses);
+  console.log("🔍 Transform Debug - Input remarks:", remarks);
+  console.log("🔍 Transform Debug - Metadata:", metadata);
+
+  const result = {
     work_attitude: {
       courteous_with_superiors_peers:
         formResponses["courteous_with_superiors_peers"] || 0,
@@ -212,9 +309,59 @@ export const transformFormToApiPayload = (
       submits_work_on_time: formResponses["submits_work_on_time"] || 0,
       quality_work_performance: formResponses["quality_work_performance"] || 0,
     },
-    overall_rating: formResponses["overall_performance"] || 0,
-    trainee_id: metadata?.trainee_id,
-    evaluator_id: metadata?.evaluator_id,
+    work_attitude_remarks: {
+      courteous_with_superiors_peers_remarks:
+        remarks["courteous_with_superiors_peers"] || "",
+      interest_patience_in_tasks_remarks:
+        remarks["interest_patience_in_tasks"] || "",
+      accepts_constructive_feedback_remarks:
+        remarks["accepts_constructive_feedback"] || "",
+      punctuality_remarks: remarks["punctuality"] || "",
+      trustworthy_remarks: remarks["trustworthy"] || "",
+    },
+    personal_appearance_remarks: {
+      good_grooming_remarks: remarks["good_grooming"] || "",
+      decent_dress_code_remarks: remarks["decent_dress_code"] || "",
+      poise_self_confidence_remarks: remarks["poise_self_confidence"] || "",
+      stability_under_pressure_remarks:
+        remarks["stability_under_pressure"] || "",
+    },
+    professional_competence_remarks: {
+      understands_instructions_remarks:
+        remarks["understands_instructions"] || "",
+      submits_work_on_time_remarks: remarks["submits_work_on_time"] || "",
+      quality_work_performance_remarks:
+        remarks["quality_work_performance"] || "",
+    },
+    overall_rating: formResponses["overall_rating"] || 0,
+    overall_rating_remarks: remarks["overall_rating"] || "",
+    tbe_id: metadata.tbe_id,
+    evaluator_id: metadata.evaluator_id,
     evaluation_date: new Date().toISOString(),
   };
+
+  const totalScores =
+    Object.values(result.work_attitude).reduce((sum, val) => sum + val, 0) +
+    Object.values(result.personal_appearance).reduce(
+      (sum, val) => sum + val,
+      0
+    ) +
+    Object.values(result.professional_competence).reduce(
+      (sum, val) => sum + val,
+      0
+    ) +
+    result.overall_rating;
+
+  console.log("✅ Transform Debug - Output result:", result);
+  console.log("✅ Transform Debug - Total scores:", totalScores);
+
+  if (totalScores === 0) {
+    console.error(
+      "❌ Transform Error: All scores are 0! Check form key mapping." 
+    );
+    console.error("Available formResponses keys:", Object.keys(formResponses));
+  }
+
+
+  return result;
 };

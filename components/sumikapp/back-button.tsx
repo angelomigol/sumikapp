@@ -16,8 +16,8 @@ export default function BackButton({
   link: string;
 }) {
   return (
-    <div className="flex flex-1 items-center gap-2 md:gap-4">
-      <Button asChild size={"icon"} variant={"outline"}>
+    <div className="flex w-full items-center gap-2 md:gap-4">
+      <Button asChild size={"icon-sm"} variant={"outline"}>
         <Link href={link}>
           <ChevronLeft />
         </Link>

@@ -3,7 +3,9 @@ import "server-only";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 import { getLogger } from "@/utils/logger";
-import { Database, TablesUpdate } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
+
+import { CustomRequirementFormValues } from "../../../../schemas/requirement.schema";
 
 export function createUpdateCustomRequirementService() {
   return new UpdateCustomRequirementService();
@@ -27,7 +29,7 @@ class UpdateCustomRequirementService {
   async updateCustomRequirement(params: {
     client: SupabaseClient<Database>;
     userId: string;
-    data: TablesUpdate<"requirement_types">;
+    data: CustomRequirementFormValues;
   }) {
     const logger = await getLogger();
 
@@ -77,7 +79,9 @@ class UpdateCustomRequirementService {
         .from("requirement_types")
         .update({
           name: data.name,
-          description: data.description ?? null,
+          description: data.description || null,
+          allowed_file_types: data.allowedFileTypes,
+          max_file_size_bytes: data.maxFileSizeBytes,
           updated_at: new Date().toISOString(),
         })
         .eq("id", data.id)

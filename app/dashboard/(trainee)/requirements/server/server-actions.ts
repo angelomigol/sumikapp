@@ -70,25 +70,32 @@ export const uploadRequirementAction = enhanceAction(
       userId: user.id,
     };
 
-    const formDataObject = Object.fromEntries(formData.entries());
-    const { success, data, error } =
-      UploadRequirementSchema.safeParse(formDataObject);
+    // Extract form data
+    const file = formData.get("file") as File;
+    const requirement_name = formData.get("requirement_name") as string;
 
-    if (!success) {
-      throw new Error(`Invalid form data: ${error.message}`);
+    // Basic validation
+    if (!file || !(file instanceof File)) {
+      throw new Error("File is required");
+    }
+
+    if (!requirement_name) {
+      throw new Error("Requirement name is required");
+    }
+
+    if (file.size === 0) {
+      throw new Error("File cannot be empty");
     }
 
     logger.info(ctx, "Processing requirement upload...");
 
     try {
-      const { file: docFile, requirement_name } = data;
-
       const client = getSupabaseServerClient();
       const service = createUploadRequirementsService();
 
       const result = await service.uploadRequirement({
         client,
-        docFile,
+        docFile: file,
         requirementName: requirement_name,
         userId: user.id,
       });

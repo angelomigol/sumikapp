@@ -2,8 +2,6 @@
 
 import { InternOffer } from "../schemas/intern-offer.schema";
 
-// https://internships-api.p.rapidapi.com/active-jb-7d?location_filter=Philippines&description_type=text&ai_work_arrangement_filter=On-site%2CHybrid
-
 const RAPID_API_KEY = process.env.RAPID_API_KEY;
 
 /**
@@ -15,7 +13,8 @@ export async function fetchInternOffers(offset: number = 0) {
     throw new Error("RAPID_API_KEY is not set");
   }
 
-  const url = `https://internships-api.p.rapidapi.com/active-ats-7d?location_filter=Philippines&description_type=text&offset=${offset}&ai_work_arrangement_filter=On-site%2CHybrid`;
+  // https://internships-api.p.rapidapi.com/active-ats-7d?location_filter=Philippines&description_type=text&offset=${offset}&ai_work_arrangement_filter=On-site%2CHybrid
+  const url = `https://internships-api.p.rapidapi.com/active-jb-7d?location_filter=Philippines&description_type=text&offset=${offset}&ai_work_arrangement_filter=On-site%2CHybrid`;
 
   const options = {
     method: "GET",

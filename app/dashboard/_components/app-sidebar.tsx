@@ -24,7 +24,7 @@ export function AppSidebar(props: {
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className={"h-16 justify-center"}>
+      <SidebarHeader className="h-16 justify-center">
         <AppSidebarHeader />
       </SidebarHeader>
 
@@ -54,7 +54,7 @@ function AppSidebarHeader() {
           alt="NU Logo"
           width={26}
           height={26}
-          className="h-auto w-auto"
+          className="size-auto"
         />
       </div>
       <div className="grid flex-1 text-left text-sm">

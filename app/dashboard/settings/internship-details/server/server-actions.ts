@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { enhanceAction } from "@/lib/server/enhance-actions";
 
 import { getLogger } from "@/utils/logger";
-import { getSupabaseServerAdminClient } from "@/utils/supabase/client/server-admin-client";
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
 
 import { internshipDetailsFormSchema } from "../schema/internship-details-form.schema";
@@ -118,6 +117,7 @@ export const createInternshipAction = enhanceAction(
           startDate: data.startDate,
           startTime: data.startTime,
           supervisorEmail: data.supervisorEmail,
+          lunchBreak: data.lunchBreak,
         },
       });
 
@@ -206,6 +206,7 @@ export const updateInternshipAction = enhanceAction(
           startDate: data.startDate,
           startTime: data.startTime,
           supervisorEmail: data.supervisorEmail,
+          lunchBreak: data.lunchBreak,
         },
       });
 

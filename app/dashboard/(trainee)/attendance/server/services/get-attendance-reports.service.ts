@@ -132,6 +132,7 @@ class GetAttendanceReportsService {
         .select(
           `*,
           internship_details!inner(
+            company_name,
             enrollment_id,
             trainee_batch_enrollment!inner(
               trainee_id,
@@ -187,6 +188,7 @@ class GetAttendanceReportsService {
           data.internship_details.trainee_batch_enrollment.program_batch
             .internship_code,
         supervisor_approved_at: data.supervisor_approved_at,
+        company_name: data.internship_details.company_name,
         attendance_entries: data.attendance_entries.map(
           (entry: Tables<"attendance_entries">) => ({
             id: entry.id,

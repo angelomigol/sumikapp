@@ -28,11 +28,17 @@ import AttendanceTabContent from "@/components/sumikapp/attendance-tab-content";
 import BackButton from "@/components/sumikapp/back-button";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
+import NotFoundPage from "@/app/not-found";
+
 export default function TraineeDetailsContainer(params: { traineeId: string }) {
   const trainee = useFetchSupervisorTrainee(params.traineeId);
 
-  if (!trainee.data || trainee.isLoading) {
+  if (trainee.isLoading) {
     return <LoadingOverlay fullPage />;
+  }
+
+  if (!trainee.data) {
+    return <NotFoundPage />;
   }
 
   const displayName = [
@@ -108,7 +114,7 @@ export default function TraineeDetailsContainer(params: { traineeId: string }) {
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium">Intern Role</p>
+                <p className="text-sm font-medium">Job Role</p>
                 <p className="text-muted-foreground text-sm">
                   {trainee.data.internship_details.job_role}
                 </p>
@@ -144,7 +150,7 @@ export default function TraineeDetailsContainer(params: { traineeId: string }) {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm font-medium">
-                <p>Program Completion</p>
+                <p>OJT Completion</p>
                 <p>{progress.toFixed(1)}%</p>
               </div>
               <Progress value={progress} />
@@ -182,7 +188,7 @@ export default function TraineeDetailsContainer(params: { traineeId: string }) {
                 </TabsTrigger>
                 <TabsTrigger value="acc">
                   <FileCheck className="size-4" />
-                  Activity
+                  Accomplishment
                 </TabsTrigger>
               </TabsList>
 

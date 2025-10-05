@@ -48,9 +48,8 @@ class CreateIndustryPartnerService {
       let originalFileName: string | null = null;
 
       if (moaFile) {
-        const fileExtension = moaFile.name.split(".").pop();
-        const fileName = `${Date.now()}.${fileExtension}`;
-        filePath = `${data.company_name}/${fileName}`;
+        const fileName = moaFile.name;
+        filePath = `${data.id}/${fileName}`;
         originalFileName = moaFile.name;
 
         const { data: uploadData, error: uploadError } = await client.storage

@@ -53,6 +53,7 @@ class CreateAttendanceReportService {
         `
         )
         .eq("trainee_batch_enrollment.trainee_id", userId)
+        .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
@@ -122,7 +123,7 @@ class CreateAttendanceReportService {
               details: error.details,
             },
           },
-          
+
           `Supabase error while creating attendance report: ${error.message}`
         );
 

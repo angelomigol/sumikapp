@@ -73,6 +73,7 @@ export type AccomplishmentEntryData = {
 export type NormalizedReviewReport = ReviewReports & {
   entries: AccomplishmentEntryData[] | AttendanceEntryData[];
   email: string;
+  supervisor_approved_at: string | null;
   intern_code: string;
   company_name: string | null;
   job_role: string | null;

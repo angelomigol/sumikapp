@@ -13,7 +13,7 @@ export default async function EvaluateTraineePage({
 
   return (
     <EvaluateTraineeContainer
-      traineeId={(await params).id}
+      tbeId={(await params).id}
       evaluatorId={user.id}
     />
   );

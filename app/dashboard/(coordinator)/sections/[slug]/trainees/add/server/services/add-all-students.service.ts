@@ -256,31 +256,13 @@ class AddAllStudentsService {
     ctx: any
   ): Promise<{ isValid: boolean; error?: string }> {
     try {
-      // Get trainee's current OJT status
-      const { data: traineeData, error: traineeError } = await client
-        .from("trainees")
-        .select("ojt_status")
-        .eq("id", traineeId)
-        .single();
-
-      if (traineeError || !traineeData) {
-        logger.error(
-          {
-            ...ctx,
-            traineeId,
-            error: traineeError,
-          },
-          "Failed to fetch trainee data"
-        );
-        return { isValid: false, error: "Failed to fetch trainee information" };
-      }
-
       // Get all existing enrollments for this trainee with batch details
       const { data: existingEnrollments, error: enrollmentError } = await client
         .from("trainee_batch_enrollment")
         .select(
           `
           id,
+          ojt_status,
           program_batch:program_batch!inner(
             id,
             internship_code,
@@ -300,6 +282,7 @@ class AddAllStudentsService {
           },
           "Failed to fetch existing enrollments"
         );
+
         return {
           isValid: false,
           error: "Failed to check existing enrollments",
@@ -324,7 +307,7 @@ class AddAllStudentsService {
         if (ctntern1Enrollments.length > 0) {
           return {
             isValid: false,
-            error: "Trainee is already enrolled in a CTNTERN1 program batch",
+            error: "Trainee is already enrolled in Internship 1.",
           };
         }
       }
@@ -333,7 +316,7 @@ class AddAllStudentsService {
         if (ctntern2Enrollments.length > 0) {
           return {
             isValid: false,
-            error: "Trainee is already enrolled in a CTNTERN2 program batch",
+            error: "Trainee is already enrolled in Internship 2.",
           };
         }
 
@@ -342,11 +325,12 @@ class AddAllStudentsService {
           return {
             isValid: false,
             error:
-              "Trainee must complete CTNTERN1 before enrolling in CTNTERN2",
+              "Trainee must complete Internship 1 before enrolling in Internship 2",
           };
         }
 
         // Rule 3: Trainee cannot be added to CTNTERN2 if CTNTERN1 is still ongoing or OJT status is not completed
+        const ctntern1Enrollment = ctntern1Enrollments[0];
         const ctntern1Batch = ctntern1Enrollments[0].program_batch;
         const isOngoing =
           currentDate >= ctntern1Batch.start_date &&
@@ -355,15 +339,16 @@ class AddAllStudentsService {
         if (isOngoing) {
           return {
             isValid: false,
-            error: "Cannot enroll in CTNTERN2 while CTNTERN1 is still ongoing",
+            error:
+              "Cannot enroll in Internship 2 while Intership 1 is still ongoing",
           };
         }
 
-        if (traineeData.ojt_status !== "completed") {
+        if (ctntern1Enrollment.ojt_status !== "completed") {
           return {
             isValid: false,
             error:
-              "Trainee must have completed OJT status to enroll in CTNTERN2",
+              "This trainee has not yet finished Internship 1 to enroll in Internship 2.",
           };
         }
       }

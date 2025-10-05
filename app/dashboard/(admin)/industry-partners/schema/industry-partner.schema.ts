@@ -3,6 +3,7 @@ import z from "zod";
 const phoneRegex = /^[0-9]+$/;
 
 export const industryPartnerSchema = z.object({
+  id: z.uuid().optional(),
   companyName: z.string().min(1, { error: "Name of the company is required" }),
   companyAddress: z.string().optional(),
   companyContactNumber: z

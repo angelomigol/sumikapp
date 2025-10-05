@@ -209,12 +209,7 @@ class GetSectionTraineeReportsService {
         .from("attendance_reports")
         .select(
           `
-            id,
-            start_date,
-            end_date,
-            period_total,
-            submitted_at,
-            status,
+            *,
             internship_details!inner (
               supervisor_id,
               company_name,
@@ -271,6 +266,7 @@ class GetSectionTraineeReportsService {
           end_date: attendanceData.end_date,
           total_hours: attendanceData.period_total?.toString() || "0",
           submitted_at: attendanceData.submitted_at || "",
+          supervisor_approved_at: attendanceData.supervisor_approved_at,
           status: attendanceData.status,
           entries: attendanceData.attendance_entries.map(
             (entry: Tables<"attendance_entries">) => ({

@@ -6,7 +6,7 @@ const InternCodes = Constants.public.Enums.internship_code as readonly string[];
 
 export const sectionSchema = z.object({
   id: z.uuid().optional(),
-  title: z.string().min(1, "Title is required").max(100),
+  title: z.string().min(1, "Name is required").max(100),
   description: z.string().max(150).nullable(),
   internship_code: z.enum(InternCodes),
   start_date: z.date(),

@@ -210,12 +210,12 @@ export const deleteIndustryPartnerAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const { data, success } = deleteIndustryPartnerSchema.safeParse(
+    const { data, success, error } = deleteIndustryPartnerSchema.safeParse(
       Object.fromEntries(formData.entries())
     );
 
     if (!success) {
-      throw new Error("Invalid form data");
+      throw new Error(``);
     }
 
     const ctx = {

@@ -55,6 +55,7 @@ class GetTraineeReportsService {
             end_date,
             period_total,
             submitted_at,
+            supervisor_approved_at,
             status
           ),
           accomplishment_reports (
@@ -63,6 +64,7 @@ class GetTraineeReportsService {
             end_date,
             total_hours,
             submitted_at,
+            supervisor_approved_at,
             status
           ),
           trainee_batch_enrollment!inner (
@@ -122,6 +124,7 @@ class GetTraineeReportsService {
             end_date: report.end_date,
             total_hours: report.period_total?.toString() || "0",
             submitted_at: report.submitted_at || "",
+            supervisor_approved_at: report.supervisor_approved_at,
             status: report.status,
           });
         });
@@ -142,6 +145,7 @@ class GetTraineeReportsService {
             end_date: report.end_date,
             total_hours: report.total_hours?.toString() || "0",
             submitted_at: report.submitted_at || "",
+            supervisor_approved_at: report.supervisor_approved_at,
             status: report.status,
           });
         });
@@ -202,6 +206,7 @@ class GetTraineeReportsService {
             end_date,
             period_total,
             submitted_at,
+            supervisor_approved_at,
             status,
             internship_details!inner (
               supervisor_id,
@@ -256,6 +261,7 @@ class GetTraineeReportsService {
           end_date: attendanceData.end_date,
           total_hours: attendanceData.period_total?.toString() || "0",
           submitted_at: attendanceData.submitted_at || "",
+          supervisor_approved_at: attendanceData.supervisor_approved_at,
           status: attendanceData.status,
           entries: attendanceData.attendance_entries.map(
             (entry: Tables<"attendance_entries">) => ({
@@ -285,6 +291,7 @@ class GetTraineeReportsService {
             end_date,
             total_hours,
             submitted_at,
+            supervisor_approved_at,
             status,
             internship_details!inner (
               supervisor_id,
@@ -340,6 +347,7 @@ class GetTraineeReportsService {
           end_date: accomplishmentData.end_date,
           total_hours: accomplishmentData.total_hours?.toString() || "0",
           submitted_at: accomplishmentData.submitted_at || "",
+          supervisor_approved_at: accomplishmentData.supervisor_approved_at,
           status: accomplishmentData.status,
           entries: accomplishmentData.accomplishment_entries.map(
             (entry: Tables<"accomplishment_entries">) => ({
@@ -385,7 +393,7 @@ class GetTraineeReportsService {
           ...ctx,
           error,
         },
-        
+
         "Unexpected error fetching trainee report"
       );
 

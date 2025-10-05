@@ -131,7 +131,7 @@ export default function TraineeDashboard() {
       <If condition={traineeData?.ojtStatus === "not started"}>
         <Alert className="border-blue-11 bg-blue-3 border-l-4">
           <AlertCircle className="size-5" />
-          <AlertDescription className="text-blue-11/80 text-sm leading-relaxed sm:leading-loose">
+          <AlertDescription className="text-sm leading-relaxed sm:leading-loose">
             <p>
               Welcome to your OJT dashboard. Once your internship details are
               reviewed and approved, and you officially begin your OJT, your

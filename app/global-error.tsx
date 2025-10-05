@@ -14,8 +14,8 @@ export default function GlobalError({
       <body>
         <div className="bg-background flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-md text-center">
-            <div className="text-destructive mx-auto flex h-12 w-12 items-center justify-center">
-              <ServerOff className="h-12 w-12" />
+            <div className="text-destructive mx-auto flex size-12 items-center justify-center">
+              <ServerOff className="size-12" />
             </div>
             <h1 className="text-foreground mt-4 text-6xl font-bold tracking-tight sm:text-7xl">
               500

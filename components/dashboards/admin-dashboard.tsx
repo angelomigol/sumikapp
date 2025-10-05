@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         <PageTitle text={"Dashboard"} />
 
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="size-4" />
           <AlertDescription>
             Unable to load dashboard data. Please try refreshing the page.
             {error instanceof Error && ` (${error.message})`}
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
+          {/* <Button
             variant={"outline"}
             size={"sm"}
             onClick={() => refetch()}
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
               className={`size-4 ${isLoading ? "animate-spin" : ""}`}
             />
             Refresh
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid auto-rows-auto grid-cols-3 gap-5 md:grid-cols-6 lg:grid-cols-9">
-        <Card className="col-span-3 md:col-span-6">
+        <Card className="col-span-9"> {/* md:col-span-6 */}
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconActivity className="size-5" />

@@ -22,7 +22,6 @@ import {
 import { If } from "@/components/sumikapp/if";
 import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 
-import { AddStudentFormValues } from "../schema/add-student-form.schema";
 import AddStudentResultModal from "./add-student-result-modal";
 
 interface UnsavedStudentsTableProps {

@@ -5,6 +5,7 @@ import { TriangleAlertIcon } from "lucide-react";
 import pathsConfig from "@/config/paths.config";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface AuthCallbackErrorPageProps {
   searchParams: Promise<{
@@ -20,7 +21,7 @@ export default async function AuthCallbackErrorPage(
   return (
     <>
       <Alert variant={"destructive"}>
-        <TriangleAlertIcon className={"w-4"} />
+        <TriangleAlertIcon className="w-4" />
         <AlertTitle>Authentication Error</AlertTitle>
 
         <AlertDescription>
@@ -28,13 +29,15 @@ export default async function AuthCallbackErrorPage(
         </AlertDescription>
       </Alert>
 
-      <div className="flex justify-center text-sm">
-        <Link
-          href={pathsConfig.app.index}
-          className="text-white/80 underline transition-colors hover:text-white"
-        >
-          Go to Sign In Page
-        </Link>
+      <div className="flex justify-center">
+        <Button variant={"link"} size={"sm"} className="text-white" asChild>
+          <Link
+            href={pathsConfig.app.index}
+            className="text-white/80 underline transition-colors hover:text-white"
+          >
+            Go to Sign In Page
+          </Link>
+        </Button>
       </div>
     </>
   );

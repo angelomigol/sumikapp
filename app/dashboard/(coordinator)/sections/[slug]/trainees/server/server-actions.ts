@@ -5,6 +5,8 @@ import { enhanceAction } from "@/lib/server/enhance-actions";
 import { getLogger } from "@/utils/logger";
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
 
+import { removeTraineeSchema } from "../../../schemas/remove-trainee.schema";
+import { createDeleteTraineeFromSectionService } from "./services/delete-student-from-section.service";
 import { createGetSectionTraineesService } from "./services/get-section-trainees.service";
 
 /**
@@ -107,6 +109,64 @@ export const getSectionTraineeByIdAction = enhanceAction(
           error,
         },
         "Failed to fetch section trainees"
+      );
+
+      throw error;
+    }
+  },
+  {}
+);
+
+/**
+ * @name removeStudentFromSectionAction
+ * @description Server action to
+ */
+export const removeStudentFromSectionAction = enhanceAction(
+  async (formData: FormData, user) => {
+    const logger = await getLogger();
+
+    const { data, success, error } = removeTraineeSchema.safeParse(
+      Object.fromEntries(formData.entries())
+    );
+
+    if (!success) {
+      throw new Error(`Invalid form data: ${error.message}`);
+    }
+
+    const ctx = {
+      name: "section_trainees.delete",
+      userId: user.id,
+    };
+
+    logger.info(ctx, "Deleting trainee batch enrollment...");
+
+    try {
+      const client = getSupabaseServerClient();
+      const service = createDeleteTraineeFromSectionService();
+
+      const result = await service.removeTrainee({
+        client,
+        userId: user.id,
+        sectionName: data.sectionName,
+        traineeId: data.traineeId,
+      });
+
+      logger.info(
+        {
+          ...ctx,
+          result,
+        },
+        result.message
+      );
+
+      return result;
+    } catch (error) {
+      logger.error(
+        {
+          ...ctx,
+          error,
+        },
+        "Failed to delete trainee batch enrollment"
       );
 
       throw error;
