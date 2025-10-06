@@ -1,3 +1,4 @@
+import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 import z from "zod";
 
 export const addStudentSchema = z.object({
@@ -21,14 +22,14 @@ export const addStudentsResult = z.object({
   results: z.object({
     successful: z.array(
       z.object({
-        trainee: addStudentSchema,
+        trainee: z.custom<SearchableTrainee>,
         userId: z.string(),
         studentId: z.string(),
       })
     ),
     failed: z.array(
       z.object({
-        trainee: addStudentSchema,
+        trainee: z.custom<SearchableTrainee>,
         error: z.string(),
       })
     ),

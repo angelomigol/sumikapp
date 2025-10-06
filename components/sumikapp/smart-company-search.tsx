@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Briefcase, Building2, MapPin, Phone } from "lucide-react";
 
@@ -60,7 +67,7 @@ const SmartCompanySearch = React.forwardRef<
     []
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setQuery(value);
   }, [value]);
 
@@ -90,29 +97,29 @@ const SmartCompanySearch = React.forwardRef<
   }, [supabase]);
 
   // Smart search function with null safety
-  const searchCompanies = (searchQuery: string): SearchableCompany[] => {
-    if (!searchQuery.trim()) {
-      return [];
-    }
+  const searchCompanies = useCallback(
+    (searchQuery: string): SearchableCompany[] => {
+      if (!searchQuery.trim()) return [];
 
-    const lowercaseQuery = searchQuery.toLowerCase();
+      const lowercaseQuery = searchQuery.toLowerCase();
+      return companies
+        .filter((company) => {
+          const companyName = company.company_name.toLowerCase();
+          const address = company.company_address?.toLowerCase() || "";
+          const business = company.nature_of_business?.toLowerCase() || "";
+          const contactNumber = company.company_contact_number || "";
 
-    return companies
-      .filter((company) => {
-        const companyName = company.company_name.toLowerCase();
-        const address = company.company_address?.toLowerCase() || "";
-        const business = company.nature_of_business?.toLowerCase() || "";
-        const contactNumber = company.company_contact_number || "";
-
-        return (
-          companyName.includes(lowercaseQuery) ||
-          (address && address.includes(lowercaseQuery)) ||
-          (business && business.includes(lowercaseQuery)) ||
-          contactNumber.includes(lowercaseQuery)
-        );
-      })
-      .slice(0, 8);
-  };
+          return (
+            companyName.includes(lowercaseQuery) ||
+            address.includes(lowercaseQuery) ||
+            business.includes(lowercaseQuery) ||
+            contactNumber.includes(lowercaseQuery)
+          );
+        })
+        .slice(0, 8);
+    },
+    [companies]
+  );
 
   useEffect(() => {
     if (!query.trim()) {
@@ -127,7 +134,7 @@ const SmartCompanySearch = React.forwardRef<
       try {
         const searchResults = searchCompanies(query);
         setResults(searchResults);
-        setIsOpen(searchResults.length > 0);
+        setIsOpen(true);
         setSelectedIndex(-1);
       } catch (error) {
         console.error("Search failed:", error);
@@ -211,7 +218,7 @@ const SmartCompanySearch = React.forwardRef<
     const parts = text.split(regex);
 
     return parts.map((part, index) =>
-      regex.test(part) ? (
+      part.toLowerCase() === query.toLowerCase() ? (
         <span key={index} className="bg-yellow-200 font-medium">
           {part}
         </span>

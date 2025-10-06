@@ -3,10 +3,14 @@
 import React from "react";
 import Link from "next/link";
 
+import { Row } from "@tanstack/react-table";
 import { PlusCircle } from "lucide-react";
 
 import pathsConfig from "@/config/paths.config";
-import { useFetchSectionTrainees } from "@/hooks/use-section-trainees";
+import {
+  TraineeWithUserAndHours,
+  useFetchSectionTrainees,
+} from "@/hooks/use-section-trainees";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
@@ -18,7 +22,7 @@ import { TraineesTableRowActions } from "./trainees-table-row-actions";
 import { TraineesTableToolbar } from "./trainees-table-toolbar";
 
 export default function SectionTraineesContainer(params: { slug: string }) {
-  const { data = [], isLoading, error } = useFetchSectionTrainees(params.slug);
+  const { data = [], isLoading } = useFetchSectionTrainees(params.slug);
 
   if (isLoading) {
     return <LoadingOverlay fullPage />;
@@ -28,7 +32,7 @@ export default function SectionTraineesContainer(params: { slug: string }) {
     if (column.id === "actions") {
       return {
         ...column,
-        cell: ({ row }: any) => (
+        cell: ({ row }: { row: Row<TraineeWithUserAndHours> }) => (
           <TraineesTableRowActions slug={params.slug} row={row} />
         ),
       };

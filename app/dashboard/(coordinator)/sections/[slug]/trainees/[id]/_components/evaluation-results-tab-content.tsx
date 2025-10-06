@@ -5,7 +5,6 @@ import {
   CheckCircle,
   Clock,
   Gauge,
-  Percent,
 } from "lucide-react";
 
 import {
@@ -25,10 +24,10 @@ export default function EvaluationResultsTabContent({
     prediction_probability: number | null;
     confidence_level: string | null;
     prediction_date: string | null;
-    evaluation_scores: Record<string, any> | null;
-    feature_scores: Record<string, any> | null;
-    recommendations: Record<string, any> | null;
-    risk_factors: Record<string, any> | null;
+    evaluation_scores: Record<string, number> | null;
+    feature_scores: Record<string, number> | null;
+    recommendations: Record<string, number> | null;
+    risk_factors: Record<string, number> | null;
   };
 }) {
   if (!results) {
@@ -59,23 +58,6 @@ export default function EvaluationResultsTabContent({
             </div>
           </div>
         </div>
-
-        {/* <div className="space-y-3">
-          <div className="flex items-center gap-4">
-            <div className="bg-primary/10 rounded-lg p-2">
-              <Percent className="text-primary size-4" />
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm">Probability</p>
-              <p className="text-2xl font-bold">
-                {results.prediction_probability
-                  ? (results.prediction_probability * 100).toFixed(1)
-                  : 0}
-                %
-              </p>
-            </div>
-          </div>
-        </div> */}
 
         <div className="space-y-3">
           <div className="flex items-center gap-4">

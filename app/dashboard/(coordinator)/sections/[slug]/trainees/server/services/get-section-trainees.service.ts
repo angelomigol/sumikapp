@@ -374,7 +374,7 @@ class GetSectionTraineesService {
           file_name: req.file_name,
           file_path: req.file_path,
           file_type: req.file_type,
-          file_size: req.file_size,
+          file_size: Number(req.file_size),
           submitted_at: req.submitted_at,
           status: latestHistoryEntry?.document_status || "not submitted",
           history: history.map((h) => ({

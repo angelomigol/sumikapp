@@ -2,8 +2,10 @@
 
 import React from "react";
 
+import { Row } from "@tanstack/react-table";
 import { TriangleAlert } from "lucide-react";
 
+import { ReviewReports } from "@/hooks/use-review-reports";
 import { useFetchSectionTraineeReports } from "@/hooks/use-section-weekly-reports";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -35,7 +37,7 @@ export default function SectionTraineeReportsContainer(params: {
     if (column.id === "actions") {
       return {
         ...column,
-        cell: ({ row }: any) => (
+        cell: ({ row }: { row: Row<ReviewReports> }) => (
           <ReportsTableRowActions slug={params.slug} row={row} />
         ),
       };

@@ -8,6 +8,7 @@ import {
   RadarChart,
   ResponsiveContainer,
   Tooltip,
+  TooltipProps,
 } from "recharts";
 
 import { Card } from "../ui/card";
@@ -18,6 +19,11 @@ type EvaluationScores = {
     | {
         [key: string]: number;
       };
+};
+
+type ChartData = {
+  subject: string;
+  score: number;
 };
 
 export default function EvaluationScoresRadialChart({
@@ -31,8 +37,8 @@ export default function EvaluationScoresRadialChart({
     );
   }
 
-  const prepareData = (scores: EvaluationScores) => {
-    const data: { subject: string; score: number }[] = [];
+  const prepareData = (scores: EvaluationScores): ChartData[] => {
+    const data: ChartData[] = [];
 
     Object.entries(scores).forEach(([category, value]) => {
       if (category === "overall_rating") return;
@@ -43,7 +49,6 @@ export default function EvaluationScoresRadialChart({
           score: value,
         });
       } else if (typeof value === "object") {
-        // handle nested objects
         Object.entries(value).forEach(([subKey, subValue]) => {
           data.push({
             subject: subKey.replace(/_/g, " "),
@@ -58,7 +63,11 @@ export default function EvaluationScoresRadialChart({
 
   const chartData = prepareData(evaluation_scores);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <Card className="p-2 shadow-md">

@@ -9,6 +9,8 @@ import { DocumentStatus } from "@/lib/constants";
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
+type RequirementHistoryEntry = Database["public"]["Tables"]["requirements_history"]["Row"];
+
 export function createGetRequirementsService() {
   return new GetRequirementsService();
 }
@@ -166,7 +168,7 @@ class GetRequirementsService {
         const latestStatus =
           historyItems.length > 0
             ? (historyItems[historyItems.length - 1]
-                .status as RequirementWithHistory["status"])
+                .document_status as RequirementWithHistory["status"])
             : "not submitted";
 
         const requirementType = req.batch_requirements?.requirement_types;
@@ -203,8 +205,10 @@ class GetRequirementsService {
           file_type: null,
           submitted_at: null,
           status: "not submitted" as const,
-          allowed_file_types: batchReq.requirement_types!.allowed_file_types || null,
-          max_file_size_bytes: batchReq.requirement_types!.max_file_size_bytes || null,
+          allowed_file_types:
+            batchReq.requirement_types!.allowed_file_types || null,
+          max_file_size_bytes:
+            batchReq.requirement_types!.max_file_size_bytes || null,
           history: [],
         }));
 
@@ -240,11 +244,11 @@ function safeNumber(val: unknown): number | null {
   return isNaN(parsed) ? null : parsed;
 }
 
-function mapHistory(entry: any) {
+function mapHistory(entry: RequirementHistoryEntry) {
   return {
     id: entry.id,
     document_id: entry.document_id,
-    status: entry.document_status as DocumentStatus,
+    document_status: entry.document_status as DocumentStatus,
     title: entry.title,
     description: entry.description,
     date: new Date(entry.date),

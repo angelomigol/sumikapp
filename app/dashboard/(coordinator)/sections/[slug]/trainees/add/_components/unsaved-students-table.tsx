@@ -22,6 +22,7 @@ import {
 import { If } from "@/components/sumikapp/if";
 import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 
+import { AddStudentsResult } from "../schema/add-student-form.schema";
 import AddStudentResultModal from "./add-student-result-modal";
 
 interface UnsavedStudentsTableProps {
@@ -41,7 +42,7 @@ export default function UnsavedStudentsTable({
 }: UnsavedStudentsTableProps) {
   const [resultModal, setResultModal] = useState<{
     isOpen: boolean;
-    result: any;
+    result: AddStudentsResult | null;
   }>({
     isOpen: false,
     result: null,
@@ -81,7 +82,7 @@ export default function UnsavedStudentsTable({
       });
 
       const successfulStudentIds = result.results.successful.map(
-        (item: any) => item.trainee.studentId
+        (item) => item.trainee.student_id_number
       );
 
       const indicesToRemove = trainee
@@ -106,10 +107,9 @@ export default function UnsavedStudentsTable({
           `Added ${successful.length} students successfully. ${failed.length} failed - check details.`
         );
       }
-    } catch (error: any) {
-      toast.error(
-        `Failed to add students: ${error.message || "Unknown error"}`
-      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Failed to add students: ${errorMessage}`);
     }
   };
 

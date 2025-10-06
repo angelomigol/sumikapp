@@ -98,12 +98,14 @@ export default function ReviewReportDetailsContainer(params: {
     (entry) => entry.status === null || entry.status === undefined
   );
 
-  const isAttendanceEntry = (entry: any): entry is AttendanceEntryData => {
+  const isAttendanceEntry = (
+    entry: AttendanceEntryData | AccomplishmentEntryData
+  ): entry is AttendanceEntryData => {
     return reportData.data.report_type === "attendance";
   };
 
   const isAccomplishmentEntry = (
-    entry: any
+    entry: AttendanceEntryData | AccomplishmentEntryData
   ): entry is AccomplishmentEntryData => {
     return reportData.data.report_type === "accomplishment";
   };

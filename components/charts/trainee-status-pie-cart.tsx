@@ -118,7 +118,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
               No Data
             </div>
           ) : (
-            payload.map((item: any, index: number) => (
+            payload.map((item, index: number) => (
               <div
                 key={`tooltip-item-${index}`}
                 className="flex w-full flex-wrap items-center gap-2"

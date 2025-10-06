@@ -131,7 +131,6 @@ export function useAddAllStudents(slug: string) {
     slug: string;
   }) => {
     const result = await addAllStudentsAction(payload);
-
     return result;
   };
 

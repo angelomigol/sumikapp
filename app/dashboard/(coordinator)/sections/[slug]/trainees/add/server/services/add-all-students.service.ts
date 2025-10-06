@@ -7,6 +7,15 @@ import { Database } from "@/utils/supabase/supabase.types";
 
 import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 
+type Logger = Awaited<ReturnType<typeof getLogger>>;
+
+interface LogContext {
+  userId: string;
+  section_name: string;
+  name: string;
+  [key: string]: unknown;
+}
+
 export function createAddAllStudentsService() {
   return new AddAllStudentsService();
 }
@@ -252,8 +261,8 @@ class AddAllStudentsService {
     client: SupabaseClient<Database>,
     traineeId: string,
     targetInternshipCode: Database["public"]["Enums"]["internship_code"],
-    logger: any,
-    ctx: any
+    logger: Logger,
+    ctx: LogContext
   ): Promise<{ isValid: boolean; error?: string }> {
     try {
       // Get all existing enrollments for this trainee with batch details

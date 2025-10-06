@@ -23,7 +23,7 @@ export default function InternOfferCard({ offer }: { offer: InternOffer }) {
     <Card>
       <CardHeader className="flex items-center gap-4">
         <Avatar className="size-14 rounded-md">
-          <AvatarImage src={offer.logo} alt={offer.company} />
+          <AvatarImage src={offer.logo ?? undefined} alt={offer.company} />
           <AvatarFallback className="rounded-md">
             {offer.company.substring(0, 2).toUpperCase()}
           </AvatarFallback>

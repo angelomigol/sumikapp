@@ -30,7 +30,7 @@ export type RequirementWithHistory = {
   history: {
     id: string;
     document_id: string;
-    status: DocumentStatus;
+    document_status: DocumentStatus;
     title: string;
     description: string;
     date: Date;

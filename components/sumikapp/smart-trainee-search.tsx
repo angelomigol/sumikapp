@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 import { BookOpen, Hash, Search, User, Users } from "lucide-react";
 
@@ -121,41 +127,40 @@ const SmartTraineeSearch = React.forwardRef<
     }, [supabase]);
 
     // Smart search function with null safety
-    const searchTrainees = (searchQuery: string): SearchableTrainee[] => {
-      if (!searchQuery.trim()) {
-        return [];
-      }
+    const searchTrainees = useCallback(
+      (searchQuery: string): SearchableTrainee[] => {
+        if (!searchQuery.trim()) {
+          return [];
+        }
 
-      const lowercaseQuery = searchQuery.toLowerCase();
+        const lowercaseQuery = searchQuery.toLowerCase();
 
-      return trainees
-        .filter((trainee) => {
-          // Build full name with null safety
-          const nameParts = [
-            trainee.first_name,
-            trainee.middle_name,
-            trainee.last_name,
-          ].filter(Boolean); // Remove null/undefined values
-          const fullName = nameParts.join(" ").toLowerCase();
+        return trainees
+          .filter((trainee) => {
+            const nameParts = [
+              trainee.first_name,
+              trainee.middle_name,
+              trainee.last_name,
+            ].filter(Boolean);
+            const fullName = nameParts.join(" ").toLowerCase();
 
-          const email = trainee.email.toLowerCase();
-          const studentId = trainee.student_id_number.toLowerCase();
+            const email = trainee.email.toLowerCase();
+            const studentId = trainee.student_id_number.toLowerCase();
+            const course = trainee.course?.toLowerCase() || "";
+            const section = trainee.section?.toLowerCase() || "";
 
-          // Handle nullable course and section with safe checking
-          const course = trainee.course?.toLowerCase() || "";
-          const section = trainee.section?.toLowerCase() || "";
-
-          // Search across multiple fields with null safety
-          return (
-            fullName.includes(lowercaseQuery) ||
-            email.includes(lowercaseQuery) ||
-            studentId.includes(lowercaseQuery) ||
-            (course && course.includes(lowercaseQuery)) ||
-            (section && section.includes(lowercaseQuery))
-          );
-        })
-        .slice(0, 5); // Limit to 5 results
-    };
+            return (
+              fullName.includes(lowercaseQuery) ||
+              email.includes(lowercaseQuery) ||
+              studentId.includes(lowercaseQuery) ||
+              (course && course.includes(lowercaseQuery)) ||
+              (section && section.includes(lowercaseQuery))
+            );
+          })
+          .slice(0, 5);
+      },
+      [trainees]
+    );
 
     useEffect(() => {
       if (!query.trim()) {
@@ -170,7 +175,7 @@ const SmartTraineeSearch = React.forwardRef<
         try {
           const searchResults = searchTrainees(query);
           setResults(searchResults);
-          setIsOpen(searchResults.length > 0);
+          setIsOpen(true);
           setSelectedIndex(-1);
         } catch (error) {
           console.error("Search failed:", error);
@@ -182,7 +187,7 @@ const SmartTraineeSearch = React.forwardRef<
       }, 300); // Debounce search
 
       return () => clearTimeout(delayedSearch);
-    }, [query, trainees, searchTrainees]);
+    }, [query, searchTrainees]);
 
     // Handle keyboard navigation with proper typing
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -252,7 +257,7 @@ const SmartTraineeSearch = React.forwardRef<
       const parts = text.split(regex);
 
       return parts.map((part, index) =>
-        regex.test(part) ? (
+        part.toLowerCase() === query.toLowerCase() ? (
           <span key={index} className="bg-yellow-200 font-medium">
             {part}
           </span>

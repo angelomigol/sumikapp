@@ -1,6 +1,9 @@
 "use server";
 
-import { InternOffer } from "../schemas/intern-offer.schema";
+import {
+  InternOffer,
+  RawInternshipOffer,
+} from "../schemas/intern-offer.schema";
 
 const RAPID_API_KEY = process.env.RAPID_API_KEY;
 
@@ -32,11 +35,15 @@ export async function fetchInternOffers(offset: number = 0) {
     throw new Error("Failed to fetch internship offers");
   }
 
-  const data = await res.json();
+  const data: unknown = await res.json();
 
-  const offers: InternOffer[] = Array.isArray(data)
-    ? data.map((item: any) => transformToInternshipOffer(item))
-    : [];
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  const offers = data
+    .map((item) => transformToInternshipOffer(item as RawInternshipOffer))
+    .filter((offer): offer is InternOffer => !!offer);
 
   return offers;
 }
@@ -90,38 +97,48 @@ export async function fetchInternOffersWithPagination(
     pagination: {
       offset,
       limit,
-      hasMore: offers.length === limit, // Assume there's more if we got a full page
+      hasMore: offers.length === limit,
       nextOffset: offset + limit,
     },
   };
 }
 
-function transformToInternshipOffer(rawData: any): InternOffer {
-  let location = null;
+/**
+ * @name transformToInternshipOffer
+ * @description Transform raw API data into our InternOffer structure
+ */
+function transformToInternshipOffer(
+  rawData: RawInternshipOffer
+): InternOffer | null {
+  let location: string | null = null;
 
-  if (rawData.locations_derived && rawData.locations_derived.length > 0) {
+  if (
+    Array.isArray(rawData.locations_derived) &&
+    rawData.locations_derived.length > 0
+  ) {
     location = rawData.locations_derived[0];
   } else if (
-    rawData.locations_alt_raw &&
+    Array.isArray(rawData.locations_alt_raw) &&
     rawData.locations_alt_raw.length > 0
   ) {
     location = rawData.locations_alt_raw[0];
-  } else if (rawData.locations_raw && rawData.locations_raw.length > 0) {
+  } else if (
+    Array.isArray(rawData.locations_raw) &&
+    rawData.locations_raw.length > 0
+  ) {
     const locationRaw = rawData.locations_raw[0];
     if (locationRaw.address) {
-      const addressParts = [];
-      if (locationRaw.address.addressLocality)
-        addressParts.push(locationRaw.address.addressLocality);
-      if (locationRaw.address.addressRegion)
-        addressParts.push(locationRaw.address.addressRegion);
-      if (locationRaw.address.addressCountry)
-        addressParts.push(locationRaw.address.addressCountry);
+      const addressParts = [
+        locationRaw.address.addressLocality,
+        locationRaw.address.addressRegion,
+        locationRaw.address.addressCountry,
+      ].filter(Boolean);
       location = addressParts.join(", ");
     } else if (locationRaw.addressLocality) {
       location = locationRaw.addressLocality;
     }
   } else if (
-    rawData.location_requirements_raw &&
+    Array.isArray(rawData.location_requirements_raw) &&
     rawData.location_requirements_raw.length > 0
   ) {
     location = rawData.location_requirements_raw[0].name;
@@ -130,7 +147,7 @@ function transformToInternshipOffer(rawData: any): InternOffer {
   return {
     id: rawData.id,
     title: rawData.title,
-    logo: rawData.organization_logo,
+    logo: rawData.organization_logo ?? null,
     date_posted: new Date(rawData.date_posted),
     type:
       Array.isArray(rawData.employment_type) &&
@@ -138,7 +155,7 @@ function transformToInternshipOffer(rawData: any): InternOffer {
         ? rawData.employment_type[0]
         : null,
     company: rawData.organization,
-    location: location,
+    location,
     deadline: rawData.date_validthrough
       ? new Date(rawData.date_validthrough)
       : null,

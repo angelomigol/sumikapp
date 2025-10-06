@@ -7,6 +7,24 @@ import { SupervisorTraineesForEvaluationTable } from "@/hooks/use-supervisor-tra
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
+interface TraineeEvaluationInfo {
+  tbe_id: string;
+  internship_id: string;
+  trainee_id: string;
+  student_id_number: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  email: string;
+  course: string | null;
+  section: string | null;
+  company_name: string;
+  start_date: string;
+  end_date: string;
+  internship_status: string;
+  required_hours: number;
+}
+
 export function createGetTraineesForEvaluationService() {
   return new GetTraineesForEvaluationService();
 }
@@ -110,10 +128,10 @@ class GetTraineesForEvaluationService {
       // Extract trainee_batch_enrollment IDs and internship IDs
       const tbeIds: string[] = [];
       const internshipIds: string[] = [];
-      const traineeMap = new Map<string, any>();
+      const traineeMap = new Map<string, TraineeEvaluationInfo>();
 
       completedTrainees.forEach((supervisor) => {
-        supervisor.internship_details.forEach((internship: any) => {
+        supervisor.internship_details.forEach((internship) => {
           const tbe = internship.trainee_batch_enrollment;
           tbeIds.push(tbe.id);
           internshipIds.push(internship.id);
