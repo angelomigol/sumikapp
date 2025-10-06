@@ -13,7 +13,7 @@ interface Props {
   }>;
 }
 
-export async function VerifyPage(props: Props) {
+export default async function VerifyPage(props: Props) {
   const client = getSupabaseServerClient();
 
   const {
