@@ -53,6 +53,8 @@ export const deleteWeeklyReportAction = enhanceAction(
     logger.info(ctx, result.message);
 
     revalidatePath("/dashboard/weekly-reports");
+
+    return result;
   },
   { auth: true }
 );

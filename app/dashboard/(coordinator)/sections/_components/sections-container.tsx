@@ -40,8 +40,8 @@ export default function SectionsContainer() {
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <p className="text-2xl font-bold tracking-tight">No sections yet</p>
           <p className="text-muted-foreground max-w-md text-sm">
-            Looks like you haven't created any sections yet. Start adding by
-            clicking the "New Section" button.
+            {`Looks like you haven't created any sections yet. Start adding by
+            clicking the "New Section" button.`}
           </p>
         </div>
       </If>

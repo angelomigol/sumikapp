@@ -1,13 +1,6 @@
 import React from "react";
 
-import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Download,
-  FileText,
-  XCircle,
-} from "lucide-react";
+import { Download, FileText } from "lucide-react";
 
 import { RequirementWithHistory } from "@/hooks/use-batch-requirements";
 
@@ -25,13 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { If } from "@/components/sumikapp/if";
 
 interface RequirementsTabContentProps {
   requirements?: RequirementWithHistory[];
@@ -48,8 +34,8 @@ export default function RequirementsTabContent({
           No Requirements Found
         </h3>
         <p className="text-muted-foreground max-w-md text-sm">
-          This trainee hasn't submitted any requirements yet, or no requirements
-          have been assigned to their program batch.
+          {`This trainee hasn't submitted any requirements yet, or no requirements
+          have been assigned to their program batch.`}
         </p>
       </div>
     );

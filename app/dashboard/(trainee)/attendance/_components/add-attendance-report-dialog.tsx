@@ -88,8 +88,8 @@ export default function AddAttendanceReportDialog() {
             <DialogHeader>
               <DialogTitle>Create Attendance Report</DialogTitle>
               <DialogDescription>
-                Fill out the form to create a new weekly attendance report.
-                Click "create report" when you're done.
+                {`Fill out the form to create a new weekly attendance report.
+                Click "create report" when you're done.`}
               </DialogDescription>
               <fieldset
                 disabled={form.formState.isSubmitting}

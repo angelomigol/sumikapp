@@ -27,7 +27,10 @@ import ConfirmationDialog from "@/components/sumikapp/confirmation-dialog";
 interface IndustryPartnerTableRowActionsProps {
   row: Row<Tables<"industry_partners">>;
   onEdit: (partner: IndustryPartner) => void;
-  deleteAction: (formData: FormData) => Promise<any>;
+  deleteAction: (formData: FormData) => Promise<{
+    success: boolean;
+    message: string;
+  }>;
 }
 
 export function IndustryPartnerTableRowActions({

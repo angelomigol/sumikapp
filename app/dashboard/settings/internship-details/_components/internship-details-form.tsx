@@ -60,7 +60,6 @@ export default function InternshipDetailsForm({
   internship,
   onClose,
 }: InternshipDetailsFormProps) {
-  const [isFromIndustryPartners, setIsFromIndustryPartners] = useState(false);
   const [selectedPartner, setSelectedPartner] =
     useState<SearchableCompany | null>(null);
   const [partnerSearchOpen, setPartnerSearchOpen] = useState(false);
@@ -146,7 +145,7 @@ export default function InternshipDetailsForm({
         lunchBreak: 0,
       });
     }
-  }, [internship, form]);
+  }, [isEditing, internship, form]);
 
   const onSubmit = async (data: InternshipDetailsFormValues) => {
     let promise;

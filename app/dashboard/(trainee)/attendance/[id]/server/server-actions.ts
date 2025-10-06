@@ -38,7 +38,7 @@ export const deleteAttendanceReportAction = enhanceAction(
     const client = getSupabaseServerClient();
     const service = createDeleteAttendanceReportService();
 
-    await service.deleteReport({
+    const result = await service.deleteReport({
       client,
       userId: user.id,
       reportId: data.id,
@@ -47,6 +47,8 @@ export const deleteAttendanceReportAction = enhanceAction(
     logger.info(ctx, "Attendance report successfully deleted");
 
     revalidatePath("/dashboard/attendance");
+
+    return result;
   },
   {}
 );

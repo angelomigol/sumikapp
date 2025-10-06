@@ -38,7 +38,7 @@ export const deleteActivityReportAction = enhanceAction(
     const client = getSupabaseServerClient();
     const service = createDeleteAccomplishmentReportService();
 
-    await service.deleteReport({
+    const result = await service.deleteReport({
       client,
       userId: user.id,
       reportId: data.id,
@@ -47,6 +47,8 @@ export const deleteActivityReportAction = enhanceAction(
     logger.info(ctx, "Activity report successfully deleted");
 
     revalidatePath("/dashboard/activity");
+
+    return result;
   },
   {}
 );

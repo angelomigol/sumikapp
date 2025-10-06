@@ -42,8 +42,8 @@ export default function AccomplishmentReportsTabContent({
           No Accomplishment Reports
         </h3>
         <p className="text-muted-foreground max-w-md text-sm">
-          This trainee hasn't submitted any accomplishment reports yet, or no
-          accomplishment reports have been approved yet.
+          {`This trainee hasn't submitted any accomplishment reports yet, or no
+          accomplishment reports have been approved yet.`}
         </p>
       </div>
     );
@@ -52,7 +52,7 @@ export default function AccomplishmentReportsTabContent({
   return (
     <Table>
       <TableHeader>
-        <TableRow className="border-none"> 
+        <TableRow className="border-none">
           <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r">
             Period
           </TableHead>

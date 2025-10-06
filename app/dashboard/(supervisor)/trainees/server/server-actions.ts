@@ -12,7 +12,7 @@ import { createGetSupervisorTraineesService } from "./services/get-supervisor-tr
  * @description Server action to
  */
 export const getSupervisorTraineesAction = enhanceAction(
-  async (_: any, user) => {
+  async (_, user) => {
     const logger = await getLogger();
 
     const ctx = {

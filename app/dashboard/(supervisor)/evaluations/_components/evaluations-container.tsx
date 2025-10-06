@@ -23,7 +23,7 @@ export default function EvaluationsContainer() {
       <div>
         <PageTitle text={"Trainee Evaluations"} />
         <p className="text-muted-foreground text-sm">
-          Evaluate your trainees' overall performance during their OJT.
+          {`Evaluate your trainees' overall performance during their OJT.`}
         </p>
       </div>
 

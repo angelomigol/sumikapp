@@ -4,13 +4,9 @@ import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import { BookOpen, Hash, Search, User, Users } from "lucide-react";
 
-import { getOJTStatusConfig, OJTStatus } from "@/lib/constants";
-
 import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 
 import { Input } from "@/components/ui/input";
-
-import { Badge } from "../ui/badge";
 
 export type SearchableTrainee = {
   id: string;
@@ -186,7 +182,7 @@ const SmartTraineeSearch = React.forwardRef<
       }, 300); // Debounce search
 
       return () => clearTimeout(delayedSearch);
-    }, [query, trainees]); // Add trainees as dependency
+    }, [query, trainees, searchTrainees]);
 
     // Handle keyboard navigation with proper typing
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -355,7 +351,7 @@ const SmartTraineeSearch = React.forwardRef<
             className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-gray-500 shadow-lg"
           >
             <Search className="mx-auto mb-2 size-8 text-gray-300" />
-            <p>No trainees found matching "{query}"</p>
+            <p>{`No trainees found matching "${query}"`}</p>
             <p className="mt-1 text-xs text-gray-400">
               Try searching by name, email, student ID, course, or section
             </p>

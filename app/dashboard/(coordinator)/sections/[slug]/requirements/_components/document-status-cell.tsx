@@ -33,6 +33,12 @@ export const DocumentStatusCell = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const prefetchSignedUrl = usePrefetchSignedUrl();
+  const documentUrl = useFetchSignedUrl(
+    docInfo?.filePath ?? "", // safe default
+    isModalOpen && !!docInfo?.filePath
+  );
+
   if (!docInfo) {
     return (
       <Badge
@@ -43,12 +49,6 @@ export const DocumentStatusCell = ({
       </Badge>
     );
   }
-
-  const prefetchSignedUrl = usePrefetchSignedUrl();
-  const documentUrl = useFetchSignedUrl(
-    docInfo.filePath,
-    isModalOpen && !!docInfo?.filePath
-  );
 
   const getStatusColor = (status: string) => {
     switch (status) {

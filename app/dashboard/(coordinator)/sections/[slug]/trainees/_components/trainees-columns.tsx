@@ -10,8 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table";
 
-import { TraineesTableRowActions } from "./trainees-table-row-actions";
-
 export const traineeColumns: ColumnDef<TraineeWithUserAndHours>[] = [
   {
     id: "select",

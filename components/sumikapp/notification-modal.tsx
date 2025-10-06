@@ -25,12 +25,12 @@ export default function NotificationsModal() {
           <DialogTitle className="flex items-center gap-2">
             Notifications
           </DialogTitle>
-          <DialogDescription>
+          {/* <DialogDescription>
             You have {unreadCount} unread notification
             {unreadCount !== 1 ? "s" : ""}.
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
-        <div className="flex justify-end">
+        {/* <div className="flex justify-end">
           <Button
             variant="outline"
             size="sm"
@@ -110,7 +110,7 @@ export default function NotificationsModal() {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </ScrollArea> */}
       </DialogContent>
     </Dialog>
   );

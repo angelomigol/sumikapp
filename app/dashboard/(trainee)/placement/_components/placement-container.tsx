@@ -91,10 +91,11 @@ export default function PlacementContainer({
         <If condition={!isLoading && !error}>
           {filteredOffers.map((offer, index) => (
             <If
+              key={offer.id}
               condition={filteredOffers.length === index + 1}
               fallback={<InternOfferCard key={offer.id} offer={offer} />}
             >
-              <div key={offer.id} ref={lastOfferElementRef}>
+              <div ref={lastOfferElementRef}>
                 <InternOfferCard key={offer.id} offer={offer} />
               </div>
             </If>
@@ -121,7 +122,7 @@ export default function PlacementContainer({
         >
           <div className="flex justify-center py-6">
             <span className="text-sm text-gray-500">
-              You've reached the end of the internship listings
+              {`You've reached the end of the internship listings`}
             </span>
           </div>
         </If>

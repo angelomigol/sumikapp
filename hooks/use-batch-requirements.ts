@@ -44,7 +44,7 @@ export type RequirementWithHistory = {
   file_name: string;
   file_path: string;
   file_type: string;
-  file_size: string;
+  file_size: number;
   submitted_at: string;
   status: DocumentStatus;
   history: {

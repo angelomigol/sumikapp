@@ -1,11 +1,8 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, HeaderContext } from "@tanstack/react-table";
 
-import {
-  TraineeWithRequirements,
-  TraineeWithRequirementsAndInternship,
-} from "@/hooks/use-batch-requirements";
+import { TraineeWithRequirementsAndInternship } from "@/hooks/use-batch-requirements";
 
 import { getDocumentStatusConfig } from "@/lib/constants";
 
@@ -91,60 +88,6 @@ export const createTraineeRequirementColumns = (
         stickyOffset: 50,
       },
     },
-    // {
-    //   accessorFn: (row) => {
-    //     if (!row.requirements || !Array.isArray(row.requirements)) {
-    //       return requirementTypes.length;
-    //     }
-    //     const submittedRequirementNames = new Set(
-    //       row.requirements.map((req) => req.requirement_name)
-    //     );
-    //     return requirementTypes.length - submittedRequirementNames.size;
-    //   },
-    //   id: "completion",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Completion" />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const trainee = row.original;
-
-    //     const missingCount = (() => {
-    //       if (!trainee.requirements || !Array.isArray(trainee.requirements)) {
-    //         return requirementTypes.length;
-    //       }
-    //       const submittedRequirementNames = new Set(
-    //         trainee.requirements.map((req) => req.requirement_name)
-    //       );
-    //       return requirementTypes.length - submittedRequirementNames.size;
-    //     })();
-
-    //     // Determine status
-    //     let status;
-    //     let badgeColor;
-
-    //     if (missingCount === 0) {
-    //       status = "Complete";
-    //       badgeColor = "bg-green-3 text-green-11";
-    //     } else if (missingCount === requirementTypes.length) {
-    //       status = "No Submissions";
-    //       badgeColor = "bg-red-3 text-red-11";
-    //     } else {
-    //       status = "Incomplete";
-    //       badgeColor = "bg-amber-3 text-amber-11";
-    //     }
-
-    //     return (
-    //       <div className="flex flex-col items-center justify-center gap-1">
-    //         <Badge className={badgeColor}>{status}</Badge>
-    //         <span className="text-xs text-gray-500">
-    //           {requirementTypes.length - missingCount}/{requirementTypes.length}{" "}
-    //           submitted
-    //         </span>
-    //       </div>
-    //     );
-    //   },
-    //   enableSorting: false,
-    // },
     {
       accessorFn: (row) => row.internship_details?.status || "not submitted",
       id: "internship",
@@ -175,25 +118,41 @@ export const createTraineeRequirementColumns = (
     },
     ...requirementTypes.map((reqType) => ({
       accessorKey: reqType.name,
-      header: ({ column }: { column: any }) => (
+      header: ({
+        column,
+      }: HeaderContext<TraineeWithRequirementsAndInternship, unknown>) => (
         <DataTableColumnHeader
           column={column}
-          title={`${reqType.name
+          title={reqType.name
             .split(" ")
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")}`}
+            .join(" ")}
         />
       ),
-      cell: ({ row }: { row: any }) => {
-        const trainee = row.original as TraineeWithRequirements;
-        const documents: Record<string, any> = {};
+      cell: ({
+        row,
+      }: {
+        row: { original: TraineeWithRequirementsAndInternship };
+      }) => {
+        const trainee = row.original;
+        const documents: Record<
+          string,
+          {
+            id: string;
+            status: string;
+            filePath: string;
+            fileName: string;
+            fileSize: number;
+            fileType: string;
+            submitted: string;
+          }
+        > = {};
 
         // Create a mapping of requirement names to their status
-        if (trainee.requirements && Array.isArray(trainee.requirements)) {
+        if (Array.isArray(trainee.requirements)) {
           trainee.requirements.forEach((req) => {
-            // Get the latest history entry for this requirement
             const latestHistory = req.history?.length
-              ? req.history.sort(
+              ? [...req.history].sort(
                   (a, b) =>
                     new Date(b.date).getTime() - new Date(a.date).getTime()
                 )[0]
@@ -205,7 +164,7 @@ export const createTraineeRequirementColumns = (
             if (status !== "not submitted") {
               documents[req.requirement_name] = {
                 id: req.id,
-                status: status,
+                status,
                 filePath: req.file_path,
                 fileName: req.file_name,
                 fileSize: req.file_size,

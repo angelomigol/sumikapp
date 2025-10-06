@@ -19,7 +19,7 @@ import { createGetWeeklyReportsService } from "./services/get-weekly-reports.ser
  *
  */
 export const getWeeklyReportsAction = enhanceAction(
-  async (_: any, user) => {
+  async (_, user) => {
     const logger = await getLogger();
 
     const ctx = {

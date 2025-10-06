@@ -87,8 +87,8 @@ export default function AddWeeklyReportDialog() {
             <DialogHeader>
               <DialogTitle>Create Weekly Report</DialogTitle>
               <DialogDescription>
-                Fill out the form to create a new weekly report. Click "create
-                report" when you're done.
+                {`Fill out the form to create a new weekly report. Click "create
+                report" when you're done.`}
               </DialogDescription>
               <fieldset
                 disabled={form.formState.isSubmitting}

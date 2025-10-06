@@ -13,12 +13,9 @@ import { toast } from "sonner";
 
 import { DocumentStatus } from "@/lib/constants";
 
-import { Database } from "@/utils/supabase/supabase.types";
-
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -35,7 +32,10 @@ import { If } from "./if";
 interface ReportMoreOptionsProps {
   id: string;
   status: DocumentStatus;
-  deleteAction?: (formData: FormData) => Promise<any>;
+  deleteAction?: (formData: FormData) => Promise<{
+    success: boolean;
+    message: string;
+  }>;
   redirectPath?: string;
   reportType?: "Attendance" | "Accomplishment";
   options?: {

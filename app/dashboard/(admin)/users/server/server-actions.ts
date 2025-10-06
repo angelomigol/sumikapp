@@ -176,7 +176,7 @@ export const resendEmailInviteAction = enhanceAction(
  * Server action to retrieve all users
  */
 export const getUsersAction = enhanceAction(
-  async (_: any, user) => {
+  async (_, user) => {
     const logger = await getLogger();
 
     const ctx = {

@@ -16,7 +16,7 @@ import { createGetSectionsService } from "./services/get-sections.service";
  * @name getSectionsAction
  * @description Server action to
  */
-export const getSectionsAction = enhanceAction(async (_: any, user) => {
+export const getSectionsAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

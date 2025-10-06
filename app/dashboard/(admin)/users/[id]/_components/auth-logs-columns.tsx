@@ -24,7 +24,7 @@ export interface AuthLog {
   ip_address?: string;
   user_agent?: string;
   user_id: string;
-  details?: Record<string, any>;
+  // details?: Record<string, any>;
   city?: string;
   country?: string;
   device?: string;
@@ -145,24 +145,24 @@ export const authLogsColumns: ColumnDef<AuthLog>[] = [
     ),
     cell: ({ row }) => {
       const userAgent = row.getValue("user_agent") as string;
-      const details = row.original.details;
+      // const details = row.original.details;
 
       // Extract device info from user agent or details
-      const device = details?.device || row.original.device;
-      const browser = details?.browser || row.original.browser;
-      const os = details?.os || row.original.os;
+      // const device = details?.device || row.original.device;
+      // const browser = details?.browser || row.original.browser;
+      // const os = details?.os || row.original.os;
 
-      if (device || browser || os) {
-        return (
-          <div className="flex flex-col space-y-1">
-            {device && <span className="text-xs font-medium">{device}</span>}
-            {browser && (
-              <span className="text-muted-foreground text-xs">{browser}</span>
-            )}
-            {os && <span className="text-muted-foreground text-xs">{os}</span>}
-          </div>
-        );
-      }
+      // if (device || browser || os) {
+      //   return (
+      //     <div className="flex flex-col space-y-1">
+      //       {device && <span className="text-xs font-medium">{device}</span>}
+      //       {browser && (
+      //         <span className="text-muted-foreground text-xs">{browser}</span>
+      //       )}
+      //       {os && <span className="text-muted-foreground text-xs">{os}</span>}
+      //     </div>
+      //   );
+      // }
 
       return (
         <span
@@ -181,21 +181,21 @@ export const authLogsColumns: ColumnDef<AuthLog>[] = [
       <DataTableColumnHeader column={column} title="Location" />
     ),
     cell: ({ row }) => {
-      const city = row.original.city || row.original.details?.city;
-      const country = row.original.country || row.original.details?.country;
+      // const city = row.original.city || row.original.details?.city;
+      // const country = row.original.country || row.original.details?.country;
 
-      if (city && country) {
-        return (
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">{city}</span>
-            <span className="text-muted-foreground text-xs">{country}</span>
-          </div>
-        );
-      }
+      // if (city && country) {
+      //   return (
+      //     <div className="flex flex-col">
+      //       <span className="text-sm font-medium">{city}</span>
+      //       <span className="text-muted-foreground text-xs">{country}</span>
+      //     </div>
+      //   );
+      // }
 
-      if (country) {
-        return <span className="text-sm">{country}</span>;
-      }
+      // if (country) {
+      //   return <span className="text-sm">{country}</span>;
+      // }
 
       return <span className="text-muted-foreground">Unknown</span>;
     },
@@ -237,7 +237,7 @@ export const authLogsColumns: ColumnDef<AuthLog>[] = [
             >
               View details
             </DropdownMenuItem>
-            {log.details && (
+            {/* {log.details && (
               <DropdownMenuItem
                 onClick={() => {
                   console.log(
@@ -249,7 +249,7 @@ export const authLogsColumns: ColumnDef<AuthLog>[] = [
               >
                 View raw data
               </DropdownMenuItem>
-            )}
+            )} */}
           </DropdownMenuContent>
         </DropdownMenu>
       );

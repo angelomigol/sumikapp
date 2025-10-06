@@ -8,7 +8,6 @@ import { Bell, ChevronsUpDown, Home, LogOut, Settings2 } from "lucide-react";
 
 import { usePersonalAccountData } from "@/hooks/use-personal-account-data";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,

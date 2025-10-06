@@ -30,12 +30,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import DateRangePicker from "@/components/sumikapp/date-range-picker";
+import { If } from "@/components/sumikapp/if";
 
 import {
   activityFormSchema,
   ActivityFormValues,
 } from "../schema/activity-report-schema";
-import { If } from "@/components/sumikapp/if";
 
 export default function AddActivityReportDialog() {
   const [open, setOpen] = useState(false);
@@ -88,8 +88,8 @@ export default function AddActivityReportDialog() {
             <DialogHeader>
               <DialogTitle>Create Activity Report</DialogTitle>
               <DialogDescription>
-                Fill out the form to create a new weekly activity report. Click
-                "create report" when you're done.
+                {`Fill out the form to create a new weekly activity report. Click
+                "create report" when you're done.`}
               </DialogDescription>
               <fieldset
                 disabled={form.formState.isSubmitting}

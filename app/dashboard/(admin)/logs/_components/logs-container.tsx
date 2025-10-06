@@ -56,14 +56,14 @@ const levelColors = {
 export default function LogsContainer() {
   const [filterOpen, setFilterOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  // const [filters, setFilters] = useState<Record<string, any>>({});
 
   const { logs, clearLogs, filterLogs } = useLogStore();
 
-  const filteredLogs = useMemo(() => {
-    const allFilters = { ...filters, search: searchTerm };
-    return filterLogs(allFilters);
-  }, [logs, filters, searchTerm, filterLogs]);
+  // const filteredLogs = useMemo(() => {
+  //   const allFilters = { ...filters, search: searchTerm };
+  //   return filterLogs(allFilters);
+  // }, [filters, searchTerm, filterLogs]);
 
   const handleRefresh = () => {
     window.location.reload();
@@ -71,7 +71,7 @@ export default function LogsContainer() {
 
   return (
     <>
-      <div>
+      {/* <div>
         <PageTitle text={"Events & Logs"} />
         <p className="text-muted-foreground text-sm">
           Track, analyze, and act on application behaviors efficiently.
@@ -95,7 +95,6 @@ export default function LogsContainer() {
             }`}
           >
             <div>
-              {/* HEADER */}
               <div className="border-muted flex items-center gap-2 border-b p-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -151,7 +150,6 @@ export default function LogsContainer() {
                 </DropdownMenu>
               </div>
 
-              {/* LOGS TABLE */}
               <div className="relative w-full overflow-auto">
                 {filteredLogs.length === 0 ? (
                   <div className="text-muted-foreground flex h-32 items-center justify-center">
@@ -179,7 +177,7 @@ export default function LogsContainer() {
             </div>
           </div>
         </div>
-      </Card>
+      </Card> */}
     </>
   );
 }

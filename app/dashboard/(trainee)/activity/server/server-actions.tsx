@@ -17,7 +17,7 @@ import { createGetActivityReportsService } from "./services/get-activity-reports
  * @name getActivityReportsAction
  * @description Server action to
  */
-export const getActivityReportsAction = enhanceAction(async (_: any, user) => {
+export const getActivityReportsAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

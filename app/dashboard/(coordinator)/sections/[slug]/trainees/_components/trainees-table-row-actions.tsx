@@ -50,12 +50,9 @@ export function TraineesTableRowActions({
 
   const revalidateSectionTrainees = useRevalidateFetchSectionTrainees();
 
-  const traineeId = row.original.trainee_id;
-  const displayName = [
-    (row.original as any).first_name,
-    (row.original as any).middle_name,
-    (row.original as any).last_name,
-  ]
+  const { first_name, middle_name, last_name, trainee_id } = row.original;
+
+  const displayName = [first_name, middle_name, last_name]
     .filter(Boolean)
     .join(" ");
 
@@ -66,7 +63,7 @@ export function TraineesTableRowActions({
       onConfirm: () => {
         const formData = new FormData();
         formData.append("sectionName", slug);
-        formData.append("traineeId", traineeId);
+        formData.append("traineeId", trainee_id);
 
         toast.promise(removeStudentFromSectionAction(formData), {
           loading: `Removing student from section...`,
@@ -84,8 +81,6 @@ export function TraineesTableRowActions({
       variant: "destructive",
     });
   };
-
-  console.log(traineeId, slug);
 
   return (
     <>

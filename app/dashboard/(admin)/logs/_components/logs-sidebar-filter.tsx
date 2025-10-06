@@ -41,20 +41,22 @@ import {
 } from "@/components/ui/tooltip";
 import { If } from "@/components/sumikapp/if";
 
-export default function LogsSidebarFilter({
-  onFiltersChange,
-  currentFilters,
-  logs,
-}: {
-  onFiltersChange: (filters: Record<string, any>) => void;
-  currentFilters: Record<string, any>;
+interface LogsSidebarFilterProps {
+  // onFiltersChange: (filters: Record<string, any>) => void;
+  // currentFilters: Record<string, any>;
   logs: LogEntry[];
-}) {
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({
-    timeline: "custom",
-    date: new Date(),
-    ...currentFilters,
-  });
+}
+
+export default function LogsSidebarFilter({
+  // onFiltersChange,
+  // currentFilters,
+  logs,
+}: LogsSidebarFilterProps) {
+  // const [filterValues, setFilterValues] = useState<Record<string, any>>({
+  //   timeline: "custom",
+  //   date: new Date(),
+  //   ...currentFilters,
+  // });
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     timeline: true,
@@ -63,24 +65,24 @@ export default function LogsSidebarFilter({
     source: false,
   });
 
-  useEffect(() => {
-    onFiltersChange(filterValues);
-  }, [filterValues, onFiltersChange]);
+  // useEffect(() => {
+  //   onFiltersChange(filterValues);
+  // }, [filterValues, onFiltersChange]);
 
-  const handleValueChange = (key: string, value: any) => {
-    setFilterValues((prev) => ({ ...prev, [key]: value }));
-  };
+  // const handleValueChange = (key: string, value: any) => {
+  //   setFilterValues((prev) => ({ ...prev, [key]: value }));
+  // };
 
-  const handleReset = () => {
-    const resetValues = {
-      timeline: "custom",
-      date: new Date(),
-      level: [],
-      environment: [],
-      source: [],
-    };
-    setFilterValues(resetValues);
-  };
+  // const handleReset = () => {
+  //   const resetValues = {
+  //     timeline: "custom",
+  //     date: new Date(),
+  //     level: [],
+  //     environment: [],
+  //     source: [],
+  //   };
+  //   setFilterValues(resetValues);
+  // };
 
   const getOptionCount = (filterKey: string, optionValue: string) => {
     if (!logs || logs.length === 0) return 0;
@@ -147,10 +149,9 @@ export default function LogsSidebarFilter({
   return (
     <div className="border-muted row-start-1 row-end-4 hidden border-r px-0 py-3 lg:col-start-1 lg:col-end-2 lg:block">
       <div className="flex h-full flex-col gap-4 md:max-h-[380px]">
-        {/* SIDEBAR HEADER */}
         <div className="flex items-center justify-between px-4">
           <h4 className="text-sm font-semibold">Filters</h4>
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <Button variant={"outline"} size={"sm"} onClick={handleReset}>
                 Reset
@@ -159,10 +160,10 @@ export default function LogsSidebarFilter({
             <TooltipContent>
               <p>Reset filter</p>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
         </div>
 
-        <ScrollArea className="flex flex-col overflow-hidden">
+        {/* <ScrollArea className="flex flex-col overflow-hidden">
           {logsFilterConfig.filters.map((filter) => {
             const isOpen = openSections[filter.key] ?? true;
             const toggleOpen = () =>
@@ -315,7 +316,7 @@ export default function LogsSidebarFilter({
               </Collapsible>
             );
           })}
-        </ScrollArea>
+        </ScrollArea> */}
       </div>
     </div>
   );

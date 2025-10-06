@@ -13,7 +13,7 @@ import { createGetTraineeSkillsService } from "./services/get-trainee-skills.ser
  * @name getSkillsAction
  * Server action to retrieve all trainee skills
  */
-export const getSkillsAction = enhanceAction(async (_: any, user) => {
+export const getSkillsAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

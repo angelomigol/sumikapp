@@ -104,6 +104,7 @@ export default function InternshipDetailsView({
 
       return `${hour12}:${minutes} ${ampm}`;
     } catch (e) {
+      console.error(e);
       return time;
     }
   };

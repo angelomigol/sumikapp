@@ -8,6 +8,8 @@ import { toast } from "sonner";
 
 import { useRevalidateFetchUsers } from "@/hooks/use-users";
 
+import { Tables } from "@/utils/supabase/supabase.types";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,13 +22,11 @@ import ConfirmationDialog from "@/components/sumikapp/confirmation-dialog";
 
 import { deleteUserAction } from "../server/server-actions";
 
-interface UserTableRowActionsProps<TData> {
-  row: Row<TData>;
+interface UserTableRowActionsProps {
+  row: Row<Tables<"users">>;
 }
 
-export function UserTableRowActions<TData>({
-  row,
-}: UserTableRowActionsProps<TData>) {
+export function UserTableRowActions({ row }: UserTableRowActionsProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState<{
     title: string;
@@ -43,9 +43,9 @@ export function UserTableRowActions<TData>({
 
   const revalidateUsers = useRevalidateFetchUsers();
 
-  const userId = (row.original as any).id;
-  const userEmail = (row.original as any).email;
-  const isDeleted = (row.original as any).deleted_at;
+  const userId = row.original.id;
+  const userEmail = row.original.email;
+  const isDeleted = row.original.deleted_at;
 
   const archiveClick = () => {
     openConfirmDialog({

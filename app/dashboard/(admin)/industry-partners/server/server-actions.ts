@@ -31,7 +31,7 @@ const updateIndustryPartnerServerSchema = industryPartnerServerSchema.extend({
  * @name getIndustryPartnersAction
  * @description Server action to
  */
-export const getIndustryPartnersAction = enhanceAction(async (_: any, user) => {
+export const getIndustryPartnersAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

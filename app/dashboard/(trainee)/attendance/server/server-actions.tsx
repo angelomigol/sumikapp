@@ -18,7 +18,7 @@ import { createGetAttendanceReportsService } from "./services/get-attendance-rep
  * @description Server action to
  */
 export const getAttendanceReportsAction = enhanceAction(
-  async (_: any, user) => {
+  async (_, user) => {
     const logger = await getLogger();
 
     const ctx = {

@@ -2,10 +2,14 @@
 
 import React, { useState } from "react";
 
+import { Row } from "@tanstack/react-table";
+
 import {
   IndustryPartner,
   useFetchIndustryPartners,
 } from "@/hooks/use-industry-partner";
+
+import { Tables } from "@/utils/supabase/supabase.types";
 
 import { DataTable } from "@/components/data-table";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
@@ -37,7 +41,7 @@ export default function IndestryPartnersContainer() {
     if (column.id === "actions") {
       return {
         ...column,
-        cell: ({ row }: any) => (
+        cell: ({ row }: { row: Row<Tables<"industry_partners">> }) => (
           <IndustryPartnerTableRowActions
             row={row}
             onEdit={handleEdit}

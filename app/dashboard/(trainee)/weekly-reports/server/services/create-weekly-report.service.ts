@@ -4,7 +4,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { format } from "date-fns";
 
 import { getLogger } from "@/utils/logger";
-import { Database, TablesInsert } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
 
 import { WeeklyReportFormValues } from "@/schemas/weekly-report/weekly-report.schema";
 

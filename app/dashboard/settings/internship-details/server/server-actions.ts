@@ -18,7 +18,7 @@ import { createUpdateInternshipPlacementService } from "./services/update-intern
  * @name getInternshipsAction
  * @description Server action to
  */
-export const getInternshipsAction = enhanceAction(async (_: any, user) => {
+export const getInternshipsAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

@@ -12,7 +12,7 @@ import { createGetTraineesForEvaluationService } from "./services/get-trainees-f
  * @description Server action to
  */
 export const getTraineesForEvaluationAction = enhanceAction(
-  async (_: any, user) => {
+  async (_, user) => {
     const logger = await getLogger();
 
     const ctx = {

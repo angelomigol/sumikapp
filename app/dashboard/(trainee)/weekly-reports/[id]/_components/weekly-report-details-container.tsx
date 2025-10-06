@@ -50,26 +50,18 @@ import DailyEntryRow from "./daily-entry-row";
 export default function WeeklyReportDetailsContainer(params: {
   reportId: string;
 }) {
+  const [activeTab, setActiveTab] = useState("0");
+  const [tableEntries, setTableEntries] = useState<WeeklyReportEntry[]>([]);
+  const [isInternSigned, setIsInternSigned] = useState(false);
+
   const report = useFetchWeeklyReport(params.reportId);
   const insertEntryMutation = useInsertWeeklyReportEntry(params.reportId);
   const submitReportMutation = useSubmitWeeklyReport(params.reportId);
 
-  if (report.isLoading) {
-    return <LoadingOverlay fullPage />;
-  }
-
-  if (!report.data) {
-    return <NotFoundPage />;
-  }
-
-  const startDate = report.data.start_date ?? "";
-  const endDate = report.data.end_date ?? "";
-  const status = report.data.status ?? "not submitted";
-  const internCode = report.data.internship_code ?? "CTNTERN1";
-
-  const [activeTab, setActiveTab] = useState("0");
-  const [tableEntries, setTableEntries] = useState<WeeklyReportEntry[]>([]);
-  const [isInternSigned, setIsInternSigned] = useState(false);
+  const startDate = report.data?.start_date ?? "";
+  const endDate = report.data?.end_date ?? "";
+  const status = report.data?.status ?? "not submitted";
+  const internCode = report.data?.internship_code ?? "CTNTERN1";
 
   useEffect(() => {
     if (report.data) {
@@ -94,6 +86,10 @@ export default function WeeklyReportDetailsContainer(params: {
       setActiveTab("0");
     }
   }, [tableEntries, activeTab]);
+
+  if (report.isLoading) return <LoadingOverlay fullPage />;
+
+  if (!report.data) return <NotFoundPage />;
 
   const allEntriesConfirmed =
     tableEntries.length > 0 && tableEntries.every((e) => e.is_confirmed);

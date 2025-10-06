@@ -41,6 +41,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "../ui/input-otp";
+import Image from "next/image";
 
 export function MultiFactorAuthSetupDialog(props: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -392,7 +393,7 @@ function FactorNameForm(
 
 function QrImage({ src }: { src: string }) {
   return (
-    <img
+    <Image
       alt={"QR Code"}
       src={src}
       width={160}

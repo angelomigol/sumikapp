@@ -16,7 +16,7 @@ import { createUploadRequirementsService } from "./services/upload-requirement.s
  * @name getRequirementsAction
  * @description Server action to
  */
-export const getRequirementsAction = enhanceAction(async (_: any, user) => {
+export const getRequirementsAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

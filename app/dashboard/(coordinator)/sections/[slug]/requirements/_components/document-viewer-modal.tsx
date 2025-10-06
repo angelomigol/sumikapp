@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 
 import {
   AlertCircle,
@@ -478,7 +479,7 @@ function DocumentRenderer({
 
   handleDownload: () => void;
   documentError: string;
-  setDocumentError: (error: any) => void;
+  setDocumentError: (error: string) => void;
 }) {
   const renderDocumentViewer = () => {
     if (isLoading) {
@@ -545,7 +546,7 @@ function DocumentRenderer({
     if (isImage) {
       return (
         <div className="flex h-full items-center justify-center overflow-hidden">
-          <img
+          <Image
             src={documentUrl}
             alt={documentName}
             className="max-h-full max-w-full object-contain"

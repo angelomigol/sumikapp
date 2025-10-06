@@ -11,7 +11,7 @@ import { createGetTraineeReportsService } from "./services/get-trainee-reports";
  * @name getTraineeReportsAction
  * @description Server action to
  */
-export const getTraineeReportsAction = enhanceAction(async (_: any, user) => {
+export const getTraineeReportsAction = enhanceAction(async (_, user) => {
   const logger = await getLogger();
 
   const ctx = {

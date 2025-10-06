@@ -2,8 +2,6 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { Skill } from "@/hooks/use-skills";
-
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
@@ -44,11 +42,12 @@ class CreateTraineeSkillService {
     logger.info(ctx, "Creating trainee skill...");
 
     try {
-      let { data: existingSkill, error: skillLookupError } = await params.client
-        .from("skills")
-        .select("id, name")
-        .ilike("name", skillName)
-        .single();
+      const { data: existingSkill, error: skillLookupError } =
+        await params.client
+          .from("skills")
+          .select("id, name")
+          .ilike("name", skillName)
+          .single();
 
       if (skillLookupError && skillLookupError.code !== "PGRST116") {
         logger.error(
@@ -69,8 +68,9 @@ class CreateTraineeSkillService {
       }
 
       let skillId: string;
+      let skill = existingSkill;
 
-      if (!existingSkill) {
+      if (!skill) {
         const { data: newSkill, error: createSkillError } = await params.client
           .from("skills")
           .insert({
@@ -97,7 +97,7 @@ class CreateTraineeSkillService {
           throw new Error(`Failed to create skill`);
         }
 
-        existingSkill = newSkill;
+        skill = newSkill;
         skillId = newSkill.id;
 
         logger.info(
@@ -109,7 +109,7 @@ class CreateTraineeSkillService {
           "Created new skill"
         );
       } else {
-        skillId = existingSkill.id;
+        skillId = skill.id;
         logger.info(
           {
             ...ctx,
@@ -159,8 +159,8 @@ class CreateTraineeSkillService {
         );
 
         return {
-          id: existingSkill.id,
-          name: existingSkill.name,
+          id: skill.id,
+          name: skill.name,
         };
       }
 
