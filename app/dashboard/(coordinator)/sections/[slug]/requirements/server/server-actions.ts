@@ -189,31 +189,34 @@ export const createCustomRequirementAction = enhanceAction(
 
     const formObject = Object.fromEntries(formData.entries()) as Record<
       string,
-      unknown
+      FormDataEntryValue
     >;
 
-    if (
-      formObject.allowedFileTypes &&
-      typeof formObject.allowedFileTypes === "string"
-    ) {
-      try {
-        formObject.allowedFileTypes = JSON.parse(
-          formObject.allowedFileTypes as string
-        );
-      } catch (error) {
-        throw new Error("Invalid allowedFileTypes format");
-      }
-    }
-
-    if (
-      formObject.maxFileSizeBytes &&
-      typeof formObject.maxFileSizeBytes === "string"
-    ) {
-      formObject.maxFileSizeBytes = Number(formObject.maxFileSizeBytes);
-    }
+    const parsedObject: {
+      name: string;
+      description?: string;
+      allowedFileTypes: string[];
+      maxFileSizeBytes: number;
+      slug: string;
+    } = {
+      name: String(formObject.name ?? ""),
+      description:
+        typeof formObject.description === "string"
+          ? formObject.description
+          : undefined,
+      allowedFileTypes:
+        typeof formObject.allowedFileTypes === "string"
+          ? JSON.parse(formObject.allowedFileTypes)
+          : [],
+      maxFileSizeBytes:
+        typeof formObject.maxFileSizeBytes === "string"
+          ? Number(formObject.maxFileSizeBytes)
+          : 0,
+      slug: String(formObject.slug ?? ""),
+    };
 
     const { data, success, error } =
-      customRequirementSchema.safeParse(formObject);
+      customRequirementSchema.safeParse(parsedObject);
 
     if (!success) {
       throw new Error(
@@ -295,30 +298,41 @@ export const updateCustomRequirementAction = enhanceAction(
   async (formData: FormData, user) => {
     const logger = await getLogger();
 
-    const formObject = Object.fromEntries(formData.entries());
+    const formObject = Object.fromEntries(formData.entries()) as Record<
+      string,
+      FormDataEntryValue
+    >;
 
-    if (
-      formObject.allowedFileTypes &&
-      typeof formObject.allowedFileTypes === "string"
-    ) {
-      try {
-        formObject.allowedFileTypes = JSON.parse(
-          formObject.allowedFileTypes as string
-        );
-      } catch (error) {
-        throw new Error("Invalid allowed file types format");
-      }
-    }
-
-    if (
-      formObject.maxFileSizeBytes &&
-      typeof formObject.maxFileSizeBytes === "string"
-    ) {
-      formObject.maxFileSizeBytes = Number(formObject.maxFileSizeBytes);
-    }
+    const parsedObject: {
+      id?: string;
+      name: string;
+      description?: string;
+      allowedFileTypes: string[];
+      maxFileSizeBytes: number;
+      slug: string;
+    } = {
+      id:
+        typeof formObject.id === "string" && formObject.id.trim().length > 0
+          ? formObject.id
+          : undefined,
+      name: String(formObject.name ?? ""),
+      description:
+        typeof formObject.description === "string"
+          ? formObject.description
+          : undefined,
+      allowedFileTypes:
+        typeof formObject.allowedFileTypes === "string"
+          ? JSON.parse(formObject.allowedFileTypes)
+          : [],
+      maxFileSizeBytes:
+        typeof formObject.maxFileSizeBytes === "string"
+          ? Number(formObject.maxFileSizeBytes)
+          : 0,
+      slug: String(formObject.slug ?? ""),
+    };
 
     const { data, success, error } =
-      customRequirementSchema.safeParse(formObject);
+      customRequirementSchema.safeParse(parsedObject);
 
     if (!success) {
       throw new Error(
