@@ -54,7 +54,9 @@ export function MagicLinkAuthContainer({
 
   const onSubmit = ({ email }: { email: string }) => {
     const url = new URL(redirectUrl);
-    const emailRedirectTo = url.href;
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+
+    const emailRedirectTo = `${baseUrl}/auth/callback`;
 
     const promise = async () => {
       await signInWithOtpMutation.mutateAsync({
