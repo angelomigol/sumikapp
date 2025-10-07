@@ -6,6 +6,7 @@ import { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 
 import pathsConfig from "@/config/paths.config";
+import { SupervisorTrainees } from "@/hooks/use-supervisor-trainees";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,13 +16,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface TraineesTableRowActionsProps<TData> {
-  row: Row<TData>;
+interface TraineesTableRowActionsProps {
+  row: Row<SupervisorTrainees>;
 }
 
-export function TraineesTableRowActions<TData>({
-  row,
-}: TraineesTableRowActionsProps<TData>) {
+export function TraineesTableRowActions({ row }: TraineesTableRowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,7 +34,9 @@ export function TraineesTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem>
-          <Link href={pathsConfig.dynamic.traineeDetails(row.original.trainee_id)}>
+          <Link
+            href={pathsConfig.dynamic.traineeDetails(row.original.trainee_id)}
+          >
             View Student
           </Link>
         </DropdownMenuItem>

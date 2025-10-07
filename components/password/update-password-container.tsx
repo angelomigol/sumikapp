@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
-import { useUser } from '@kit/supabase/hooks/use-user';
-import { Alert } from '@kit/ui/alert';
-import { LoadingOverlay } from '@kit/ui/loading-overlay';
-import { Trans } from '@kit/ui/trans';
+import { useUser } from "@/utils/supabase/hooks/use-user";
 
-import { UpdatePasswordForm } from './update-password-form';
+import { LoadingOverlay } from "../sumikapp/loading-overlay";
+import { Alert } from "../ui/alert";
+import { UpdatePasswordForm } from "./update-password-form";
 
 export function UpdatePasswordFormContainer(
   props: React.PropsWithChildren<{
     callbackPath: string;
-  }>,
+  }>
 ) {
   const { data: user, isPending } = useUser();
 
@@ -23,7 +22,7 @@ export function UpdatePasswordFormContainer(
   }
 
   const canUpdatePassword = user.identities?.some(
-    (item) => item.provider === `email`,
+    (item) => item.provider === `email`
   );
 
   if (!canUpdatePassword) {
@@ -35,8 +34,8 @@ export function UpdatePasswordFormContainer(
 
 function WarnCannotUpdatePasswordAlert() {
   return (
-    <Alert variant={'warning'}>
-      <Trans i18nKey={'account:cannotUpdatePassword'} />
+    <Alert variant={"destructive"}>
+      You cannot update your password because your account is not linked to any.
     </Alert>
   );
 }

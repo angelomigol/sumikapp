@@ -8,6 +8,8 @@ import { Check, TriangleAlert } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { useUpdateUser } from "@/utils/supabase/hooks/use-update-user-mutation";
+
 import { PasswordUpdateSchema } from "@/schemas/auth/update-password.schema";
 
 import { If } from "../sumikapp/if";

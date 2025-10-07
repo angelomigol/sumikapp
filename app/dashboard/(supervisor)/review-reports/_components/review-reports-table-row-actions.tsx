@@ -5,18 +5,19 @@ import Link from "next/link";
 import { Row } from "@tanstack/react-table";
 
 import pathsConfig from "@/config/paths.config";
+import { ReviewReports } from "@/hooks/use-review-reports";
 
 import { Button } from "@/components/ui/button";
 
-interface DataTableRowActionsProps<TData> {
+interface DataTableRowActionsProps {
   reportType: "attendance" | "accomplishment";
-  row: Row<TData>;
+  row: Row<ReviewReports>;
 }
 
-export function ReviewReportsTableRowActions<TData>({
+export function ReviewReportsTableRowActions({
   reportType,
   row,
-}: DataTableRowActionsProps<TData>) {
+}: DataTableRowActionsProps) {
   return (
     <Link
       href={pathsConfig.dynamic.reviewReport(

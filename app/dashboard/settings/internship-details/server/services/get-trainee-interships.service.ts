@@ -101,6 +101,7 @@ class GetTraineeInternshipsService {
         dailySchedule: a.daily_schedule,
         supervisorEmail: a.supervisors?.users.email ?? a.temp_email,
         status: a.status,
+        lunchBreak: a.lunch_break_in_mins,
       }));
 
       return mappedData;

@@ -117,7 +117,7 @@ export default function EvaluationResultsTabContent({
                         {rec.specific_actions &&
                           Array.isArray(rec.specific_actions) && (
                             <ul className="list-inside list-disc space-y-1 text-sm text-blue-900">
-                              {rec.specific_actions.map((action, i) => (
+                              {rec.specific_actions.map((action: string, i: number) => (
                                 <li key={i}>{action}</li>
                               ))}
                             </ul>

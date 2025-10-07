@@ -3,10 +3,11 @@
 import Link from "next/link";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUpdateUser } from "~/packages/supabase/hooks/use-update-user-mutation";
 import { ArrowRightIcon, CheckIcon, TriangleAlertIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+
+import { useUpdateUser } from "@/utils/supabase/hooks/use-update-user-mutation";
 
 import { PasswordResetSchema } from "@/schemas/auth/password-reset.schema";
 

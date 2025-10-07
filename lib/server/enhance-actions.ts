@@ -18,33 +18,36 @@ import { zodParseFactory } from "./zod-parse-factory";
 export function enhanceAction<
   Args,
   Response,
+  Schema extends z.ZodTypeAny | undefined = undefined,
   Config extends {
     auth?: boolean;
     captcha?: boolean;
-    schema?: z.ZodType<
-      Config["captcha"] extends true ? Args & { captchaToken: string } : Args,
-      z.ZodType
-    >;
+    schema?: Schema;
+  } = {
+    auth?: boolean;
+    captcha?: boolean;
+    schema?: Schema;
   }
 >(
   fn: (
-    params: Config["schema"] extends ZodType ? z.infer<Config["schema"]> : Args,
+    params: Schema extends z.ZodTypeAny ? z.output<Schema> : Args,
     user: Config["auth"] extends false ? undefined : User
   ) => Response | Promise<Response>,
   config: Config
 ) {
   return async (
-    params: Config["schema"] extends ZodType ? z.infer<Config["schema"]> : Args
+    params: Schema extends z.ZodTypeAny ? z.input<Schema> : Args
   ) => {
     type UserParam = Config["auth"] extends false ? undefined : User;
+    type DataParam = Schema extends z.ZodTypeAny ? z.output<Schema> : Args;
 
     const requireAuth = config.auth ?? true;
     let user: UserParam = undefined as UserParam;
 
     // validate the schema passed in the config if it exists
-    const data = config.schema
+    const data: DataParam = (config.schema
       ? zodParseFactory(config.schema)(params)
-      : params;
+      : params) as DataParam;
 
     // by default, the CAPTCHA token is not required
     const verifyCaptcha = config.captcha ?? false;

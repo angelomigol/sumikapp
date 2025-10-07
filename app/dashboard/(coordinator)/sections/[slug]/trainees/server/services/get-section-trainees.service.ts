@@ -435,10 +435,19 @@ class GetSectionTraineesService {
           prediction_probability: emp_data.prediction_probability,
           confidence_level: emp_data.confidence_level,
           prediction_date: emp_data.prediction_date,
-          evaluation_scores: emp_data.evaluation_scores,
-          feature_scores: emp_data.feature_scores,
-          recommendations: emp_data.recommendations,
-          risk_factors: emp_data.risk_factors,
+          evaluation_scores: emp_data.evaluation_scores as Record<
+            string,
+            number
+          > | null,
+          feature_scores: emp_data.feature_scores as Record<
+            string,
+            number
+          > | null,
+          recommendations: emp_data.recommendations as Record<
+            string,
+            number
+          > | null,
+          risk_factors: emp_data.risk_factors as Record<string, number> | null,
         },
       };
     } catch (error) {

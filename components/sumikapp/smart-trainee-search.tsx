@@ -9,21 +9,24 @@ import React, {
 } from "react";
 
 import { BookOpen, Hash, Search, User, Users } from "lucide-react";
+import z from "zod";
 
 import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 
 import { Input } from "@/components/ui/input";
 
-export type SearchableTrainee = {
-  id: string;
-  student_id_number: string;
-  first_name: string;
-  last_name: string;
-  middle_name: string | null;
-  email: string;
-  course: string | null;
-  section: string | null;
-};
+export const searchableTrainee = z.object({
+  id: z.string(),
+  student_id_number: z.string(),
+  first_name: z.string(),
+  last_name: z.string(),
+  middle_name: z.string().nullable(),
+  email: z.email(),
+  course: z.string().nullable(),
+  section: z.string().nullable(),
+});
+export type SearchableTrainee = z.infer<typeof searchableTrainee>;
+
 
 interface SmartTraineeSearchProps {
   onSelect?: (trainee: SearchableTrainee) => void;

@@ -38,7 +38,7 @@ export default function RequirementItem({
     history: {
       id: string;
       document_id: string;
-      status: DocumentStatus;
+      document_status: DocumentStatus;
       title: string;
       description: string;
       date: Date;
@@ -122,7 +122,7 @@ export default function RequirementItem({
           </p>
           <div className="space-y-3">
             {historyItems.map((item) => {
-              const config = getDocumentStatusConfig(item.status);
+              const config = getDocumentStatusConfig(item.document_status);
               return (
                 <div
                   key={item.id}

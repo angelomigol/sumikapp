@@ -210,6 +210,8 @@ class GetWeeklyReportsService {
           time_in: entry.time_in,
           time_out: entry.time_out,
           total_hours: entry.total_hours,
+          additional_notes: entry.additional_notes,
+          feedback: entry.feedback
         })),
       };
 

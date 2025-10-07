@@ -17,8 +17,6 @@ import {
   getSectionTraineesAction,
 } from "@/app/dashboard/(coordinator)/sections/[slug]/trainees/server/server-actions";
 
-import { NormalizedAccomplishmentReport } from "./use-activity-reports";
-import { NormalizedAttendanceReport } from "./use-attendance-reports";
 import { RequirementWithHistory } from "./use-batch-requirements";
 
 export type SectionTraineeFullDetails = {
@@ -68,10 +66,10 @@ export type SectionTraineeFullDetails = {
     prediction_probability: number | null;
     confidence_level: string | null;
     prediction_date: string | null;
-    evaluation_scores: Record<string, any> | null;
-    feature_scores: Record<string, any> | null;
-    recommendations: Record<string, any> | null;
-    risk_factors: Record<string, any> | null;
+    evaluation_scores: Record<string, number> | null;
+    feature_scores: Record<string, number> | null;
+    recommendations: Record<string, number> | null;
+    risk_factors: Record<string, number> | null;
   };
 };
 

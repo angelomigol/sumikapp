@@ -91,8 +91,7 @@ export const activityReportColumns: ColumnDef<AccomplishmentReport>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const statusValue = row.getValue("status") as string;
-      const status = getDocumentStatusConfig(statusValue);
+      const status = getDocumentStatusConfig(row.getValue("status"));
 
       if (!status) return null;
 
