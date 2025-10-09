@@ -36,9 +36,15 @@ class AuthCallbackService {
     const accept = request.headers.get("accept") || "";
     const xForwardedFor = request.headers.get("x-forwarded-for") || "";
     const xRealIp = request.headers.get("x-real-ip") || "";
+    const method = request.method;
 
     // Get the actual client IP
     const clientIP = xForwardedFor.split(",")[0].trim() || xRealIp || "";
+
+    if (method === "HEAD") {
+      console.log("HEAD request detected (scanner):", { method });
+      return true;
+    }
 
     // Check for known email security scanner patterns
     const scannerPatterns = [
@@ -155,12 +161,26 @@ class AuthCallbackService {
       url.port = "";
     }
 
-    url.pathname = params.redirectPath;
-
     const token_hash = searchParams.get("token_hash");
     const type = searchParams.get("type") as EmailOtpType | null;
     const callbackParam =
       searchParams.get("next") ?? searchParams.get("callback");
+
+    // **Check for scanner BEFORE modifying anything**
+    if (token_hash && type && this.isEmailScanner(request)) {
+      console.log(
+        "Email scanner/bot detected - not consuming token to preserve magic link"
+      );
+
+      // Return a minimal success URL without processing anything
+      // Don't consume the token, don't redirect - just acknowledge
+      const safeUrl = new URL(request.url);
+      safeUrl.pathname = "/"; // or params.redirectPath
+      safeUrl.search = ""; // Clear all params
+      return safeUrl;
+    }
+
+    url.pathname = params.redirectPath;
 
     let nextPath: string | null = null;
     const callbackUrl = callbackParam ? new URL(callbackParam) : null;
@@ -191,19 +211,6 @@ class AuthCallbackService {
     }
 
     if (token_hash && type) {
-      // Detect and ignore email scanners/bots to prevent token consumption
-      if (this.isEmailScanner(request)) {
-        console.log(
-          "Email scanner/bot detected - not consuming token to preserve magic link"
-        );
-
-        // Return a basic success response without consuming the token
-        // This prevents scanners from invalidating the magic link
-        url.pathname = params.redirectPath;
-        return url;
-      }
-
-      // Only verify OTP if it's NOT a scanner - this is a real user click
       const { data, error } = await this.client.auth.verifyOtp({
         type,
         token_hash,
