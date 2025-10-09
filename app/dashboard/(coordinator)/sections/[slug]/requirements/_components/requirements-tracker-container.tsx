@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 
+import { IconUserOff } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
 
+import pathsConfig from "@/config/paths.config";
 import {
   TraineeWithRequirements,
   useFetchBatchRequirements,
   useFetchTraineeRequirements,
 } from "@/hooks/use-batch-requirements";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,6 +21,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Progress } from "@/components/ui/progress";
 import {
   Table,
@@ -94,88 +106,120 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
       <div className="flex items-center justify-between">
         <PageTitle text={"Requirements Tracker"} />
 
-        <AddEditCustomRequirementSheet
-          open={requirementDialogOpen}
-          setOpen={setRequirementDialogOpen}
-          editingRequirement={selectedRequirement}
-          slug={params.slug}
-          handleAdd={() => setSelectedRequirement(null)}
-        />
+        <If condition={batchReqs.length > 0 || traineeData.length > 0}>
+          <AddEditCustomRequirementSheet
+            open={requirementDialogOpen}
+            setOpen={setRequirementDialogOpen}
+            editingRequirement={selectedRequirement}
+            slug={params.slug}
+            handleAdd={() => setSelectedRequirement(null)}
+          />
+        </If>
       </div>
 
-      <Card className="max-h-[300px] overflow-hidden">
-        <CardHeader>
-          <CardTitle>List of Requirements</CardTitle>
-          <CardDescription>
-            Manage the list of custom and default requirements for this section.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-y-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Requirement</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {batchReqs.map((item) => (
-                <TableRow key={item.requirement_type_id}>
-                  <TableCell className="max-w-[200px]">
-                    <p className="font-medium">{item.requirement_name}</p>
-                    <p className="text-muted-foreground truncate text-sm">
-                      {item.requirement_description}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span>
-                          {item.submitted_count}/{item.total_trainees}
-                        </span>
-                        <span>
-                          {Math.round(item.compliance_percentage ?? 0)}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={item.compliance_percentage}
-                        className="h-2"
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <If condition={!item.is_predefined}>
-                      <CustomRequirementRowActions
-                        id={item.requirement_type_id}
-                        name={item.requirement_name}
-                        handleEdit={() =>
-                          handleEdit({
-                            id: item.requirement_type_id ?? "",
-                            name: item.requirement_name ?? "",
-                            description: item.requirement_description ?? "",
-                            allowedFileTypes: item.allowed_file_types ?? [],
-                            maxFileSizeBytes: item.max_file_size_bytes ?? 0,
-                          })
-                        }
-                        slug={params.slug}
-                      />
-                    </If>
-                  </TableCell>
+      <If
+        condition={batchReqs.length > 0 || traineeData.length > 0}
+        fallback={
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant={"icon"}>
+                <IconUserOff />
+              </EmptyMedia>
+              <EmptyTitle>No Students Yet</EmptyTitle>
+              <EmptyDescription>
+                You haven&apos;t added any students in this section. Get
+                started by adding your students first.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="flex gap-2">
+                <Button asChild>
+                  <Link
+                    href={pathsConfig.dynamic.addSectionTrainees(params.slug)}
+                  >
+                    Add Student
+                  </Link>
+                </Button>
+              </div>
+            </EmptyContent>
+          </Empty>
+        }
+      >
+        <Card className="max-h-[300px] overflow-hidden">
+          <CardHeader>
+            <CardTitle>List of Requirements</CardTitle>
+            <CardDescription>
+              Manage the list of custom and default requirements for this
+              section.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Requirement</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {batchReqs.map((item) => (
+                  <TableRow key={item.requirement_type_id}>
+                    <TableCell className="max-w-[200px]">
+                      <p className="font-medium">{item.requirement_name}</p>
+                      <p className="text-muted-foreground truncate text-sm">
+                        {item.requirement_description}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span>
+                            {item.submitted_count}/{item.total_trainees}
+                          </span>
+                          <span>
+                            {Math.round(item.compliance_percentage ?? 0)}%
+                          </span>
+                        </div>
+                        <Progress
+                          value={item.compliance_percentage}
+                          className="h-2"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <If condition={!item.is_predefined}>
+                        <CustomRequirementRowActions
+                          id={item.requirement_type_id}
+                          name={item.requirement_name}
+                          handleEdit={() =>
+                            handleEdit({
+                              id: item.requirement_type_id ?? "",
+                              name: item.requirement_name ?? "",
+                              description: item.requirement_description ?? "",
+                              allowedFileTypes: item.allowed_file_types ?? [],
+                              maxFileSizeBytes: item.max_file_size_bytes ?? 0,
+                            })
+                          }
+                          slug={params.slug}
+                        />
+                      </If>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
-      {columns.length > 0 && (
-        <DataTable
-          data={traineeData}
-          columns={columns}
-          Toolbar={RequirementTableToolbar}
-        />
-      )}
+        {columns.length > 0 && (
+          <DataTable
+            data={traineeData}
+            columns={columns}
+            Toolbar={RequirementTableToolbar}
+          />
+        )}
+      </If>
     </>
   );
 }

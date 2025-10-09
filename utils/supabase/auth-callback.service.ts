@@ -86,6 +86,37 @@ class AuthCallbackService {
     }
 
     if (token_hash && type) {
+      const userAgent = request.headers.get("user-agent") || "";
+      const referer = request.headers.get("referer");
+
+      // Detect common email security scanners
+      const isScanner =
+        userAgent.toLowerCase().includes("safelinks") ||
+        userAgent.toLowerCase().includes("atp") || // Advanced Threat Protection
+        userAgent.toLowerCase().includes("proofpoint") ||
+        userAgent.toLowerCase().includes("mimecast") ||
+        userAgent.toLowerCase().includes("barracuda") ||
+        // Outlook SafeLinks often has specific patterns
+        (userAgent.includes("Microsoft") && !userAgent.includes("Edge")) ||
+        // Scanners often have no referer or suspicious referer
+        (referer && referer.includes("safelinks.protection.outlook")) ||
+        // Some scanners have very generic user agents
+        userAgent === "Mozilla/5.0" ||
+        // Or no user agent at all
+        userAgent === "";
+
+      if (isScanner) {
+        console.log("Email scanner detected, not consuming token:", {
+          userAgent,
+          referer,
+        });
+
+        // Return a basic success response without consuming the token
+        // This prevents the scanner from invalidating the magic link
+        url.pathname = params.redirectPath;
+        return url;
+      }
+
       const { data, error } = await this.client.auth.verifyOtp({
         type,
         token_hash,

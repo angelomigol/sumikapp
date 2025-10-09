@@ -546,13 +546,13 @@ function DocumentRenderer({
     if (isImage) {
       return (
         <div className="flex h-full items-center justify-center overflow-hidden">
-          <Image
-            src={documentUrl}
-            alt={documentName}
-            className="max-h-full max-w-full object-contain"
-            style={viewerStyle}
-            onError={() => setDocumentError("Failed to load image")}
-          />
+          <div className="flex items-center justify-center" style={viewerStyle}>
+            <img
+              src={documentUrl}
+              alt={documentName}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+            />
+          </div>
         </div>
       );
     }
