@@ -155,7 +155,6 @@ class AuthCallbackService {
 
     const host = request.headers.get("host");
 
-    // set the host to the request host since outside of Vercel it gets set as "localhost"
     if (url.host.includes("localhost:") && !host?.includes("localhost")) {
       url.host = host as string;
       url.port = "";
@@ -166,31 +165,35 @@ class AuthCallbackService {
     const callbackParam =
       searchParams.get("next") ?? searchParams.get("callback");
 
-    // **Check for scanner BEFORE modifying anything**
-    if (token_hash && type && this.isEmailScanner(request)) {
-      console.log(
-        "Email scanner/bot detected - not consuming token to preserve magic link"
-      );
+    // **DETAILED LOGGING**
+    console.log("=== Auth Confirm Request ===", {
+      method: request.method,
+      hasTokenHash: !!token_hash,
+      tokenHashPrefix: token_hash?.substring(0, 15),
+      type: type,
+      userAgent: request.headers.get("user-agent"),
+      referer: request.headers.get("referer"),
+      accept: request.headers.get("accept"),
+    });
 
-      // Return a minimal success URL without processing anything
-      // Don't consume the token, don't redirect - just acknowledge
+    // Check for scanner BEFORE doing anything else
+    if (token_hash && type && this.isEmailScanner(request)) {
+      console.log("✋ Scanner detected - preserving token");
       const safeUrl = new URL(request.url);
-      safeUrl.pathname = "/"; // or params.redirectPath
-      safeUrl.search = ""; // Clear all params
+      safeUrl.pathname = "/";
+      safeUrl.search = "";
       return safeUrl;
     }
+
+    console.log("✅ Processing as real user request");
 
     url.pathname = params.redirectPath;
 
     let nextPath: string | null = null;
     const callbackUrl = callbackParam ? new URL(callbackParam) : null;
 
-    // if we have a callback url, we check if it has a next path
     if (callbackUrl) {
-      // if we have a callback url, we check if it has a next path
       const callbackNextPath = callbackUrl.searchParams.get("next");
-
-      // if we have a next path in the callback url, we use that
       if (callbackNextPath) {
         nextPath = callbackNextPath;
       } else {
@@ -200,26 +203,36 @@ class AuthCallbackService {
 
     const errorPath = params.errorPath ?? "/auth/callback/error";
 
-    // remove the query params from the url
     searchParams.delete("token_hash");
     searchParams.delete("type");
     searchParams.delete("next");
 
-    // if we have a next path, we redirect to that path
     if (nextPath) {
       url.pathname = nextPath;
     }
 
     if (token_hash && type) {
+      console.log("🔐 Attempting to verify OTP...");
+
       const { data, error } = await this.client.auth.verifyOtp({
         type,
         token_hash,
+      });
+
+      console.log("🔐 Verify OTP result:", {
+        success: !error,
+        hasUser: !!data?.user,
+        userId: data?.user?.id,
+        errorCode: error?.code,
+        errorMessage: error?.message,
       });
 
       if (!error) {
         const user = data.user;
 
         if (user) {
+          console.log("✅ User authenticated successfully:", user.id);
+
           const { error: updateError } = await this.client
             .from("users")
             .update({ last_login: new Date().toISOString() })
@@ -229,8 +242,15 @@ class AuthCallbackService {
             console.error("Failed to update last_login:", updateError);
           }
         }
+
+        console.log("🎯 Redirecting to:", url.toString());
         return url;
       }
+
+      console.error("❌ OTP verification failed:", {
+        code: error.code,
+        message: error.message,
+      });
 
       if (error.code) {
         url.searchParams.set("code", error.code);
@@ -244,7 +264,7 @@ class AuthCallbackService {
       url.searchParams.set("error", errorMessage);
     }
 
-    // return the user to an error page with some instructions
+    console.log("❌ Redirecting to error page:", errorPath);
     url.pathname = errorPath;
 
     return url;
