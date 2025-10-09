@@ -26,6 +26,111 @@ class AuthCallbackService {
   constructor(private readonly client: SupabaseClient) {}
 
   /**
+   * @name isEmailScanner
+   * @description Detects if the request is from an email scanner or bot
+   * @param request
+   */
+  private isEmailScanner(request: Request): boolean {
+    const userAgent = request.headers.get("user-agent")?.toLowerCase() || "";
+    const referer = request.headers.get("referer") || "";
+    const accept = request.headers.get("accept") || "";
+    const xForwardedFor = request.headers.get("x-forwarded-for") || "";
+    const xRealIp = request.headers.get("x-real-ip") || "";
+
+    // Get the actual client IP
+    const clientIP = xForwardedFor.split(",")[0].trim() || xRealIp || "";
+
+    // Check for known email security scanner patterns
+    const scannerPatterns = [
+      "safelinks",
+      "atp", // Advanced Threat Protection
+      "proofpoint",
+      "mimecast",
+      "barracuda",
+      "cisco email security",
+      "ironport",
+      "fortimail",
+      "trend micro",
+    ];
+
+    for (const pattern of scannerPatterns) {
+      if (userAgent.includes(pattern) || referer.includes(pattern)) {
+        console.log(`Email scanner detected (pattern: ${pattern}):`, {
+          userAgent,
+          referer,
+        });
+        return true;
+      }
+    }
+
+    // Check for Outlook SafeLinks
+    if (referer.includes("safelinks.protection.outlook")) {
+      console.log("Outlook SafeLinks detected:", { referer });
+      return true;
+    }
+
+    // Check for Microsoft-related scanners (but not Edge browser)
+    if (userAgent.includes("microsoft") && !userAgent.includes("edge")) {
+      console.log("Microsoft scanner detected:", { userAgent });
+      return true;
+    }
+
+    // Check for email tracking services making prefetch requests
+    // These services often have generic user agents and don't accept HTML
+    if (
+      !accept.includes("text/html") &&
+      (accept.includes("*/*") || accept === "")
+    ) {
+      console.log(
+        "Potential tracking service detected (no HTML accept header):",
+        { accept, userAgent }
+      );
+      return true;
+    }
+
+    // Check for requests without proper browser user agents
+    const hasBrowserUA =
+      userAgent.includes("mozilla") ||
+      userAgent.includes("chrome") ||
+      userAgent.includes("safari") ||
+      userAgent.includes("edge") ||
+      userAgent.includes("firefox") ||
+      userAgent.includes("opera");
+
+    if (!hasBrowserUA && userAgent !== "") {
+      console.log("Non-browser user agent detected:", { userAgent });
+      return true;
+    }
+
+    // Check for very generic or empty user agents
+    if (userAgent === "mozilla/5.0" || userAgent === "") {
+      console.log("Generic/empty user agent detected:", { userAgent });
+      return true;
+    }
+
+    // AWS IP ranges check (Resend tracking or SafeLinks infrastructure)
+    // Only flag if it also has non-browser characteristics
+    if (
+      clientIP.startsWith("52.") ||
+      clientIP.startsWith("54.") ||
+      clientIP.startsWith("3.") ||
+      clientIP.startsWith("18.")
+    ) {
+      // AWS IP detected - check if it has browser-like characteristics
+      if (!accept.includes("text/html") || !hasBrowserUA) {
+        console.log("AWS IP with non-browser characteristics:", {
+          clientIP,
+          userAgent,
+          accept,
+        });
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * @name verifyTokenHash
    * @description Verifies the token hash and type and redirects the user to the next page
    * This should be used when using a token hash to verify the user's email
@@ -86,37 +191,19 @@ class AuthCallbackService {
     }
 
     if (token_hash && type) {
-      const userAgent = request.headers.get("user-agent") || "";
-      const referer = request.headers.get("referer");
-
-      // Detect common email security scanners
-      const isScanner =
-        userAgent.toLowerCase().includes("safelinks") ||
-        userAgent.toLowerCase().includes("atp") || // Advanced Threat Protection
-        userAgent.toLowerCase().includes("proofpoint") ||
-        userAgent.toLowerCase().includes("mimecast") ||
-        userAgent.toLowerCase().includes("barracuda") ||
-        // Outlook SafeLinks often has specific patterns
-        (userAgent.includes("Microsoft") && !userAgent.includes("Edge")) ||
-        // Scanners often have no referer or suspicious referer
-        (referer && referer.includes("safelinks.protection.outlook")) ||
-        // Some scanners have very generic user agents
-        userAgent === "Mozilla/5.0" ||
-        // Or no user agent at all
-        userAgent === "";
-
-      if (isScanner) {
-        console.log("Email scanner detected, not consuming token:", {
-          userAgent,
-          referer,
-        });
+      // Detect and ignore email scanners/bots to prevent token consumption
+      if (this.isEmailScanner(request)) {
+        console.log(
+          "Email scanner/bot detected - not consuming token to preserve magic link"
+        );
 
         // Return a basic success response without consuming the token
-        // This prevents the scanner from invalidating the magic link
+        // This prevents scanners from invalidating the magic link
         url.pathname = params.redirectPath;
         return url;
       }
 
+      // Only verify OTP if it's NOT a scanner - this is a real user click
       const { data, error } = await this.client.auth.verifyOtp({
         type,
         token_hash,
