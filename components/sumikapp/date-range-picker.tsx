@@ -18,13 +18,24 @@ interface DateRangePickerProps {
   selected?: DateRange;
   onSelect?: (range: DateRange | undefined) => void;
   side?: "top" | "bottom" | "left" | "right";
+  disabledDates?: Date[];
 }
 
 export default function DateRangePicker({
   selected,
   onSelect,
   side,
+  disabledDates = [],
 }: DateRangePickerProps) {
+  const isDateDisabled = (date: Date) => {
+    return disabledDates.some(
+      (disabledDate) =>
+        date.getFullYear() === disabledDate.getFullYear() &&
+        date.getMonth() === disabledDate.getMonth() &&
+        date.getDate() === disabledDate.getDate()
+    );
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -58,6 +69,7 @@ export default function DateRangePicker({
           defaultMonth={selected?.from}
           selected={selected}
           onSelect={onSelect}
+          disabled={isDateDisabled}
           className="rounded-md border shadow-sm"
           captionLayout="dropdown"
         />

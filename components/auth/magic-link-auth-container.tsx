@@ -53,7 +53,6 @@ export function MagicLinkAuthContainer({
   });
 
   const onSubmit = ({ email }: { email: string }) => {
-
     const emailRedirectTo = redirectUrl;
 
     const promise = async () => {

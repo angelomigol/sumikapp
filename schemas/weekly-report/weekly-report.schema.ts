@@ -11,10 +11,24 @@ const timeStringSchema = z
   .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)")
   .nullable();
 
-export const weeklyReportFormSchema = z.object({
-  start_date: z.date(),
-  end_date: z.date(),
-});
+export const weeklyReportFormSchema = z
+  .object({
+    start_date: z.date(),
+    end_date: z.date(),
+  })
+  .refine(
+    (data) => {
+      const diffTime = Math.abs(
+        data.end_date.getTime() - data.start_date.getTime()
+      );
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays === 6;
+    },
+    {
+      message: "Date range must be exactly 7 days",
+      path: ["start_date"],
+    }
+  );
 
 export const deleteWeeklyReportSchema = z.object({
   id: z.uuid(),

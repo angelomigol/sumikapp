@@ -34,8 +34,8 @@ export default function RequirementsTabContent({
           No Requirements Found
         </h3>
         <p className="text-muted-foreground max-w-md text-sm">
-          {`This trainee hasn't submitted any requirements yet, or no requirements
-          have been assigned to their program batch.`}
+          This trainee hasn&#39;t submitted any requirements yet, or no
+          requirements have been assigned to their program batch.
         </p>
       </div>
     );

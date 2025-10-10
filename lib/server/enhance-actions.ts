@@ -1,9 +1,9 @@
 import "server-only";
+
 import { redirect } from "next/navigation";
 
-import type { User } from "@supabase/supabase-js";
-
-import { ZodType, z } from "zod";
+import type { JwtPayload } from "@supabase/supabase-js";
+import { z, ZodType } from "zod/v3";
 
 import { verifyCaptchaToken } from "@/utils/captcha/server/verify-captcha";
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
@@ -18,36 +18,33 @@ import { zodParseFactory } from "./zod-parse-factory";
 export function enhanceAction<
   Args,
   Response,
-  Schema extends z.ZodTypeAny | undefined = undefined,
   Config extends {
     auth?: boolean;
     captcha?: boolean;
-    schema?: Schema;
-  } = {
-    auth?: boolean;
-    captcha?: boolean;
-    schema?: Schema;
-  }
+    schema?: z.ZodType<
+      Config["captcha"] extends true ? Args & { captchaToken: string } : Args,
+      z.ZodTypeAny
+    >;
+  },
 >(
   fn: (
-    params: Schema extends z.ZodTypeAny ? z.output<Schema> : Args,
-    user: Config["auth"] extends false ? undefined : User
+    params: Config["schema"] extends ZodType ? z.infer<Config["schema"]> : Args,
+    user: Config["auth"] extends false ? undefined : JwtPayload
   ) => Response | Promise<Response>,
   config: Config
 ) {
   return async (
-    params: Schema extends z.ZodTypeAny ? z.input<Schema> : Args
+    params: Config["schema"] extends ZodType ? z.infer<Config["schema"]> : Args
   ) => {
-    type UserParam = Config["auth"] extends false ? undefined : User;
-    type DataParam = Schema extends z.ZodTypeAny ? z.output<Schema> : Args;
+    type UserParam = Config["auth"] extends false ? undefined : JwtPayload;
 
     const requireAuth = config.auth ?? true;
     let user: UserParam = undefined as UserParam;
 
     // validate the schema passed in the config if it exists
-    const data: DataParam = (config.schema
+    const data = config.schema
       ? zodParseFactory(config.schema)(params)
-      : params) as DataParam;
+      : params;
 
     // by default, the CAPTCHA token is not required
     const verifyCaptcha = config.captcha ?? false;

@@ -371,7 +371,7 @@ const SmartCompanySearch = React.forwardRef<
           className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-gray-500 shadow-lg"
         >
           <Building2 className="mx-auto mb-2 size-8 text-gray-300" />
-          <p>{`No companies found matching "${query}"`}</p>
+          <p>No companies found matching &#34;{query}&#34;</p>
           <p className="mt-1 text-xs text-gray-400">
             Try searching by company name, address, or business type
           </p>

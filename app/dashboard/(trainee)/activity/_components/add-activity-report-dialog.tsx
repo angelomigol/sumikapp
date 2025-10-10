@@ -88,8 +88,8 @@ export default function AddActivityReportDialog() {
             <DialogHeader>
               <DialogTitle>Create Activity Report</DialogTitle>
               <DialogDescription>
-                {`Fill out the form to create a new weekly activity report. Click
-                "create report" when you're done.`}
+                Fill out the form to create a new weekly activity report. Click
+                &#34;create report&#34; when you're done.
               </DialogDescription>
               <fieldset
                 disabled={form.formState.isSubmitting}

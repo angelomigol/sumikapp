@@ -8,7 +8,10 @@ import type { DateRange } from "react-day-picker";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { useCreateWeeklyReport } from "@/hooks/use-weekly-reports";
+
 import {
+  WeeklyReport,
   weeklyReportFormSchema,
   WeeklyReportFormValues,
 } from "@/schemas/weekly-report/weekly-report.schema";
@@ -34,9 +37,14 @@ import {
 } from "@/components/ui/form";
 import DateRangePicker from "@/components/sumikapp/date-range-picker";
 import { If } from "@/components/sumikapp/if";
-import { useCreateWeeklyReport } from "@/hooks/use-weekly-reports";
 
-export default function AddWeeklyReportDialog() {
+interface AddWeeklyReportDialogProps {
+  existingReports?: WeeklyReport[];
+}
+
+export default function AddWeeklyReportDialog({
+  existingReports = [],
+}: AddWeeklyReportDialogProps) {
   const [open, setOpen] = useState(false);
   const createAttendanceReportMutation = useCreateWeeklyReport();
 
@@ -48,7 +56,49 @@ export default function AddWeeklyReportDialog() {
     },
   });
 
+  const getDisabledDates = () => {
+    const disabledDates: Date[] = [];
+
+    existingReports.forEach((report) => {
+      const startDate = new Date(report.start_date);
+      const endDate = new Date(report.end_date);
+
+      for (
+        let date = new Date(startDate);
+        date <= endDate;
+        date.setDate(date.getDate() + 1)
+      ) {
+        disabledDates.push(new Date(date));
+      }
+    });
+
+    return disabledDates;
+  };
+
+  const validateNoOverlap = (
+    startDate: Date,
+    endDate: Date,
+    existingReports: WeeklyReport[]
+  ) => {
+    return !existingReports.some((report) => {
+      const reportStart = new Date(report.start_date);
+      const reportEnd = new Date(report.end_date);
+
+      // Check if there's any overlap
+      return (
+        (startDate >= reportStart && startDate <= reportEnd) ||
+        (endDate >= reportStart && endDate <= reportEnd) ||
+        (startDate <= reportStart && endDate >= reportEnd)
+      );
+    });
+  };
+
   async function onSubmit(data: WeeklyReportFormValues) {
+    if (!validateNoOverlap(data.start_date, data.end_date, existingReports)) {
+      toast.error("Date range overlaps with an existing report");
+      return;
+    }
+
     const promise = createAttendanceReportMutation.mutateAsync(data);
 
     toast.promise(promise, {
@@ -87,8 +137,8 @@ export default function AddWeeklyReportDialog() {
             <DialogHeader>
               <DialogTitle>Create Weekly Report</DialogTitle>
               <DialogDescription>
-                {`Fill out the form to create a new weekly report. Click "create
-                report" when you're done.`}
+                Fill out the form to create a new weekly report. Click
+                &#34;create report&#34; when you're done.
               </DialogDescription>
               <fieldset
                 disabled={form.formState.isSubmitting}
@@ -102,6 +152,7 @@ export default function AddWeeklyReportDialog() {
                       <FormLabel>Report Period</FormLabel>
                       <DateRangePicker
                         side="right"
+                        disabledDates={getDisabledDates()}
                         selected={{
                           from: field.value,
                           to: form.getValues("end_date"),
@@ -112,11 +163,31 @@ export default function AddWeeklyReportDialog() {
                           }
                           if (range?.to) {
                             form.setValue("end_date", range.to);
+
+                            // Validate 7-day selection
+                            if (range?.from && range?.to) {
+                              const diffTime = Math.abs(
+                                range.to.getTime() - range.from.getTime()
+                              );
+                              const diffDays = Math.ceil(
+                                diffTime / (1000 * 60 * 60 * 24)
+                              );
+
+                              if (diffDays !== 6) {
+                                form.setError("start_date", {
+                                  type: "manual",
+                                  message:
+                                    "Please select exactly 7 days (1 week)",
+                                });
+                              } else {
+                                form.clearErrors("start_date");
+                              }
+                            }
                           }
                         }}
                       />
                       <FormDescription>
-                        Select the start and end date for your report period
+                        Select exactly 7 days for your report period (1 week)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

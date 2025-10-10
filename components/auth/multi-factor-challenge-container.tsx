@@ -234,7 +234,7 @@ function FactorsListContainer({
           <AlertTitle>Error loading factors list</AlertTitle>
 
           <AlertDescription>
-            {`Sorry, we couldn't load the factors list. Please try again.`}
+            Sorry, we couldn&#39;t load the factors list. Please try again.
           </AlertDescription>
         </Alert>
       </div>

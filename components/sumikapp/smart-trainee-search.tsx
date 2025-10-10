@@ -27,7 +27,6 @@ export const searchableTrainee = z.object({
 });
 export type SearchableTrainee = z.infer<typeof searchableTrainee>;
 
-
 interface SmartTraineeSearchProps {
   onSelect?: (trainee: SearchableTrainee) => void;
   placeholder?: string;
@@ -359,7 +358,7 @@ const SmartTraineeSearch = React.forwardRef<
             className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-gray-500 shadow-lg"
           >
             <Search className="mx-auto mb-2 size-8 text-gray-300" />
-            <p>{`No trainees found matching "${query}"`}</p>
+            <p>No trainees found matching &#34;{query}&#34;</p>
             <p className="mt-1 text-xs text-gray-400">
               Try searching by name, email, student ID, course, or section
             </p>

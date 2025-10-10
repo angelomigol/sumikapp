@@ -79,7 +79,7 @@ function FactorsTableContainer(props: { userId: string }) {
           <AlertTitle>Error loading factors list</AlertTitle>
 
           <AlertDescription>
-            {`Sorry, we couldn't load the factors list. Please try again.`}
+            Sorry, we couldn&#39;t load the factors list. Please try again.
           </AlertDescription>
         </Alert>
       </div>
@@ -151,8 +151,8 @@ function ConfirmUnenrollFactorModal(
           <AlertDialogTitle>Unenroll Factor</AlertDialogTitle>
 
           <AlertDialogDescription>
-            {`You're about to unenroll this factor. You will not be able to use it
-            to login to your account.`}
+            You&#34;re about to unenroll this factor. You will not be able to
+            use it to login to your account.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

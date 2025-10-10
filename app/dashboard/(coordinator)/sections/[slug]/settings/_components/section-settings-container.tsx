@@ -29,7 +29,9 @@ export default function SectionSettingsContainer({ slug }: { slug: string }) {
       <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>Section Details</CardTitle>
-          <CardDescription>{`Manage this section's OJT settings`}</CardDescription>
+          <CardDescription>
+            Manage this section&#39;s OJT settings
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <UpdateSectionDetailsFormContainer

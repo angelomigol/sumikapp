@@ -41,11 +41,11 @@ export const deleteWeeklyReportAction = enhanceAction(
 
     logger.info(ctx, "Deleting weekly report...");
 
-    const client = getSupabaseServerClient();
+    const server = getSupabaseServerClient();
     const service = createDeleteWeeklyReportService();
 
     const result = await service.deleteReport({
-      client,
+      server,
       userId: user.id,
       reportId: data.id,
     });

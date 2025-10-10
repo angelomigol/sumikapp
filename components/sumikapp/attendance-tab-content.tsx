@@ -19,12 +19,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { FileText } from "lucide-react";
 
 export default function AttendanceTabContent({
   reports,
 }: {
-  reports: NormalizedAttendanceReport[];
+  reports?: NormalizedAttendanceReport[];
 }) {
+  if (!reports || reports.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <FileText className="text-muted-foreground mb-4 h-12 w-12" />
+        <h3 className="text-muted-foreground mb-2 text-lg font-medium">
+          No Attendance Reports
+        </h3>
+        <p className="text-muted-foreground max-w-md text-sm">
+          {`This trainee hasn't submitted any attendance reports yet, or no
+          attendance reports have been approved yet.`}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Table className="max-h-[100px]">
       <TableHeader>

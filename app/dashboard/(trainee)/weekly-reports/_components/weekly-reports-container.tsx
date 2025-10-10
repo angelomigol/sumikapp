@@ -34,7 +34,7 @@ export default function WeeklyReportsContainer() {
           </p>
         </div>
 
-        <AddWeeklyReportDialog />
+        <AddWeeklyReportDialog existingReports={data} />
       </div>
 
       <If condition={error}>

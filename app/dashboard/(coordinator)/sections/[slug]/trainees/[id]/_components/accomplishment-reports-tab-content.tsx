@@ -42,8 +42,8 @@ export default function AccomplishmentReportsTabContent({
           No Accomplishment Reports
         </h3>
         <p className="text-muted-foreground max-w-md text-sm">
-          {`This trainee hasn't submitted any accomplishment reports yet, or no
-          accomplishment reports have been approved yet.`}
+          This trainee hasn&#39;t submitted any accomplishment reports yet, or
+          no accomplishment reports have been approved yet.
         </p>
       </div>
     );

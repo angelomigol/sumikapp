@@ -122,7 +122,7 @@ export default function PlacementContainer({
         >
           <div className="flex justify-center py-6">
             <span className="text-sm text-gray-500">
-              {`You've reached the end of the internship listings`}
+              You&#39;ve reached the end of the internship listings
             </span>
           </div>
         </If>

@@ -1,7 +1,7 @@
 import * as React from "react";
 import Image from "next/image";
 
-import type { User } from "@supabase/supabase-js";
+import type { JwtPayload } from "@supabase/supabase-js";
 
 import { OJTStatus } from "@/lib/constants";
 
@@ -19,7 +19,7 @@ import { SidebarNavigationWrapper } from "./sidebar-navigation-wrapper";
 
 export function AppSidebar(props: {
   account: Tables<"users">;
-  user: User;
+  user: JwtPayload;
   ojtstatus?: OJTStatus;
 }) {
   return (

@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 
-import type { User } from "@supabase/supabase-js";
+import type { JwtPayload } from "@supabase/supabase-js";
 import { Bell, ChevronsUpDown, Home, LogOut, Settings2 } from "lucide-react";
 
 import { usePersonalAccountData } from "@/hooks/use-personal-account-data";
+
+import { cn } from "@/lib/utils";
 
 import {
   DropdownMenu,
@@ -28,12 +30,14 @@ import { SubMenuModeToggle } from "@/components/sumikapp/mode-toggle";
 import { ProfileAvatar } from "@/components/sumikapp/profile-avatar";
 
 export default function NavUser({
+  className,
   user,
   account,
   signOutRequested,
   paths,
+  showProfileName = true,
 }: {
-  user: User;
+  user: JwtPayload;
 
   account?: {
     id: string;
@@ -49,10 +53,21 @@ export default function NavUser({
     dashboard: string;
     settings: string;
   };
+
+  showProfileName?: boolean;
+
+  className?: string;
 }) {
   const { isMobile } = useSidebar();
 
   const personalAccountData = usePersonalAccountData(user.id, account);
+
+  const signedInAsLabel = useMemo(() => {
+    const email = user?.email ?? undefined;
+    const phone = user?.phone ?? undefined;
+
+    return email ?? phone;
+  }, [user]);
 
   const displayName =
     [
@@ -75,7 +90,11 @@ export default function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              aria-label="Open your profile menu"
+              className={cn(
+                "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground animate-in fade-in focus:outline-primary flex cursor-pointer items-center duration-500 group-data-[minimized=true]:px-0",
+                className ?? ""
+              )}
             >
               <ProfileAvatar
                 className="rounded-lg"
@@ -84,7 +103,7 @@ export default function NavUser({
               />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
-                <span className="truncate text-xs">{user?.email}</span>
+                <span className="truncate text-xs">{signedInAsLabel}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -104,7 +123,7 @@ export default function NavUser({
                 />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{displayName}</span>
-                  <span className="truncate text-xs">{user?.email}</span>
+                  <span className="truncate text-xs">{signedInAsLabel}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

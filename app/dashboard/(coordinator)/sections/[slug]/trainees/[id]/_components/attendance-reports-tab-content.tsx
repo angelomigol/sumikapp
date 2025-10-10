@@ -42,8 +42,8 @@ export default function AttendanceReportsTabContent({
           No Attendance Reports
         </h3>
         <p className="text-muted-foreground max-w-md text-sm">
-          {`This trainee hasn't submitted any attendance reports yet, or no
-          attendance reports have been approved yet.`}
+          This trainee hasn&#39;t submitted any attendance reports yet, or no
+          attendance reports have been approved yet.
         </p>
       </div>
     );

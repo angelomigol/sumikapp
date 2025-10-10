@@ -29,10 +29,10 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 export const UpdatePasswordForm = ({
-  user,
+  userEmail,
   callbackPath,
 }: {
-  user: User;
+  userEmail: string;
   callbackPath: string;
 }) => {
   const updateUserMutation = useUpdateUser();
@@ -66,11 +66,9 @@ export const UpdatePasswordForm = ({
   }: {
     newPassword: string;
   }) => {
-    const email = user.email;
-
     // if the user does not have an email assigned, it's possible they
     // don't have an email/password factor linked, and the UI is out of sync
-    if (!email) {
+    if (!userEmail) {
       return Promise.reject(
         "You cannot update your password because your account is not linked to any."
       );

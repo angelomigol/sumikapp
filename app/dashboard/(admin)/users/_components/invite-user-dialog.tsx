@@ -80,9 +80,9 @@ export default function InviteUserDialog() {
                 Invite User
               </DialogTitle>
               <DialogDescription>
-                {`Invite new user by sending them an email invitation. Assign a
-                role to define their access level. Click "invite" when you're
-                done.`}
+                Invite new user by sending them an email invitation. Assign a
+                role to define their access level. Click &#34;invite&#34; when
+                you&#39;re done.
               </DialogDescription>
               <fieldset className="space-y-4 pt-4">
                 <FormField

@@ -1,4 +1,11 @@
 import {
+  IconCircleCheckFilled,
+  IconCircleMinus,
+  IconCircleXFilled,
+  IconLoader,
+  type Icon,
+} from "@tabler/icons-react";
+import {
   CheckCircle,
   CircleQuestionMark,
   CircleX,
@@ -15,7 +22,7 @@ type EntryStatus = (typeof Constants.public.Enums.entry_status)[number];
 
 interface DocumentStatusConfig {
   label: string;
-  icon: LucideIcon;
+  icon: LucideIcon | Icon;
   badgeColor: string;
   textColor: string;
 }
@@ -29,25 +36,25 @@ interface EntryStatusConfig {
 export const documentStatusMap: Record<DocumentStatus, DocumentStatusConfig> = {
   approved: {
     label: "Approved",
-    icon: CheckCircle,
+    icon: IconCircleCheckFilled,
     badgeColor: "bg-green-3 text-green-11",
     textColor: "text-green-11",
   },
   rejected: {
     label: "Rejected",
-    icon: CircleX,
+    icon: IconCircleXFilled,
     badgeColor: "bg-red-3 text-red-11",
     textColor: "text-red-11",
   },
   pending: {
     label: "Pending",
-    icon: Clock,
+    icon: IconLoader,
     badgeColor: "bg-amber-3 text-amber-11",
     textColor: "text-amber-11",
   },
   "not submitted": {
     label: "Not Submitted",
-    icon: FileQuestion,
+    icon: IconCircleMinus,
     badgeColor: "bg-gray-3 text-gray-11",
     textColor: "text-gray-11",
   },

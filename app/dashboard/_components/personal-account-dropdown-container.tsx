@@ -1,6 +1,6 @@
 "use client";
 
-import type { User } from "@supabase/supabase-js";
+import type { JwtPayload } from "@supabase/supabase-js";
 
 import pathsConfig from "@/config/paths.config";
 
@@ -15,7 +15,7 @@ const paths = {
 };
 
 export function ProfileAccountDropdownContainer(props: {
-  user?: User;
+  user?: JwtPayload;
   showProfileName?: boolean;
 
   account?: {

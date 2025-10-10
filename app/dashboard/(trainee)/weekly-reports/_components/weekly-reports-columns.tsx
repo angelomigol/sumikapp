@@ -7,6 +7,7 @@ import { getDocumentStatusConfig } from "@/lib/constants/reports";
 
 import { WeeklyReport } from "@/schemas/weekly-report/weekly-report.schema";
 
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 
@@ -85,7 +86,9 @@ export const weeklyReportsColumns: ColumnDef<WeeklyReport>[] = [
     ),
     cell: ({ row }) => {
       const totalHours = row.getValue("period_total") as number;
-      return totalHours.toFixed(0) + (totalHours === 1 ? " Hour" : " Hours");
+      return (
+        totalHours.toLocaleString() + (totalHours === 1 ? " Hour" : " Hours")
+      );
     },
     enableHiding: false,
   },
@@ -100,10 +103,14 @@ export const weeklyReportsColumns: ColumnDef<WeeklyReport>[] = [
       if (!status) return null;
 
       return (
-        <div className="flex items-center gap-2">
-          {status.icon && <status.icon className="size-4" />}
+        <Badge variant={"outline"} className="text-muted-foreground">
+          {status.icon && (
+            <status.icon
+              className={`size-2 ${status.label === "pending" ? "" : status.textColor}`}
+            />
+          )}
           {status.label}
-        </div>
+        </Badge>
       );
     },
     filterFn: (row, id, value) => {

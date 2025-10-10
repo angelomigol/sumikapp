@@ -18,7 +18,7 @@ export const config = {
 const getUser = (request: NextRequest, response: NextResponse) => {
   const supabase = createMiddlewareClient(request, response);
 
-  return supabase.auth.getUser();
+  return supabase.auth.getClaims();
 };
 
 export async function middleware(request: NextRequest) {
@@ -74,12 +74,10 @@ function getPatterns(): {
         new URLPattern({ pathname: "/auth/*" }),
       ],
       handler: async (req: NextRequest, res: NextResponse) => {
-        const {
-          data: { user },
-        } = await getUser(req, res);
+        const { data } = await getUser(req, res);
 
         // the user is logged out, so we don't need to do anything
-        if (!user) {
+        if (!data?.claims) {
           return;
         }
 
@@ -98,15 +96,13 @@ function getPatterns(): {
     {
       patterns: [new URLPattern({ pathname: "/dashboard/*?" })],
       handler: async (req: NextRequest, res: NextResponse) => {
-        const {
-          data: { user },
-        } = await getUser(req, res);
+        const { data } = await getUser(req, res);
 
         const origin = req.nextUrl.origin;
         const next = req.nextUrl.pathname;
 
         // If user is not logged in, redirect to index/sign in page.
-        if (!user) {
+        if (!data?.claims) {
           const signIn = pathsConfig.app.index;
           const redirectPath = `${signIn}?next=${next}`;
 

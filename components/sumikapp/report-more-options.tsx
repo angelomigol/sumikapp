@@ -71,25 +71,25 @@ export default function ReportMoreOptions({
   const isDeletableStatus = status === "not submitted" || status === "rejected";
 
   const handleDelete = () => {
-    if (!deleteAction || !redirectPath || !reportType) return;
+    if (!deleteAction || !redirectPath) return;
 
     openConfirmDialog({
-      title: `Delete ${reportType} Report`,
-      description: `Are you sure you want to delete this ${reportType.toLowerCase()} report? This action cannot be undone.`,
+      title: `Delete ${reportType ?? "Weekly"} Report`,
+      description: `Are you sure you want to delete this ${reportType?.toLowerCase() ?? "weekly"} report? This action cannot be undone.`,
       onConfirm: async () => {
         const formData = new FormData();
         formData.append("id", id);
 
         toast.promise(deleteAction(formData), {
-          loading: `Deleting ${reportType.toLowerCase()} report...`,
+          loading: `Deleting ${reportType?.toLowerCase() ?? "weekly"} report...`,
           success: () => {
             router.push(redirectPath);
-            return `${reportType} report deleted successfully.`;
+            return `${reportType ?? "Weekly"} report deleted successfully.`;
           },
           error: (err) =>
             err instanceof Error
               ? err.message
-              : `Something went wrong while deleting the ${reportType.toLowerCase()} report.`,
+              : `Something went wrong while deleting the ${reportType?.toLowerCase() ?? "weekly"} report.`,
         });
       },
       confirmText: "Delete",

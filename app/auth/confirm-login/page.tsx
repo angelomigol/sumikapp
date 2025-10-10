@@ -1,28 +1,71 @@
-import { Suspense } from "react";
-import { redirect } from "next/navigation";
+"use client";
+
+import { Suspense, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import pathsConfig from "@/config/paths.config";
+
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 
-function ConfirmLoginContent() {
+function VerifyEmailContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const token_hash = searchParams.get("token_hash");
+  const type = searchParams.get("type");
+  const next = searchParams.get("next") || "/";
+
+  // Auto-redirect if the page is accessed directly with the token
+  useEffect(() => {
+    handleClick();
+  }, []);
+
+  const handleClick = () => {
+    if (token_hash && type) {
+      window.location.href = `/auth/confirm?${new URLSearchParams({
+        token_hash,
+        type,
+        next,
+      })}`;
+    } else {
+      toast.error("Invalid token", {
+        description: "Please try logging in again.",
+      });
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-xl">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Confirm Your Sign In
-          </h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Click the button below to complete your sign in to SumikAPP Web
-          </p>
-        </div>
+    <div className="space-y-6 text-center text-white">
+      <span className="text-xl font-bold">Verify Your Email</span>
+      <p className="text-sm">
+        Click the button below to complete your sign-in process.
+      </p>
 
-        <ConfirmButton />
+      <Button
+        variant={"secondary"}
+        size={"sm"}
+        className={cn(
+          "w-full bg-[#fab300] font-bold text-black hover:bg-[#d49000] hover:text-black"
+        )}
+        onClick={handleClick}
+      >
+        Confirm email
+      </Button>
 
-        <p className="text-center text-xs text-gray-500">
-          This extra step helps protect your account from automated security
-          scanners.
-        </p>
-      </div>
+      <Button variant={"link"} size={"sm"} className="text-white" asChild>
+        <Link
+          href={pathsConfig.app.index}
+          className="text-white/80 underline transition-colors hover:text-white"
+        >
+          Go to Sign In Page
+        </Link>
+      </Button>
     </div>
   );
 }
@@ -55,10 +98,10 @@ function ConfirmButton() {
   );
 }
 
-export default function ConfirmLoginPage() {
+export default function VerifyEmail() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ConfirmLoginContent />
+    <Suspense fallback={<Loader2 className="animate-spin" />}>
+      <VerifyEmailContent />
     </Suspense>
   );
 }

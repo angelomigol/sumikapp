@@ -22,16 +22,16 @@ class DeleteWeeklyReportService {
 
   /**
    * @name deleteReport
-   * Delete an attendance report for a user.
+   * Delete a weekly report for a user.
    */
   async deleteReport(params: {
-    client: SupabaseClient<Database>;
+    server: SupabaseClient<Database>;
     userId: string;
     reportId: string;
   }) {
     const logger = await getLogger();
 
-    const { userId, reportId, client } = params;
+    const { userId, reportId, server } = params;
     const ctx = {
       userId,
       name: this.namespace,
@@ -40,7 +40,7 @@ class DeleteWeeklyReportService {
     logger.info(ctx, "Deleting weekly report...");
 
     try {
-      const { error: reportError } = await client
+      const { error: reportError } = await server
         .from("weekly_reports")
         .delete()
         .eq("id", reportId);
