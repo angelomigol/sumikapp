@@ -8,7 +8,6 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
 } from "recharts";
 
 interface ReportStatisticsBarChartProps {

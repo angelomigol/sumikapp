@@ -503,9 +503,9 @@ export default function InternshipDetailsForm({
               name="lunchBreak"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Lunch Break ()</FormLabel>
+                  <FormLabel>Lunch Break</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="e.g., " />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

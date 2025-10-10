@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import type { User } from "@supabase/supabase-js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, TriangleAlert } from "lucide-react";
 import { useForm } from "react-hook-form";

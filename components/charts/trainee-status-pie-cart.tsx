@@ -99,13 +99,16 @@ export default function TraineeStatusPieChart({
             }}
           />
         </Pie>
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip content={CustomTooltip} />
       </PieChart>
     </ResponsiveContainer>
   );
 }
 
-const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     const entry = payload[0];
     const isNoData = entry.name === "No Data";

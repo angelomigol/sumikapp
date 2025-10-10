@@ -6,10 +6,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import {
-  CheckCircle,
   CircleQuestionMark,
-  CircleX,
-  Clock,
   FileQuestion,
   type LucideIcon,
 } from "lucide-react";

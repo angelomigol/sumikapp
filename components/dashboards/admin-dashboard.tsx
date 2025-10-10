@@ -85,7 +85,7 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* <Button
+          <Button
             variant={"outline"}
             size={"sm"}
             onClick={() => refetch()}
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
               className={`size-4 ${isLoading ? "animate-spin" : ""}`}
             />
             Refresh
-          </Button> */}
+          </Button>
         </div>
       </div>
 

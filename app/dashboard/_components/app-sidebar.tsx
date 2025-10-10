@@ -12,6 +12,9 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
 import { ProfileAccountDropdownContainer } from "./personal-account-dropdown-container";
@@ -47,22 +50,49 @@ export function AppSidebar(props: {
 
 function AppSidebarHeader() {
   return (
-    <div className="flex items-center justify-between space-x-2">
-      <div className="flex aspect-square size-8 items-center justify-center">
-        <Image
-          src="/nu_logo.png"
-          alt="NU Logo"
-          width={26}
-          height={26}
-          className="size-auto"
-        />
-      </div>
-      <div className="grid flex-1 text-left text-sm">
-        <span className="truncate leading-none font-semibold">SumikAPP</span>
-        <span className="truncate text-xs leading-none text-wrap">
-          On-The-Job Training Management and Placement System
-        </span>
-      </div>
-    </div>
+    // <div className="flex items-center justify-between space-x-2">
+    //   <div className="flex aspect-square size-8 items-center justify-center">
+    //     <Image
+    //       src="/nu_logo.png"
+    //       alt="NU Logo"
+    //       width={26}
+    //       height={26}
+    //       className="size-auto"
+    //     />
+    //   </div>
+    //   <div className="grid flex-1 text-left text-sm">
+    //     <span className="truncate leading-none font-semibold">SumikAPP</span>
+    //     <span className="truncate text-xs leading-none text-wrap">
+    //       On-The-Job Training Management and Placement System
+    //     </span>
+    //   </div>
+    // </div>
+
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          size={"lg"}
+          className="animate-in fade-in flex h-14 items-center justify-between space-x-2 duration-500 group-data-[minimized=true]:px-0"
+        >
+          <div className="flex aspect-square size-8 items-center justify-center">
+            <Image
+              src="/nu_logo.png"
+              alt="NU Logo"
+              width={26}
+              height={26}
+              className="size-auto"
+            />
+          </div>
+          <div className="grid flex-1 text-left text-sm">
+            <span className="truncate leading-none font-semibold">
+              SumikAPP
+            </span>
+            <span className="truncate text-xs leading-none text-wrap">
+              On-The-Job Training Management and Placement System
+            </span>
+          </div>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }

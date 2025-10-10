@@ -95,7 +95,7 @@ export default function EvaluationScoresRadialChart({
             tick={{ fontSize: 12, fill: "#374151" }}
           />
           <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 12 }} />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={CustomTooltip} />
           <Radar
             name="Evaluation"
             dataKey="score"

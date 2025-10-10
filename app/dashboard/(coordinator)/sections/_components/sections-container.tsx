@@ -41,7 +41,7 @@ export default function SectionsContainer() {
           <p className="text-2xl font-bold tracking-tight">No sections yet</p>
           <p className="text-muted-foreground max-w-md text-sm">
             Looks like you haven&#39;t created any sections yet. Start adding by
-            clicking the "New Section" button.
+            clicking the &#34;New Section&#34; button.
           </p>
         </div>
       </If>

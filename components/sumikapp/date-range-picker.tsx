@@ -12,8 +12,6 @@ import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
-cn;
-
 interface DateRangePickerProps {
   selected?: DateRange;
   onSelect?: (range: DateRange | undefined) => void;

@@ -89,8 +89,8 @@ export default function NavUser({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
-              aria-label="Open your profile menu"
+              size={"lg"}
+              aria-label="SumikAPP Logo"
               className={cn(
                 "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground animate-in fade-in focus:outline-primary flex cursor-pointer items-center duration-500 group-data-[minimized=true]:px-0",
                 className ?? ""
@@ -101,11 +101,28 @@ export default function NavUser({
                 fallbackClassName="rounded-lg"
                 displayName={displayName ?? ""}
               />
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="truncate text-xs">{signedInAsLabel}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+
+              <If condition={showProfileName}>
+                <div
+                  className={
+                    "fade-in animate-in flex w-full flex-col truncate text-left group-data-[minimized=true]:hidden"
+                  }
+                >
+                  <span className="truncate text-sm font-medium">
+                    {displayName}
+                  </span>
+
+                  <span className="text-muted-foreground truncate text-xs">
+                    {signedInAsLabel}
+                  </span>
+                </div>
+
+                <ChevronsUpDown
+                  className={
+                    "text-muted-foreground mr-1 h-8 group-data-[minimized=true]:hidden"
+                  }
+                />
+              </If>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
