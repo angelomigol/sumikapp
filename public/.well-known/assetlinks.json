@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.capstone.sumikapp",
+      "sha256_cert_fingerprints": [
+        "SHA256: 28:69:B3:A7:22:C7:96:02:A7:21:59:44:9F:FC:44:EC:E2:B6:10:1E:C3:13:CD:54:23:B7:3C:C9:FC:59:90:23"
+      ]
+    }
+  }
+]
