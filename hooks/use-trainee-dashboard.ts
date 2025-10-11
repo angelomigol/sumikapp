@@ -123,7 +123,11 @@ export function useFetchTraineeDashboard() {
         .from("trainee_batch_enrollment")
         .select("id")
         .eq("trainee_id", response.data.user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .single();
+
+      console.log(enrollment);
 
       if (enrollmentError) {
         throw new Error(`Enrollment error: ${enrollmentError.message}`);
@@ -175,7 +179,9 @@ export function useFetchTraineeDashboard() {
   return useQuery({
     queryKey,
     queryFn,
+    networkMode: "online",
     refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
     refetchOnMount: true,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)

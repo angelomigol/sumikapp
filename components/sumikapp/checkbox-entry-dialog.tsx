@@ -67,8 +67,8 @@ export default function CheckboxEntryDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm Entry</AlertDialogTitle>
           <AlertDialogDescription>
-            {`This action cannot be undone. You won't be able to edit this entry
-            after confirmation.`}
+            This action cannot be undone. You won&#39;t be able to edit this entry
+            after confirmation.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -161,7 +161,7 @@ export default function WeeklyReportDetailsContainer(params: {
       return;
     }
 
-    if (!entryToConfirm.daily_accomplishments) {
+    if (!entryToConfirm?.daily_accomplishments) {
       toast.error("Daily accomplishments are required");
       return;
     }

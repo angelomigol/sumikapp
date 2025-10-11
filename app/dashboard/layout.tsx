@@ -80,9 +80,11 @@ async function getUserDetailsWithOJTStatus(): Promise<{
   let ojtStatus: OJTStatus | undefined;
   if (userDetails.role === "trainee") {
     const { data: traineeOverview } = await supabase
-      .from("trainee_overview_dashboard")
+      .from("trainee_batch_enrollment")
       .select("ojt_status")
-      .eq("trainee_id", user.id)
+      .eq("trainee_id", userDetails.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single();
 
     ojtStatus = traineeOverview?.ojt_status || undefined;

@@ -107,8 +107,6 @@ class InsertWeeklyReportEntryService {
 
       logger.info(ctx, "Successfully created weekly report entry");
 
-      await this.updateTotalHours({ server, userId, reportId: data.report_id });
-
       return {
         success: true,
         data: entryData,
@@ -121,97 +119,6 @@ class InsertWeeklyReportEntryService {
           error,
         },
         "Unexpected error creating weekly report entry"
-      );
-
-      throw error;
-    }
-  }
-
-  /**
-   * @name updateTotalHours
-   * Update the total hours of weekly report for a user.
-   */
-  async updateTotalHours(params: {
-    server: SupabaseClient<Database>;
-    userId: string;
-    reportId: string;
-  }) {
-    const logger = await getLogger();
-
-    const { userId, reportId, server } = params;
-
-    const ctx = {
-      userId,
-      name: this.namespace,
-    };
-
-    logger.info(ctx, "Updating attendance report total hours...");
-
-    try {
-      const { data: entries, error: entriesError } = await server
-        .from("weekly_report_entries")
-        .select("total_hours")
-        .eq("report_id", reportId);
-
-      if (entriesError) {
-        if (entriesError.code === "PGRST116") {
-          logger.warn(ctx, "Weekly report entries not found or access denied");
-          return null;
-        }
-
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              code: entriesError.code,
-              message: entriesError.message,
-              hint: entriesError.hint,
-              details: entriesError.details,
-            },
-          },
-
-          "Supabase error while fetching weekly report entries"
-        );
-
-        throw new Error(`Supabase error: ${entriesError.message}`);
-      }
-
-      const periodTotal =
-        entries?.reduce((sum, entry) => sum + (entry.total_hours || 0), 0) || 0;
-
-      const { error: updateError } = await server
-        .from("weekly_reports")
-        .update({
-          period_total: periodTotal,
-        })
-        .eq("id", reportId);
-
-      if (updateError) {
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              code: updateError.code,
-              message: updateError.message,
-              hint: updateError.hint,
-              details: updateError.details,
-            },
-          },
-
-          "Supabase error while updating weekly report total hours"
-        );
-
-        throw new Error(`Supabase error: ${updateError.message}`);
-      }
-
-      return periodTotal;
-    } catch (error) {
-      logger.error(
-        {
-          ...ctx,
-          error,
-        },
-        "Unexpected error updating weekly report total hours"
       );
 
       throw error;

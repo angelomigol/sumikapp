@@ -84,7 +84,6 @@ class CreateWeeklyReportService {
         .insert({
           internship_id: internshipDetails.id,
           start_date: format(data.start_date, "yyyy-MM-dd"),
-          end_date: format(data.end_date, "yyyy-MM-dd"),
         })
         .select()
         .single();

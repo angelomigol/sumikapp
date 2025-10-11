@@ -120,6 +120,7 @@ export default function DailyEntryRow({
                       className={
                         !canEditEntry(entry) ? "cursor-not-allowed" : ""
                       }
+                      disabled={!canEditEntry(entry)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -133,6 +134,7 @@ export default function DailyEntryRow({
                       className={
                         !canEditEntry(entry) ? "cursor-not-allowed" : ""
                       }
+                      disabled={!canEditEntry(entry)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -161,6 +163,7 @@ export default function DailyEntryRow({
                       onDailyAccomplishmentChange(entry.id, html)
                     }
                     placeholder="Describe accomplishments for this day..."
+                    disabled={!canEditEntry(entry)}
                   />
                 </div>
 

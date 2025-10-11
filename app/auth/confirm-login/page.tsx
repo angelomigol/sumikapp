@@ -69,35 +69,6 @@ function VerifyEmailContent() {
     </div>
   );
 }
-
-function ConfirmButton() {
-  const searchParams = new URLSearchParams(
-    typeof window !== "undefined" ? window.location.search : ""
-  );
-  const confirmationUrl = searchParams.get("confirmation_url");
-
-  if (!confirmationUrl) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <p className="text-sm text-red-800">
-          Invalid confirmation link. Please request a new sign in link.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <form action={confirmationUrl} method="GET">
-      <Button
-        type="submit"
-        className="w-full bg-[#fab300] font-bold text-black hover:bg-[#d49000]"
-      >
-        Sign In to SumikAPP Web
-      </Button>
-    </form>
-  );
-}
-
 export default function VerifyEmail() {
   return (
     <Suspense fallback={<Loader2 className="animate-spin" />}>

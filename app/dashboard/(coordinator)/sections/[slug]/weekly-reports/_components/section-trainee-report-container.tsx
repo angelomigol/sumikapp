@@ -50,7 +50,7 @@ export default function SectionTraineeReportsContainer(params: {
       <div>
         <PageTitle text={"Weekly Reports"} />
         <p className="text-muted-foreground text-sm">
-          Submitted weekly attendace and accomplishment reports of the students.
+          Submitted weekly attendance and accomplishment reports of the students.
         </p>
       </div>
 

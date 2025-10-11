@@ -13,14 +13,18 @@ interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export default function RichTextEditor({
   value,
   onChange,
   placeholder = "Enter description here...",
+  disabled = false,
 }: RichTextEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
+    editable: !disabled,
     extensions: [
       StarterKit.configure({
         heading: {
@@ -42,7 +46,6 @@ export default function RichTextEditor({
         placeholder,
       }),
     ],
-    immediatelyRender: false,
     editorProps: {
       attributes: {
         class:
@@ -57,6 +60,12 @@ export default function RichTextEditor({
   });
 
   useEffect(() => {
+    if (editor) {
+      editor.setEditable(!disabled);
+    }
+  }, [disabled, editor]);
+
+  useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
     }
@@ -64,7 +73,7 @@ export default function RichTextEditor({
 
   return (
     <div className="border-border bg-card overflow-hidden rounded-lg border shadow-sm">
-      <MenuBar editor={editor} />
+      <MenuBar editor={editor} disabled={disabled} />
       <EditorContent editor={editor} />
     </div>
   );
