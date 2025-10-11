@@ -60,6 +60,8 @@ export default function AddWeeklyReportDialog({
     const disabledDates: Date[] = [];
 
     existingReports.forEach((report) => {
+      if (!report.start_date || !report.end_date) return;
+
       const startDate = new Date(report.start_date);
       const endDate = new Date(report.end_date);
 
@@ -81,6 +83,8 @@ export default function AddWeeklyReportDialog({
     existingReports: WeeklyReport[]
   ) => {
     return !existingReports.some((report) => {
+      if (!report.start_date || !report.end_date) return false;
+
       const reportStart = new Date(report.start_date);
       const reportEnd = new Date(report.end_date);
 
