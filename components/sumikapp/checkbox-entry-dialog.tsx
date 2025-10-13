@@ -58,17 +58,25 @@ export default function CheckboxEntryDialog({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Label htmlFor="saveEntry">
-          <Checkbox disabled={disabled} id="saveEntry" checked={false} />
-          Confirm Entry
-        </Label>
+        <div className="flex gap-2">
+          <Checkbox disabled={disabled} id="save-entry" checked={false} />
+          <div className="grid gap-2">
+            <Label htmlFor={"save-entry"} className="leading-4">
+              Confirm Entry
+            </Label>
+            <p className="text-muted-foreground text-xs">
+              Clicking this checkbox means that you agree that the above
+              information is correct.
+            </p>
+          </div>
+        </div>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm Entry</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. You won&#39;t be able to edit this entry
-            after confirmation.
+            This action cannot be undone. You won&#39;t be able to edit this
+            entry after confirmation.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

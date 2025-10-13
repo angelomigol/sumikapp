@@ -310,11 +310,6 @@ class GetSectionTraineesService {
         .single();
 
       if (emp_error) {
-        if (emp_error.code === "PGRST116") {
-          logger.warn(ctx, "Trainee evaluation not found or access denied");
-          throw new Error("Trainee evaluation not found or access denied");
-        }
-
         logger.error(
           {
             ...ctx,

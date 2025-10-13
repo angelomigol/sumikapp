@@ -62,6 +62,7 @@ export default function WeeklyReportDetailsContainer(params: {
   const endDate = report.data?.end_date ?? "";
   const status = report.data?.status ?? "not submitted";
   const internCode = report.data?.internship_code ?? "CTNTERN1";
+  const lunchBreak = report.data?.lunch_break ?? 0;
 
   useEffect(() => {
     if (report.data) {
@@ -112,7 +113,11 @@ export default function WeeklyReportDetailsContainer(params: {
     setTableEntries((prevEntries) =>
       prevEntries.map((entry) => {
         if (entry.id === entryId) {
-          const totalHours = calculateTotalHours(timeIn, entry.time_out || "");
+          const totalHours = calculateTotalHours(
+            timeIn,
+            entry.time_out || "",
+            lunchBreak
+          );
           return {
             ...entry,
             time_in: timeIn,
@@ -128,7 +133,11 @@ export default function WeeklyReportDetailsContainer(params: {
     setTableEntries((prevEntries) =>
       prevEntries.map((entry) => {
         if (entry.id === entryId) {
-          const totalHours = calculateTotalHours(entry.time_in || "", timeOut);
+          const totalHours = calculateTotalHours(
+            entry.time_in || "",
+            timeOut,
+            lunchBreak
+          );
           return {
             ...entry,
             time_out: timeOut,
@@ -222,6 +231,17 @@ export default function WeeklyReportDetailsContainer(params: {
   const isLoading =
     insertEntryMutation.isPending || submitReportMutation.isPending;
 
+  // Prepare export data
+  const exportData = {
+    internName: "N/A",
+    companyName: report.data.company_name || "N/A",
+    entries: tableEntries,
+    previousTotal: 0,
+    periodTotal: report.data.period_total || 0,
+    startDate: startDate,
+    endDate: endDate,
+  };
+
   return (
     <>
       <If condition={isLoading}>
@@ -241,6 +261,7 @@ export default function WeeklyReportDetailsContainer(params: {
             redirectPath={pathsConfig.app.weeklyReports}
             status={status}
             options={{ canDelete: true }}
+            exportData={exportData}
           />
         </div>
       </div>
@@ -295,6 +316,7 @@ export default function WeeklyReportDetailsContainer(params: {
             entries={tableEntries}
             status={status}
             isLoading={isLoading}
+            lunchBreak={lunchBreak}
             onTimeInChange={handleTimeInChange}
             onTimeOutChange={handleTimeOutChange}
             onDailyAccomplishmentChange={handleDailyAccomplishmentsChange}

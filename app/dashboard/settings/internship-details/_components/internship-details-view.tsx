@@ -278,11 +278,19 @@ export default function InternshipDetailsView({
               </div>
             </div>
 
-            <div>
-              <h4 className="text-muted-foreground mb-1 text-sm font-medium">
-                Schedule
-              </h4>
-              <p className="text-sm">{getScheduleDisplay()}</p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+                  Schedule
+                </h4>
+                <p className="text-sm">{getScheduleDisplay()}</p>
+              </div>
+              <div>
+                <h4 className="text-muted-foreground mb-1 text-sm font-medium">
+                  Lunch Break
+                </h4>
+                <p className="text-sm">{internship.lunchBreak} Minutes</p>
+              </div>
             </div>
           </CardContent>
 

@@ -77,5 +77,6 @@ export type WeeklyReport = Tables<"weekly_reports"> & {
 export type WeeklyReportEntry = Tables<"weekly_report_entries">;
 export type NormalizedWeeklyReport = WeeklyReport & {
   company_name: string;
+  lunch_break: number;
   weekly_report_entries: WeeklyReportEntry[];
 };

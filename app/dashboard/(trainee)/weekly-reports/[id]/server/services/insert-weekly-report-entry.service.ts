@@ -99,7 +99,7 @@ class InsertWeeklyReportEntryService {
             },
           },
 
-          "Supabase error while creating weekly report entry"
+          `Supabase error while creating weekly report entry: ${entryError.message}`
         );
 
         throw new Error("Failed to create weekly report entry");

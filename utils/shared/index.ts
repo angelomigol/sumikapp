@@ -348,7 +348,11 @@ export function createAttendanceTableEntries(
   return dateEntries;
 }
 
-export function calculateTotalHours(timeIn: string, timeOut: string): number {
+export function calculateTotalHours(
+  timeIn: string,
+  timeOut: string,
+  lunchBreakMinutes: number = 0
+): number {
   if (!timeIn || !timeOut) return 0;
 
   const [inHours, inMinutes] = timeIn.split(":").map(Number);
@@ -362,7 +366,10 @@ export function calculateTotalHours(timeIn: string, timeOut: string): number {
       ? outTotalMinutes - inTotalMinutes
       : 24 * 60 - inTotalMinutes + outTotalMinutes;
 
-  return Math.round(diffMinutes / 60);
+  // Deduct lunch break
+  const totalMinutesAfterBreak = Math.max(0, diffMinutes - lunchBreakMinutes);
+
+  return Math.round(totalMinutesAfterBreak / 60);
 }
 
 export function displayDays(days: string[] = []) {

@@ -143,6 +143,7 @@ class GetWeeklyReportsService {
             internship_details!inner(
             company_name,
             enrollment_id,
+            lunch_break_in_mins,
             trainee_batch_enrollment!inner(
               trainee_id,
               trainees!inner(
@@ -199,6 +200,7 @@ class GetWeeklyReportsService {
           data.internship_details.trainee_batch_enrollment.program_batch
             .internship_code,
         company_name: data.internship_details.company_name,
+        lunch_break: data.internship_details.lunch_break_in_mins,
         weekly_report_entries: data.weekly_report_entries.map((entry) => ({
           created_at: entry.created_at,
           daily_accomplishments: entry.daily_accomplishments,
@@ -211,7 +213,7 @@ class GetWeeklyReportsService {
           time_out: entry.time_out,
           total_hours: entry.total_hours,
           additional_notes: entry.additional_notes,
-          feedback: entry.feedback
+          feedback: entry.feedback,
         })),
       };
 

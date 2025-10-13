@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { IconInfoCircle } from "@tabler/icons-react";
 import { format } from "date-fns";
 
 import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
@@ -12,6 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import RichTextEditor from "@/components/rich-text-editor";
 import CheckboxEntryDialog from "@/components/sumikapp/checkbox-entry-dialog";
 
@@ -20,6 +26,7 @@ interface DailyEntryRowProps {
   status: string;
   isLoading: boolean;
   activeTab: string;
+  lunchBreak: number;
   onTimeInChange: (entryId: string, timeIn: string) => void;
   onTimeOutChange: (entryId: string, timeOut: string) => void;
   onDailyAccomplishmentChange: (
@@ -35,6 +42,7 @@ export default function DailyEntryRow({
   status,
   isLoading,
   activeTab,
+  lunchBreak = 0,
   onTimeInChange,
   onTimeOutChange,
   onDailyAccomplishmentChange,
@@ -138,7 +146,21 @@ export default function DailyEntryRow({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Working Hours</Label>
+                    <div className="flex items-center gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <IconInfoCircle className="text-muted-foreground size-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Automatically calculated from time in and time out.
+                            {lunchBreak > 0 &&
+                              ` Lunch break (${lunchBreak} min) is deducted.`}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Label>Working Hours</Label>
+                    </div>
                     <Input
                       readOnly
                       value={

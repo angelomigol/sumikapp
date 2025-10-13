@@ -12,6 +12,10 @@ import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
 import { DocumentStatus } from "@/lib/constants";
+import {
+  exportAttendanceReportToDOCX,
+  exportAttendanceReportToPDF,
+} from "@/lib/exports/export-attendance-report";
 
 import { Button } from "../ui/button";
 import {
@@ -41,6 +45,16 @@ interface ReportMoreOptionsProps {
   options?: {
     canDelete?: boolean;
   };
+
+  exportData?: {
+    internName?: string;
+    companyName?: string;
+    entries?: any[];
+    previousTotal?: number;
+    periodTotal?: number;
+    startDate?: string;
+    endDate?: string;
+  };
 }
 
 export default function ReportMoreOptions({
@@ -50,6 +64,7 @@ export default function ReportMoreOptions({
   reportType,
   status,
   options = {},
+  exportData,
 }: ReportMoreOptionsProps) {
   const { canDelete = false } = options;
   const router = useRouter();
@@ -97,6 +112,52 @@ export default function ReportMoreOptions({
     });
   };
 
+  const handleExportAttendancePDF = async () => {
+    if (!exportData || !exportData.entries) {
+      toast.error("Missing data for export");
+      return;
+    }
+
+    try {
+      await exportAttendanceReportToPDF({
+        internName: exportData.internName || "N/A",
+        companyName: exportData.companyName || "N/A",
+        entries: exportData.entries,
+        previousTotal: exportData.previousTotal || 0,
+        periodTotal: exportData.periodTotal || 0,
+        startDate: exportData.startDate || "",
+        endDate: exportData.endDate || "",
+      });
+      toast.success("Attendance report exported to PDF successfully");
+    } catch (error) {
+      toast.error("Failed to export attendance report to PDF");
+      console.error(error);
+    }
+  };
+
+  const handleExportAttendanceDOCX = async () => {
+    if (!exportData || !exportData.entries) {
+      toast.error("Missing data for export");
+      return;
+    }
+
+    try {
+      await exportAttendanceReportToDOCX({
+        internName: exportData.internName || "N/A",
+        companyName: exportData.companyName || "N/A",
+        entries: exportData.entries,
+        previousTotal: exportData.previousTotal || 0,
+        periodTotal: exportData.periodTotal || 0,
+        startDate: exportData.startDate || "",
+        endDate: exportData.endDate || "",
+      });
+      toast.success("Attendance report exported to DOCX successfully");
+    } catch (error) {
+      toast.error("Failed to export attendance report to DOCX");
+      console.error(error);
+    }
+  };
+
   return (
     <>
       <Tooltip>
@@ -109,7 +170,10 @@ export default function ReportMoreOptions({
             </DropdownMenuTrigger>
           </TooltipTrigger>
 
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent
+            align="end"
+            className="data-[state=closed]:slide-out-to-left-0 data-[state=open]:slide-in-from-left-0 data-[state=closed]:slide-out-to-bottom-20 data-[state=open]:slide-in-from-bottom-20 data-[state=closed]:zoom-out-100 w-56 duration-400"
+          >
             <DropdownMenuGroup>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
@@ -117,11 +181,11 @@ export default function ReportMoreOptions({
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportAttendancePDF}>
                       <IconFileTypePdf />
                       To PDF
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportAttendanceDOCX}>
                       <IconFileTypeDocx />
                       To DOCX
                     </DropdownMenuItem>

@@ -137,6 +137,7 @@ export default function AddWeeklyReportDialog({
           <DialogContent
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
+            className="data-[state=open]:!zoom-in-100 data-[state=open]:slide-in-from-bottom-20 data-[state=open]:duration-600"
           >
             <DialogHeader>
               <DialogTitle>Create Weekly Report</DialogTitle>
