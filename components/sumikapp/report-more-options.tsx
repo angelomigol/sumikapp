@@ -32,6 +32,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import ConfirmationDialog from "./confirmation-dialog";
 import { If } from "./if";
+import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
 
 interface ReportMoreOptionsProps {
   id: string;
@@ -49,7 +50,7 @@ interface ReportMoreOptionsProps {
   exportData?: {
     internName?: string;
     companyName?: string;
-    entries?: any[];
+    entries?: WeeklyReportEntry[];
     previousTotal?: number;
     periodTotal?: number;
     startDate?: string;
