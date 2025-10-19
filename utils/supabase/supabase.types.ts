@@ -660,21 +660,21 @@ export type Database = {
           id: string
           platform: string | null
           token: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           platform?: string | null
           token: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
           platform?: string | null
           token?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -857,6 +857,8 @@ export type Database = {
           is_predefined: boolean
           max_file_size_bytes: number
           name: string
+          template_file_name: string | null
+          template_file_path: string | null
           updated_at: string
         }
         Insert: {
@@ -868,6 +870,8 @@ export type Database = {
           is_predefined?: boolean
           max_file_size_bytes?: number
           name: string
+          template_file_name?: string | null
+          template_file_path?: string | null
           updated_at?: string
         }
         Update: {
@@ -879,6 +883,8 @@ export type Database = {
           is_predefined?: boolean
           max_file_size_bytes?: number
           name?: string
+          template_file_name?: string | null
+          template_file_path?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1282,6 +1288,47 @@ export type Database = {
           },
         ]
       }
+      weekly_report_entry_files: {
+        Row: {
+          created_at: string
+          entry_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          uploaded_at: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          uploaded_at?: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_report_entry_files_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_report_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weekly_reports: {
         Row: {
           created_at: string
@@ -1368,6 +1415,8 @@ export type Database = {
           requirement_type_id: string | null
           submitted: number | null
           submitted_count: number | null
+          template_file_name: string | null
+          template_file_path: string | null
           total_trainees: number | null
         }
         Relationships: [
@@ -1411,9 +1460,8 @@ export type Database = {
       program_batch_overview_dashboard: {
         Row: {
           active_trainees: number | null
-          approved_accomplishment_reports: number | null
-          approved_attendance_reports: number | null
           approved_internships: number | null
+          approved_weekly_reports: number | null
           avg_attendance_rate: number | null
           avg_compliance_rate: number | null
           avg_hours_per_trainee: number | null
@@ -1438,24 +1486,22 @@ export type Database = {
           not_started_trainees: number | null
           not_submitted_internships: number | null
           optional_requirements: number | null
-          pending_accomplishment_reports: number | null
-          pending_attendance_reports: number | null
           pending_internships: number | null
+          pending_weekly_reports: number | null
           progress_percentage: number | null
           recent_activities: Json | null
-          rejected_accomplishment_reports: number | null
-          rejected_attendance_reports: number | null
           rejected_internships: number | null
+          rejected_weekly_reports: number | null
           required_hours: number | null
           start_date: string | null
           top_companies: Json | null
-          total_accomplishment_reports: number | null
-          total_attendance_reports: number | null
           total_companies: number | null
           total_enrolled_trainees: number | null
           total_hours_logged: number | null
           total_internships: number | null
           total_requirements: number | null
+          total_weekly_reports: number | null
+          weekly_report_statistics: Json | null
         }
         Relationships: [
           {
@@ -1479,18 +1525,15 @@ export type Database = {
           company_name: string | null
           completed_trainees: number | null
           currently_active_trainees: number | null
-          dashboard_stats: Json | null
           department: string | null
-          pending_accomplishment_reports: number | null
-          pending_attendance_reports: number | null
           pending_evaluations: number | null
+          pending_weekly_reports: number | null
           position: string | null
           recent_activities: Json | null
           supervisor_email: string | null
           supervisor_id: string | null
           supervisor_name: string | null
           total_active_trainees: number | null
-          total_pending_reports: number | null
           trainees_pending_evaluation: Json | null
         }
         Relationships: [
@@ -1506,22 +1549,21 @@ export type Database = {
       trainee_overview_dashboard: {
         Row: {
           announcements: Json | null
-          approved_accomplishment_reports: number | null
-          approved_attendance_reports: number | null
+          approved_weekly_reports: number | null
           attendance_rate_percentage: number | null
           avg_hours_per_day: number | null
           days_present_week: number | null
           internship_id: string | null
           ojt_status: Database["public"]["Enums"]["ojt_status"] | null
-          pending_accomplishment_reports: number | null
+          pending_weekly_reports: number | null
           recent_activities: Json | null
           recent_attendance: Json | null
           recent_reports: Json | null
-          rejected_accomplishment_reports: number | null
+          rejected_weekly_reports: number | null
           required_hours: number | null
-          total_accomplishment_reports: number | null
           total_hours_logged: number | null
           total_submitted_reports: number | null
+          total_weekly_reports: number | null
           trainee_id: string | null
           weekly_attendance_chart: Json | null
         }
@@ -1856,8 +1898,20 @@ export type Database = {
         | "batch_archived"
         | "batch_updated"
         | "user_deleted"
-      document_status: "approved" | "rejected" | "pending" | "not submitted"
-      entry_status: "present" | "absent" | "late" | "holiday"
+        | "weekly_report_created"
+        | "weekly_report_submitted"
+        | "weekly_report_approved"
+        | "weekly_report_rejected"
+        | "weekly_report_deleted"
+        | "weekly_report_updated"
+      document_status:
+        | "approved"
+        | "rejected"
+        | "pending"
+        | "not submitted"
+        | "revision requested"
+        | "archived"
+      entry_status: "present" | "absent" | "late" | "holiday" | "weekend"
       internship_code: "CTNTERN1" | "CTNTERN2"
       notification_type:
         | "document status change"
@@ -2050,9 +2104,22 @@ export const Constants = {
         "batch_archived",
         "batch_updated",
         "user_deleted",
+        "weekly_report_created",
+        "weekly_report_submitted",
+        "weekly_report_approved",
+        "weekly_report_rejected",
+        "weekly_report_deleted",
+        "weekly_report_updated",
       ],
-      document_status: ["approved", "rejected", "pending", "not submitted"],
-      entry_status: ["present", "absent", "late", "holiday"],
+      document_status: [
+        "approved",
+        "rejected",
+        "pending",
+        "not submitted",
+        "revision requested",
+        "archived",
+      ],
+      entry_status: ["present", "absent", "late", "holiday", "weekend"],
       internship_code: ["CTNTERN1", "CTNTERN2"],
       notification_type: [
         "document status change",
