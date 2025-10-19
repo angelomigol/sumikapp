@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { If } from "@/components/sumikapp/if";
 
 import { Button } from "../ui/button";
-import { OtpCodeAuthContainer } from "./otp-code-auth-container";
+import { EmailForm } from "./email-form";
+import { OtpForm } from "./otp-form";
 import { PasswordSignInContainer } from "./password-sign-in-container";
 
 export function SignInMethodsContainer(props: {
@@ -27,6 +28,9 @@ export function SignInMethodsContainer(props: {
     props.providers.magicLink ? "magicLink" : "password"
   );
 
+  const [otpStep, setOtpStep] = useState<"email" | "verify">("email");
+  const [email, setEmail] = useState("");
+
   const redirectUrl =
     typeof window !== "undefined"
       ? new URL(props.paths.callback, window?.location.origin).toString()
@@ -38,13 +42,33 @@ export function SignInMethodsContainer(props: {
 
   const showToggle = props.providers.magicLink && props.providers.password;
 
+  const handleEmailSubmit = (submittedEmail: string) => {
+    setEmail(submittedEmail);
+    setOtpStep("verify");
+  };
+
+  const handleResendOtp = () => {
+    setOtpStep("email");
+  };
+
   return (
     <>
       <If condition={activeMethod === "magicLink" && props.providers.magicLink}>
-        <OtpCodeAuthContainer
-          redirectUrl={redirectUrl}
-          shouldCreateUser={false}
-        />
+        <If condition={otpStep === "email"}>
+          <EmailForm
+            shouldCreateUser={false}
+            onEmailSubmit={handleEmailSubmit}
+            defaultEmail={email}
+          />
+        </If>
+
+        <If condition={otpStep === "verify"}>
+          <OtpForm
+            email={email}
+            redirectUrl={redirectUrl}
+            onResend={handleResendOtp}
+          />
+        </If>
       </If>
 
       <If condition={activeMethod === "password" && props.providers.password}>
