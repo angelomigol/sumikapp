@@ -150,47 +150,6 @@ export function useFetchSectionDashboard(slug: string) {
   });
 }
 
-export async function prefetchSectionDashboard(
-  queryClient: QueryClient,
-  slug: string
-) {
-  const client = useSupabase();
-
-  const queryFn = async (): Promise<SectionDashboardData> => {
-    try {
-      const response = await client.auth.getUser();
-
-      if (response.error)
-        throw new Error(`Authentication error: ${response.error.message}`);
-      if (!response.data.user) throw new Error("No authenticated user found");
-
-      const { data, error } = await client
-        .from("program_batch_overview_dashboard")
-        .select("*")
-        .eq("batch_title", slug)
-        .eq("coordinator_id", response.data.user.id)
-        .single();
-
-      if (error) throw new Error(`Database error: ${error.message}`);
-
-      if (!data) return createDefaultSectionDashboardData();
-
-      return transformTraineeDashboardData(data);
-    } catch (error) {
-      console.error("Error prefetching section dashboard data:", error);
-      return createDefaultSectionDashboardData();
-    }
-  };
-
-  const queryKey = ["sectionDashboard", slug];
-
-  await queryClient.prefetchQuery({
-    queryKey,
-    queryFn,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
 function transformTraineeDashboardData(
   data: Tables<"program_batch_overview_dashboard">
 ): SectionDashboardData {
