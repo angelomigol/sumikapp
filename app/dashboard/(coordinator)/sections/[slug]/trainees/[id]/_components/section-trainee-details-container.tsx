@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   Clock,
   FileCheck,
-  FileClock,
   FileText,
   Target,
   TrendingUp,
@@ -31,11 +30,9 @@ import BackButton from "@/components/sumikapp/back-button";
 import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
-import AccomplishmentReportsTabContent from "@/app/dashboard/(coordinator)/sections/[slug]/trainees/[id]/_components/accomplishment-reports-tab-content";
-import AttendanceReportsTabContent from "@/app/dashboard/(coordinator)/sections/[slug]/trainees/[id]/_components/attendance-reports-tab-content";
-
 import EvaluationResultsTabContent from "./evaluation-results-tab-content";
 import RequirementsTabContent from "./requirements-tab-content";
+import WeeklyReportsTabContent from "./weekly-reports-tab-content";
 
 export default function SectionTraineeDetailsContainer(params: {
   traineeId: string;
@@ -129,7 +126,7 @@ export default function SectionTraineeDetailsContainer(params: {
                 <span className="text-xs uppercase">Section</span>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm">
-                    {trainee.data.section}
+                    {trainee.data.section ?? "N/A"}
                   </span>
                 </div>
               </div>
@@ -137,7 +134,7 @@ export default function SectionTraineeDetailsContainer(params: {
                 <span className="text-xs uppercase">Course</span>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm">
-                    {trainee.data.course}
+                    {trainee.data.course ?? "N/A"}
                   </span>
                 </div>
               </div>
@@ -145,7 +142,7 @@ export default function SectionTraineeDetailsContainer(params: {
                 <span className="text-xs uppercase">Company Name</span>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm font-normal">
-                    {trainee.data.internship_details?.company_name}
+                    {trainee.data.internship_details?.company_name ?? "N/A"}
                   </span>
                 </div>
               </div>
@@ -153,7 +150,7 @@ export default function SectionTraineeDetailsContainer(params: {
                 <span className="text-xs uppercase">Job Role</span>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm font-normal">
-                    {trainee.data.internship_details?.job_role}
+                    {trainee.data.internship_details?.job_role ?? "N/A"}
                   </span>
                 </div>
               </div>
@@ -250,12 +247,8 @@ export default function SectionTraineeDetailsContainer(params: {
         <Tabs defaultValue="att">
           <TabsList>
             <TabsTrigger value="att">
-              <FileClock className="size-4" />
-              Attendance
-            </TabsTrigger>
-            <TabsTrigger value="acc">
               <FileCheck className="size-4" />
-              Accomplishment
+              Reports
             </TabsTrigger>
             <TabsTrigger value="req">
               <FileText className="size-4" />
@@ -267,41 +260,24 @@ export default function SectionTraineeDetailsContainer(params: {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="att">
-            <div className="max-h-[500px] overflow-y-auto">
+            <div className="max-h-[500px] min-h-[500px] overflow-y-auto">
               <div className="border-gray-3 relative rounded-3xl border p-6">
                 <div className="bg-gray-3 absolute top-[22px] left-0 h-8 w-1 rounded-tr-md rounded-br-md" />
 
                 <div className="mb-4 items-center justify-between md:flex">
                   <h3 className="text-xl font-bold tracking-[-0.16px]">
-                    Attendance Reports
+                    Weekly Reports
                   </h3>
                 </div>
 
-                <AttendanceReportsTabContent
-                  reports={trainee.data.attendance_reports}
-                />
-              </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="acc">
-            <div className="max-h-[500px] overflow-y-auto">
-              <div className="border-gray-3 relative rounded-3xl border p-6">
-                <div className="bg-gray-3 absolute top-[22px] left-0 h-8 w-1 rounded-tr-md rounded-br-md" />
-
-                <div className="mb-4 items-center justify-between md:flex">
-                  <h3 className="text-xl font-bold tracking-[-0.16px]">
-                    Accomplishment Reports
-                  </h3>
-                </div>
-
-                <AccomplishmentReportsTabContent
-                  reports={trainee.data.accomplishment_reports}
+                <WeeklyReportsTabContent
+                  reports={trainee.data.weekly_reports}
                 />
               </div>
             </div>
           </TabsContent>
           <TabsContent value="req">
-            <div className="max-h-[500px] overflow-y-auto">
+            <div className="max-h-[500px] min-h-[500px] overflow-y-auto">
               <div className="border-gray-3 relative rounded-3xl border p-6">
                 <div className="bg-gray-3 absolute top-[22px] left-0 h-8 w-1 rounded-tr-md rounded-br-md" />
 
@@ -318,7 +294,7 @@ export default function SectionTraineeDetailsContainer(params: {
             </div>
           </TabsContent>
           <TabsContent value="eval">
-            <div className="max-h-[500px] overflow-y-auto">
+            <div className="max-h-[500px] min-h-[500px] overflow-y-auto">
               <div className="border-gray-3 relative rounded-3xl border p-6">
                 <div className="bg-gray-3 absolute top-[22px] left-0 h-8 w-1 rounded-tr-md rounded-br-md" />
 

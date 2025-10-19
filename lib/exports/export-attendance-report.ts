@@ -1,6 +1,5 @@
 import {
   AlignmentType,
-  BorderStyle,
   Document,
   Packer,
   Paragraph,

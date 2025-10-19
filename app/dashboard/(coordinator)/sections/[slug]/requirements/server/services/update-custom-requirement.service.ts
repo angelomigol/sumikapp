@@ -21,6 +21,7 @@ export function createUpdateCustomRequirementService() {
  */
 class UpdateCustomRequirementService {
   private namespace = "requirement_type.update";
+  private bucketName = "requirement-templates";
 
   /**
    * @name updateCustomRequirement
@@ -44,35 +45,136 @@ class UpdateCustomRequirementService {
     logger.info(ctx, "Updating custom requirement...");
 
     try {
+      let filePath: string | null = null;
+      let originalFileName: string | null = null;
+
       if (!data.id || data.id === undefined) {
         throw new Error("Requirement ID is missing");
       }
 
-      const { error: fetchError } = await client
-        .from("requirement_types")
-        .select("id, name, description, created_by")
-        .eq("id", data.id)
-        .eq("created_by", userId)
+      const { data: pbData, error: pbError } = await client
+        .from("program_batch")
+        .select("id")
+        .eq("title", data.slug)
+        .eq("coordinator_id", userId)
+        .limit(1)
         .single();
 
-      if (fetchError) {
-        if (fetchError.code === "PGRST116") {
-          logger.warn(ctx, "Requirement not found or access denied");
-          throw new Error(
-            "Requirement not found or you don't have permission to edit it"
-          );
+      if (pbError) {
+        if (pbError.code === "PGRST116") {
+          logger.warn(ctx, "Section not found or access denied");
+          return null;
         }
 
         logger.error(
           {
             ...ctx,
-            error: fetchError,
+            supabaseError: {
+              code: pbError.code,
+              message: pbError.message,
+              hint: pbError.hint,
+              details: pbError.details,
+            },
           },
 
-          "Error fetching requirement for update"
+          `Supabase error while fetching program batch: ${pbError.message}`
         );
 
-        throw new Error("Failed to fetch requirement");
+        throw new Error("Failed to fetch program batch");
+      }
+
+      if (data.template) {
+        const { data: existingRequirement, error: existingReqError } =
+          await client
+            .from("batch_requirements")
+            .select(
+              `
+              id,
+              requirement_types!inner(
+                name,
+                template_file_path,
+                template_file_name
+              )
+            `
+            )
+            .eq("program_batch_id", pbData.id)
+            .eq("requirement_types.name", data.name)
+            .maybeSingle();
+
+        if (existingReqError) {
+          logger.error(
+            {
+              ...ctx,
+              supabaseError: {
+                code: existingReqError.code,
+                message: existingReqError.message,
+                hint: existingReqError.hint,
+                details: existingReqError.details,
+              },
+            },
+
+            `Supabase error while checking for existing requirements: ${existingReqError.message}`
+          );
+
+          throw new Error("Failed to check for existing requirements");
+        }
+
+        const fileName = data.template.name;
+        filePath = `/${userId}/${pbData.id}/${fileName}`;
+        originalFileName = data.template.name;
+
+        const { data: uploadData, error: uploadError } = await client.storage
+          .from(this.bucketName)
+          .upload(filePath, data.template, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          logger.error(
+            {
+              ...ctx,
+              supabaseError: {
+                message: uploadError.message,
+              },
+            },
+
+            `Supabase error upload file to storage: ${uploadError.message}`
+          );
+          throw new Error("Failed to upload file");
+        }
+
+        filePath = uploadData.path ?? filePath;
+
+        if (
+          existingRequirement?.requirement_types.template_file_path &&
+          existingRequirement.requirement_types.template_file_path !== filePath
+        ) {
+          const { error: deleteError } = await client.storage
+            .from(this.bucketName)
+            .remove([existingRequirement.requirement_types.template_file_path]);
+
+          if (deleteError) {
+            logger.warn(
+              {
+                ...ctx,
+                deleteError,
+                oldFilePath:
+                  existingRequirement.requirement_types.template_file_path,
+              },
+              "Failed to delete old file, but continuing with update"
+            );
+          } else {
+            logger.info(
+              {
+                ...ctx,
+                oldFilePath:
+                  existingRequirement.requirement_types.template_file_path,
+              },
+              "Successfully deleted old file"
+            );
+          }
+        }
       }
 
       const { data: updatedReq, error: updateError } = await client
@@ -82,6 +184,8 @@ class UpdateCustomRequirementService {
           description: data.description || null,
           allowed_file_types: data.allowedFileTypes,
           max_file_size_bytes: data.maxFileSizeBytes,
+          template_file_path: filePath,
+          template_file_name: originalFileName,
           updated_at: new Date().toISOString(),
         })
         .eq("id", data.id)
@@ -93,22 +197,19 @@ class UpdateCustomRequirementService {
         logger.error(
           {
             ...ctx,
-            error: updateError,
+            supabaseError: {
+              code: updateError.code,
+              message: updateError.message,
+              hint: updateError.hint,
+              details: updateError.details,
+            },
           },
-
-          "Error updating custom requirement"
+          `Supabase error while updating custom requirement: ${updateError.message}`
         );
-
         throw new Error("Failed to update custom requirement");
       }
 
-      logger.info(
-        {
-          ...ctx,
-          updated_requirement: updatedReq,
-        },
-        "Successfully updated custom requirement"
-      );
+      logger.info(ctx, "Successfully updated custom requirement");
 
       return {
         success: true,
@@ -124,7 +225,6 @@ class UpdateCustomRequirementService {
 
         "Unexpected error updating custom requirement"
       );
-
       throw error;
     }
   }

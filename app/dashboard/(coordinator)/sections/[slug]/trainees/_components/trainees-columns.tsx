@@ -6,6 +6,8 @@ import { TraineeWithUserAndHours } from "@/hooks/use-section-trainees";
 
 import { getOJTStatusConfig } from "@/lib/constants/ojtStatus";
 
+import { formatHoursDisplay } from "@/utils/shared";
+
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table";
@@ -55,7 +57,11 @@ export const traineeColumns: ColumnDef<TraineeWithUserAndHours>[] = [
       const fullName = `${trainee.last_name}, ${trainee.first_name} ${
         trainee.middle_name ? trainee.middle_name + " " : ""
       }`;
-      return <span className="max-w-20 truncate lg:max-w-32">{fullName}</span>;
+      return (
+        <span className="block max-w-20 truncate lg:max-w-32" title={fullName}>
+          {fullName}
+        </span>
+      );
     },
     enableHiding: false,
   },
@@ -65,9 +71,11 @@ export const traineeColumns: ColumnDef<TraineeWithUserAndHours>[] = [
       <DataTableColumnHeader column={column} title="Email" />
     ),
     cell: ({ row }) => {
-      const trainee = row.original;
+      const email = row.original.email;
       return (
-        <span className="max-w-20 truncate lg:max-w-32">{trainee.email}</span>
+        <span className="block max-w-20 truncate lg:max-w-32" title={email}>
+          {email}
+        </span>
       );
     },
   },
@@ -78,7 +86,7 @@ export const traineeColumns: ColumnDef<TraineeWithUserAndHours>[] = [
     ),
     cell: ({ row }) => {
       const hoursLogged = row.original.hours_logged;
-      return <span>{hoursLogged ? `${hoursLogged} hrs` : "-"}</span>;
+      return formatHoursDisplay(hoursLogged);
     },
   },
   {

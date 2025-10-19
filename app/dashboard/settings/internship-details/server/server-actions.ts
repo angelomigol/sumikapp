@@ -78,7 +78,7 @@ export const createInternshipAction = enhanceAction(
           formObject.dailySchedule as string
         );
       } catch (error) {
-        throw new Error("Invalid dailySchedule format");
+        throw new Error(`Invalid dailySchedule format: ${error}`);
       }
     }
 
@@ -166,7 +166,7 @@ export const updateInternshipAction = enhanceAction(
           formObject.dailySchedule as string
         );
       } catch (error) {
-        throw new Error("Invalid dailySchedule format");
+        throw new Error(`Invalid dailySchedule format: ${error}`);
       }
     }
 

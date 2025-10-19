@@ -6,8 +6,9 @@ import { ReviewReports } from "@/hooks/use-review-reports";
 
 import { getDocumentStatusConfig } from "@/lib/constants";
 
-import { safeFormatDate } from "@/utils/shared";
+import { formatHoursDisplay, safeFormatDate } from "@/utils/shared";
 
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table";
 import { ProfileAvatar } from "@/components/sumikapp/profile-avatar";
@@ -70,17 +71,6 @@ export const reportsTableColumns: ColumnDef<ReviewReports>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "report_type",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Report" />
-    ),
-    cell: ({ row }) => {
-      const report = row.original.report_type;
-      return <span className="capitalize">{report}</span>;
-    },
-    enableSorting: false,
-  },
-  {
     accessorFn: (row) => `${row.start_date} - ${row.end_date}`,
     id: "period",
     header: ({ column }) => (
@@ -112,7 +102,7 @@ export const reportsTableColumns: ColumnDef<ReviewReports>[] = [
     ),
     cell: ({ row }) => {
       const totalHours = parseFloat(row.getValue("total_hours") as string) || 0;
-      return totalHours + (totalHours === 1 ? " Hour" : " Hours");
+      return formatHoursDisplay(totalHours);
     },
   },
   {
@@ -133,18 +123,19 @@ export const reportsTableColumns: ColumnDef<ReviewReports>[] = [
       <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
-      const statusValue = row.original.status;
-      const status = getDocumentStatusConfig(statusValue);
+      const status = getDocumentStatusConfig(row.getValue("status"));
 
       if (!status) return null;
 
       return (
-        <div className="flex items-center gap-2">
+        <Badge variant={"outline"} className="text-muted-foreground">
           {status.icon && (
-            <status.icon className="text-muted-foreground size-4" />
+            <status.icon
+              className={`${status.label === "pending" ? "" : status.textColor}`}
+            />
           )}
-          <span>{status.label}</span>
-        </div>
+          {status.label}
+        </Badge>
       );
     },
     filterFn: (row, id, value) => {

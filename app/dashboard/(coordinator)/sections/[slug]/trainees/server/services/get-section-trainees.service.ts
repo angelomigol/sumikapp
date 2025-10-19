@@ -74,9 +74,9 @@ class GetSectionTraineesService {
             )
           ),
           internship_details (
-            attendance_reports (
+            weekly_reports (
               status,
-              attendance_entries (*)
+              weekly_report_entries (*)
             )
           )
         `
@@ -111,12 +111,12 @@ class GetSectionTraineesService {
           const internshipDetailsList = enrollment.internship_details || [];
 
           const allReports = internshipDetailsList.flatMap(
-            (internshipDetail) => internshipDetail.attendance_reports || []
+            (internshipDetail) => internshipDetail.weekly_reports || []
           );
 
           const hours_logged = allReports
             .filter((r) => r.status === "approved")
-            .flatMap((r) => r.attendance_entries || [])
+            .flatMap((r) => r.weekly_report_entries || [])
             .filter(
               (entry) => entry.status === "present" || entry.status === "late"
             )
@@ -241,7 +241,7 @@ class GetSectionTraineesService {
             company_name,
             start_date,
             end_date,
-            attendance_reports (
+            weekly_reports (
               id,
               created_at,
               start_date,
@@ -249,16 +249,7 @@ class GetSectionTraineesService {
               period_total,
               status,
               submitted_at,
-              attendance_entries (*)
-            ),
-            accomplishment_reports (
-              id,
-              created_at,
-              start_date,
-              end_date,
-              total_hours,
-              status,
-              submitted_at
+              weekly_report_entries (*)
             )
           )
         `
@@ -266,12 +257,7 @@ class GetSectionTraineesService {
         .eq("program_batch_id", batchData.id)
         .eq("trainee_id", traineeId)
         .is("trainees.users.deleted_at", null)
-        .in("internship_details.attendance_reports.status", [
-          "approved",
-          "pending",
-          "rejected",
-        ])
-        .in("internship_details.accomplishment_reports.status", [
+        .in("internship_details.weekly_reports.status", [
           "approved",
           "pending",
           "rejected",
@@ -303,11 +289,12 @@ class GetSectionTraineesService {
         throw new Error(`Supabase error: ${error.message}`);
       }
 
+      // Fetch employability predictions - use maybeSingle() to handle no results
       const { data: emp_data, error: emp_error } = await client
         .from("employability_predictions")
         .select("*")
         .eq("trainee_batch_enrollment_id", data.id)
-        .single();
+        .maybeSingle();
 
       if (emp_error) {
         logger.error(
@@ -326,10 +313,16 @@ class GetSectionTraineesService {
         throw new Error(`Supabase error: ${emp_error.message}`);
       }
 
+      // Log if no evaluation results found
+      if (!emp_data) {
+        logger.info(ctx, "No evaluation results found for this trainee");
+      }
+
       logger.info(
         {
           ...ctx,
           hasData: !!data,
+          hasEvaluationResults: !!emp_data,
         },
         "Successfully fetched section trainee"
       );
@@ -339,9 +332,9 @@ class GetSectionTraineesService {
 
       // Calculate total hours logged from approved attendance reports
       const hours_logged =
-        internshipDetails?.attendance_reports
+        internshipDetails?.weekly_reports
           ?.filter((r) => r.status === "approved")
-          .flatMap((r) => r.attendance_entries || [])
+          .flatMap((r) => r.weekly_report_entries || [])
           .filter(
             (entry) => entry.status === "present" || entry.status === "late"
           )
@@ -402,48 +395,40 @@ class GetSectionTraineesService {
           start_date: data.program_batch.start_date,
           end_date: data.program_batch.end_date,
         },
-        attendance_reports: internshipDetails?.attendance_reports?.map(
-          (report) => ({
-            id: report.id,
-            created_at: report.created_at,
-            start_date: report.start_date,
-            end_date: report.end_date,
-            period_total: report.period_total,
-            status: report.status,
-            submitted_at: report.submitted_at,
-          })
-        ),
-        accomplishment_reports: internshipDetails?.accomplishment_reports?.map(
-          (report) => ({
-            id: report.id,
-            created_at: report.created_at,
-            start_date: report.start_date,
-            end_date: report.end_date,
-            total_hours: report.total_hours,
-            status: report.status,
-            submitted_at: report.submitted_at,
-          })
-        ),
+        weekly_reports: internshipDetails?.weekly_reports?.map((report) => ({
+          id: report.id,
+          created_at: report.created_at,
+          start_date: report.start_date,
+          end_date: report.end_date,
+          period_total: report.period_total,
+          status: report.status,
+          submitted_at: report.submitted_at,
+        })),
         submitted_requirements: processedRequirements,
-        evaluation_results: {
-          prediction_label: emp_data.prediction_label,
-          prediction_probability: emp_data.prediction_probability,
-          confidence_level: emp_data.confidence_level,
-          prediction_date: emp_data.prediction_date,
-          evaluation_scores: emp_data.evaluation_scores as Record<
-            string,
-            number
-          > | null,
-          feature_scores: emp_data.feature_scores as Record<
-            string,
-            number
-          > | null,
-          recommendations: emp_data.recommendations as Record<
-            string,
-            number
-          > | null,
-          risk_factors: emp_data.risk_factors as Record<string, number> | null,
-        },
+        evaluation_results: emp_data
+          ? {
+              prediction_label: emp_data.prediction_label,
+              prediction_probability: emp_data.prediction_probability,
+              confidence_level: emp_data.confidence_level,
+              prediction_date: emp_data.prediction_date,
+              evaluation_scores: emp_data.evaluation_scores as Record<
+                string,
+                number
+              > | null,
+              feature_scores: emp_data.feature_scores as Record<
+                string,
+                number
+              > | null,
+              recommendations: emp_data.recommendations as Record<
+                string,
+                number
+              > | null,
+              risk_factors: emp_data.risk_factors as Record<
+                string,
+                number
+              > | null,
+            }
+          : null,
       };
     } catch (error) {
       logger.error(

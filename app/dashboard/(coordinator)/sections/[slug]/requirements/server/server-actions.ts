@@ -197,6 +197,7 @@ export const createCustomRequirementAction = enhanceAction(
       description?: string;
       allowedFileTypes: string[];
       maxFileSizeBytes: number;
+      template?: File;
       slug: string;
     } = {
       name: String(formObject.name ?? ""),
@@ -213,6 +214,8 @@ export const createCustomRequirementAction = enhanceAction(
           ? Number(formObject.maxFileSizeBytes)
           : 0,
       slug: String(formObject.slug ?? ""),
+      template:
+        formObject.template instanceof File ? formObject.template : undefined,
     };
 
     const { data, success, error } =
@@ -243,6 +246,7 @@ export const createCustomRequirementAction = enhanceAction(
           description: data.description,
           allowedFileTypes: data.allowedFileTypes,
           maxFileSizeBytes: data.maxFileSizeBytes,
+          template: data.template,
           slug: data.slug,
         },
       });
@@ -309,6 +313,7 @@ export const updateCustomRequirementAction = enhanceAction(
       description?: string;
       allowedFileTypes: string[];
       maxFileSizeBytes: number;
+      template?: File;
       slug: string;
     } = {
       id:
@@ -329,6 +334,8 @@ export const updateCustomRequirementAction = enhanceAction(
           ? Number(formObject.maxFileSizeBytes)
           : 0,
       slug: String(formObject.slug ?? ""),
+      template:
+        formObject.template instanceof File ? formObject.template : undefined,
     };
 
     const { data, success, error } =
@@ -361,6 +368,7 @@ export const updateCustomRequirementAction = enhanceAction(
           description: data.description,
           allowedFileTypes: data.allowedFileTypes,
           maxFileSizeBytes: data.maxFileSizeBytes,
+          template: data.template,
           slug: data.slug,
         },
       });

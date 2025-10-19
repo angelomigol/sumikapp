@@ -20,9 +20,7 @@ import {
 
 import { formatFileSize, formatHoursDisplay } from "@/utils/shared";
 
-import {
-  WeeklyReportEntryWithFiles,
-} from "@/schemas/weekly-report/weekly-report.schema";
+import { WeeklyReportEntryWithFiles } from "@/schemas/weekly-report/weekly-report.schema";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,8 +47,8 @@ import { If } from "@/components/sumikapp/if";
 interface ReviewReportDailyEntriesProps {
   entries: WeeklyReportEntryWithFiles[];
   reportStatus: string;
-  onStatusChange?: (entryId: string, status: EntryStatus) => void;
-  onFeedbackChange?: (entryId: string, feedback: string) => void;
+  onStatusChange: (entryId: string, status: EntryStatus) => void;
+  onFeedbackChange: (entryId: string, feedback: string) => void;
 }
 export default function ReviewReportDailyEntries({
   entries,
@@ -291,6 +289,8 @@ export default function ReviewReportDailyEntries({
                   </span>
                 </div>
                 <Textarea
+                  value={entry.feedback ?? ""}
+                  onChange={(e) => onFeedbackChange(entry.id, e.target.value)}
                   id="feedback"
                   placeholder="Type your feedback here..."
                   maxLength={200}

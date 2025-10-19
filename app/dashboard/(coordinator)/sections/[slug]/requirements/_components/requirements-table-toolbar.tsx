@@ -25,6 +25,8 @@ export function RequirementTableToolbar<TData>({
           placeholder="Search students..."
         />
       </div>
+
+      <DataTableViewOptions table={table} />
     </div>
   );
 }

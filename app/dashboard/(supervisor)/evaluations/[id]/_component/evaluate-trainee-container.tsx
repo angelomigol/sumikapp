@@ -30,6 +30,7 @@ import BackButton from "@/components/sumikapp/back-button";
 
 import { employabilityPrediction } from "@/app/dashboard/(supervisor)/evaluations/server/services/employability-prediction.service";
 
+import EvaluationLegend from "./evaluation-legend";
 import EvaluationStatusDialog from "./evaluation-status-dialog";
 
 const createEvaluationSchema = () => {
@@ -246,6 +247,8 @@ export default function EvaluateTraineeContainer(params: {
         <BackButton title="Go Back" link={pathsConfig.app.evaluations} />
       </div>
 
+      <EvaluationLegend />
+
       <Card>
         <CardContent className="space-y-10">
           {/* Display validation errors at the top */}
@@ -277,7 +280,7 @@ export default function EvaluateTraineeContainer(params: {
                         key={`header-${section.key}-${i}`}
                         className="min-w-[60px] text-center"
                       >
-                        {i + 1}
+                        {5 - i}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -366,7 +369,7 @@ export default function EvaluateTraineeContainer(params: {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {["Poor", "Fair", "Good", "Very Good", "Excellent"].map(
+                  {["Excellent", "Very Good", "Good", "Fair", "Poor"].map(
                     (label, i) => (
                       <TableHead
                         key={`overall-head-${i}`}
@@ -430,96 +433,97 @@ export default function EvaluateTraineeContainer(params: {
               </TableBody>
             </Table>
           </div>
-
           <Separator />
-
-          {/* Score Summary */}
-          <CardFooter className="flex flex-col space-y-6">
-            <div className="w-full space-y-2">
-              <Label>Score Summary</Label>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {results.sections.map((s) => (
-                  <React.Fragment key={s.key}>
-                    <span>{s.title}</span>
-                    <span className="font-medium">
-                      {s.weightedScore.toFixed(0)} / {s.weightedMax}
-                    </span>
-                  </React.Fragment>
-                ))}
-                <span>Overall Performance Rating:</span>
-                <span className="font-medium">
-                  {responses["overall_rating"] || "—"}
-                </span>
-                <span className="font-semibold">Total:</span>
-                <span className="font-semibold">
-                  {results.total.toFixed(0)} / {results.maxTotal}
-                </span>
-              </div>
+        </CardContent>
+        {/* Score Summary */}
+        <CardFooter className="flex flex-col space-y-6">
+          <div className="w-full space-y-2">
+            <Label>Score Summary</Label>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {results.sections.map((s) => (
+                <React.Fragment key={s.key}>
+                  <span>{s.title}</span>
+                  <span className="font-medium">
+                    {s.weightedScore.toFixed(0)} / {s.weightedMax}
+                  </span>
+                </React.Fragment>
+              ))}
+              <span>Overall Performance Rating:</span>
+              <span className="font-medium">
+                {responses["overall_rating"] || "—"}
+              </span>
+              <span className="font-semibold">Total:</span>
+              <span className="font-semibold">
+                {results.total.toFixed(0)} / {results.maxTotal}
+              </span>
             </div>
+          </div>
 
-            {/* Progress indicator */}
-            <div className="w-full space-y-2">
-              <Label className="text-sm">Form Completion Status</Label>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <span>Scores completed:</span>
-                <span
-                  className={`font-medium ${
-                    Object.keys(responses).length >= totalCriteria
-                      ? "text-green-600"
-                      : "text-orange-600"
-                  }`}
-                >
-                  {Object.keys(responses).length} / {totalCriteria}
-                </span>
-                <span>Remarks completed:</span>
-                <span
-                  className={`font-medium ${
-                    Object.keys(remarks).filter(
-                      (key) => remarks[key]?.trim().length >= 3
-                    ).length >= totalCriteria
-                      ? "text-green-600"
-                      : "text-orange-600"
-                  }`}
-                >
-                  {
-                    Object.keys(remarks).filter(
-                      (key) => remarks[key]?.trim().length >= 3
-                    ).length
-                  }{" "}
-                  / {totalCriteria}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-2 self-end">
-              <Button
-                type="button"
-                size={"sm"}
-                onClick={() => handleSubmit()}
-                disabled={isSubmitting || !isFormValid()}
+          {/* Progress indicator */}
+          <div className="w-full space-y-2">
+            <Label className="text-sm">Form Completion Status</Label>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <span>Scores completed:</span>
+              <span
+                className={`font-medium ${
+                  Object.keys(responses).length >= totalCriteria
+                    ? "text-green-600"
+                    : "text-orange-600"
+                }`}
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Save className="size-4" />
-                    Submit Evaluation
-                  </>
-                )}
-              </Button>
+                {Object.keys(responses).length} / {totalCriteria}
+              </span>
+              <span>Remarks completed:</span>
+              <span
+                className={`font-medium ${
+                  Object.keys(remarks).filter(
+                    (key) => remarks[key]?.trim().length >= 3
+                  ).length >= totalCriteria
+                    ? "text-green-600"
+                    : "text-orange-600"
+                }`}
+              >
+                {
+                  Object.keys(remarks).filter(
+                    (key) => remarks[key]?.trim().length >= 3
+                  ).length
+                }{" "}
+                / {totalCriteria}
+              </span>
             </div>
-          </CardFooter>
+          </div>
 
+          <div className="flex w-full justify-between">
+            <Button size={"sm"} variant={"destructive"} onClick={resetForm}>
+              Reset
+            </Button>
+
+            <Button
+              type="button"
+              size={"sm"}
+              onClick={() => handleSubmit()}
+              disabled={isSubmitting || !isFormValid()}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Save className="size-4" />
+                  Submit Evaluation
+                </>
+              )}
+            </Button>
+          </div>
           {/* Error display */}
           {error && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-4">
+            <div className="w-full rounded-md border border-red-200 bg-red-50 p-4">
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
-        </CardContent>
+        </CardFooter>
       </Card>
 
       <EvaluationStatusDialog

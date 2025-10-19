@@ -47,9 +47,7 @@ export default function SupervisorDashboard() {
       name: "Pending Reports",
       icon: FileClock,
       data: {
-        main: isLoading
-          ? "..."
-          : `${(supervisor.pendingAccomplishmentReports || 0) + (supervisor.pendingAttendanceReports || 0)}`,
+        main: isLoading ? "..." : `${supervisor.totalPendingReports || 0}`,
       },
       tooltip:
         "Number of weekly reports submitted by trainees that are waiting for your review",

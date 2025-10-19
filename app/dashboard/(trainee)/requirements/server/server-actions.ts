@@ -7,7 +7,6 @@ import { enhanceAction } from "@/lib/server/enhance-actions";
 import { getLogger } from "@/utils/logger";
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
 
-import { UploadRequirementSchema } from "../schema/requirements.schema";
 import { createDeleteRequirementService } from "./services/delete-requirement.service";
 import { createGetRequirementsService } from "./services/get-requirements.service";
 import { createUploadRequirementsService } from "./services/upload-requirement.service";

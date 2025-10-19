@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Row } from "@tanstack/react-table";
 import { PlusCircle } from "lucide-react";
+import * as motion from "motion/react-client";
 
 import pathsConfig from "@/config/paths.config";
 import {
@@ -46,10 +47,15 @@ export default function SectionTraineesContainer(params: { slug: string }) {
         <PageTitle text={"OJT Trainee List"} />
 
         <Button size={"sm"} asChild>
-          <Link href={pathsConfig.dynamic.addSectionTrainees(params.slug)}>
-            <PlusCircle className="size-4" />
-            Add Students
-          </Link>
+          <motion.button whileTap={{ scale: 0.85 }}>
+            <Link
+              href={pathsConfig.dynamic.addSectionTrainees(params.slug)}
+              className="inline-flex items-center gap-2"
+            >
+              <PlusCircle className="size-4" />
+              Add Students
+            </Link>
+          </motion.button>
         </Button>
       </div>
 

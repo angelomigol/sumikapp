@@ -1,11 +1,6 @@
 import React from "react";
 
-import {
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Gauge,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Gauge } from "lucide-react";
 
 import {
   Card,
@@ -19,8 +14,8 @@ import EvaluationScoresRadialChart from "@/components/charts/evaluation-scores-r
 export default function EvaluationResultsTabContent({
   results,
 }: {
-  results?: {
-    prediction_label: string | null;
+  results: {
+    prediction_label: string;
     prediction_probability: number | null;
     confidence_level: string | null;
     prediction_date: string | null;
@@ -28,19 +23,19 @@ export default function EvaluationResultsTabContent({
     feature_scores: Record<string, number> | null;
     recommendations: Record<string, number> | null;
     risk_factors: Record<string, number> | null;
-  };
+  } | null;
 }) {
   if (!results) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <AlertTriangle className="text-muted-foreground mx-auto mb-4 size-12" />
-          <h3 className="mb-2 text-lg font-semibold">No Evaluation Result</h3>
-          <p className="text-muted-foreground">
-            No evaluation results are available for this trainee yet.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertTriangle className="text-muted-foreground mb-4 size-12" />
+        <h3 className="text-muted-foreground mb-2 text-lg font-medium">
+          No Evaluation Result
+        </h3>
+        <p className="text-muted-foreground max-w-md text-sm">
+          No evaluation results are available for this trainee yet.
+        </p>
+      </div>
     );
   }
 
@@ -117,9 +112,11 @@ export default function EvaluationResultsTabContent({
                         {rec.specific_actions &&
                           Array.isArray(rec.specific_actions) && (
                             <ul className="list-inside list-disc space-y-1 text-sm text-blue-900">
-                              {rec.specific_actions.map((action: string, i: number) => (
-                                <li key={i}>{action}</li>
-                              ))}
+                              {rec.specific_actions.map(
+                                (action: string, i: number) => (
+                                  <li key={i}>{action}</li>
+                                )
+                              )}
                             </ul>
                           )}
                         {rec.confidence_score !== undefined && (

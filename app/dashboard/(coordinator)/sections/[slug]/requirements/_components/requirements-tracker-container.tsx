@@ -42,11 +42,13 @@ import { DataTable } from "@/components/data-table";
 import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 import PageTitle from "@/components/sumikapp/page-title";
+import RefreshButton from "@/components/sumikapp/refresh-button";
 
 import NotFoundPage from "@/app/not-found";
 
 import AddEditCustomRequirementSheet from "./add-edit-custom-requirement-sheet";
 import CustomRequirementRowActions from "./custom-requirements-row-actions";
+import NewDocumentViewerModal from "./new-document-viewer-modal";
 import { RequirementTableToolbar } from "./requirements-table-toolbar";
 import { createTraineeRequirementColumns } from "./trainee-requirements-columns";
 
@@ -60,6 +62,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
     description: string;
     allowedFileTypes: string[];
     maxFileSizeBytes: number;
+    filePath: string;
+    fileName: string;
   } | null>(null);
   const [requirementDialogOpen, setRequirementDialogOpen] = useState(false);
 
@@ -69,8 +73,12 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
     error: batchReqsError,
   } = useFetchBatchRequirements(params.slug);
 
-  const { data: traineeData = [], isLoading: traineeDataLoading } =
-    useFetchTraineeRequirements(params.slug);
+  const {
+    data: traineeData = [],
+    isLoading: traineeDataLoading,
+    refetch: traineeTableRefetch,
+    isFetching: traineeTableIsFetching,
+  } = useFetchTraineeRequirements(params.slug);
 
   useEffect(() => {
     if (batchReqs && batchReqs.length > 0) {
@@ -88,6 +96,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
     description: string;
     allowedFileTypes: string[];
     maxFileSizeBytes: number;
+    filePath: string;
+    fileName: string;
   }) => {
     setSelectedRequirement(requirement);
     setRequirementDialogOpen(true);
@@ -127,8 +137,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
               </EmptyMedia>
               <EmptyTitle>No Students Yet</EmptyTitle>
               <EmptyDescription>
-                You haven&apos;t added any students in this section. Get
-                started by adding your students first.
+                You haven&apos;t added any students in this section. Get started
+                by adding your students first.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -199,6 +209,8 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
                               description: item.requirement_description ?? "",
                               allowedFileTypes: item.allowed_file_types ?? [],
                               maxFileSizeBytes: item.max_file_size_bytes ?? 0,
+                              filePath: item.template_file_path ?? "",
+                              fileName: item.template_file_name ?? "",
                             })
                           }
                           slug={params.slug}
@@ -212,14 +224,25 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
           </CardContent>
         </Card>
 
-        {columns.length > 0 && (
-          <DataTable
-            data={traineeData}
-            columns={columns}
-            Toolbar={RequirementTableToolbar}
-          />
-        )}
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-end">
+            <RefreshButton
+              refetch={traineeTableRefetch}
+              isFetching={traineeTableIsFetching}
+            />
+          </div>
+
+          {columns.length > 0 && (
+            <DataTable
+              data={traineeData}
+              columns={columns}
+              Toolbar={RequirementTableToolbar}
+            />
+          )}
+        </div>
       </If>
+
+      {/* <NewDocumentViewerModal isOpen={true} /> */}
     </>
   );
 }

@@ -71,7 +71,7 @@ export function OtpCodeAuthContainer({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [step, OTP_EXPIRY_SECS]);
+  }, [step]);
 
   const sendForm = useForm({
     resolver: zodResolver(
@@ -232,7 +232,7 @@ export function OtpCodeAuthContainer({
                 variant={"link"}
                 onClick={handleResendCode}
                 className={cn(
-                  "text-xs text-white p-0 ",
+                  "p-0 text-xs text-white",
                   canResend ? "hover:text-white/80" : "cursor-not-allowed"
                 )}
                 disabled={!canResend || verifyForm.formState.isSubmitting}
@@ -317,8 +317,8 @@ const OtpSentAlert = ({ email }: { email: string }) => {
         <AlertTitle>OTP code was sent to your email!</AlertTitle>
         <AlertDescription>
           <p className="text-pretty">
-            We've sent an OTP code to <strong>{email}</strong>. Check your email
-            to complete the sign-in.
+            We&#39;ve sent an OTP code to <strong>{email}</strong>. Check your
+            email to complete the sign-in.
           </p>
         </AlertDescription>
       </div>

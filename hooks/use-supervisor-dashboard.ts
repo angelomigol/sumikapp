@@ -18,9 +18,6 @@ export interface SupervisorDashboardData {
   completedTrainees: number;
 
   totalPendingReports: number;
-  pendingAttendanceReports: number;
-  pendingAccomplishmentReports: number;
-
   pendingEvaluationsCount: number;
 
   recentActivities: RecentActivity[];
@@ -131,10 +128,7 @@ function transformSupervisorDashboardData(
     currentlyActiveTrainees: data.currently_active_trainees || 0,
     completedTrainees: data.completed_trainees || 0,
 
-    totalPendingReports: data.total_pending_reports || 0,
-    pendingAttendanceReports: data.pending_attendance_reports || 0,
-    pendingAccomplishmentReports: data.pending_accomplishment_reports || 0,
-
+    totalPendingReports: data.pending_weekly_reports || 0,
     pendingEvaluationsCount: data.pending_evaluations || 0,
 
     recentActivities: jsonFields.recentActivities,

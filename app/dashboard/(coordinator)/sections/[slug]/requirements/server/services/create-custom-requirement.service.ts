@@ -21,6 +21,7 @@ export function createCreateCustomRequirementService() {
  */
 class CreateCustomRequirementService {
   private namespace = "requirement_type.create";
+  private bucketName = "requirement-templates";
 
   /**
    * @name createCustomRequirement
@@ -117,12 +118,54 @@ class CreateCustomRequirementService {
           ctx,
           "Requirement with this name already exists in the batch"
         );
+
         throw new Error(
           `A requirement with the name "${data.name}" already exists in this batch`
         );
       }
 
-      // Step 3: Insert new custom requirement
+      let templateFilePath: string | null = null;
+
+      // Step 3: Insert template file to storage
+      if (data.template) {
+        const fileName = data.template.name;
+        const filePath = `/${userId}/${pbData.id}/${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await client.storage
+          .from(this.bucketName)
+          .upload(filePath, data.template, {
+            upsert: true,
+            contentType: data.template.type,
+          });
+
+        if (uploadError) {
+          logger.error(
+            {
+              ...ctx,
+              error: uploadError,
+              fileName: fileName,
+            },
+
+            "Failed to upload template file"
+          );
+
+          throw new Error("Failed to upload template file");
+        }
+
+        logger.info(
+          {
+            ...ctx,
+            fileName: fileName,
+            filePath: uploadData.path,
+          },
+
+          "File uploaded, saving metadata..."
+        );
+
+        templateFilePath = uploadData.path;
+      }
+
+      // Step 4: Insert new custom requirement
       const { data: reqData, error: reqError } = await client
         .from("requirement_types")
         .insert({
@@ -131,11 +174,17 @@ class CreateCustomRequirementService {
           allowed_file_types: data.allowedFileTypes,
           max_file_size_bytes: data.maxFileSizeBytes,
           created_by: userId,
+          template_file_path: templateFilePath,
         })
         .select()
         .single();
 
       if (reqError) {
+        // If requirement_types insertion fails, we should clean up the storage record
+        if (templateFilePath) {
+          await client.storage.from(this.bucketName).remove([templateFilePath]);
+        }
+
         logger.error(
           {
             ...ctx,
@@ -153,7 +202,7 @@ class CreateCustomRequirementService {
         throw new Error("Failed to create custom requirement");
       }
 
-      // Step 4: Insert the custom requirement to batch_requirements
+      // Step 5: Insert the custom requirement to batch_requirements
       const { error: batchReqError } = await client
         .from("batch_requirements")
         .insert({
