@@ -13,8 +13,6 @@ const StaticPathsSchema = z.object({
     dashboard: z.string().min(1),
     placement: z.string().min(1),
     requirements: z.string().min(1),
-    attendance: z.string().min(1),
-    activity: z.string().min(1),
     weeklyReports: z.string().min(1),
     sections: z.string().min(1),
     reports: z.string().min(1),
@@ -26,6 +24,7 @@ const StaticPathsSchema = z.object({
     partners: z.string().min(1),
     logs: z.string().min(1),
     settings: z.string().min(1),
+    skills: z.string().min(1),
     internshipDetails: z.string().min(1),
   }),
 });
@@ -43,8 +42,6 @@ const staticPaths = StaticPathsSchema.parse({
     dashboard: "/dashboard",
     placement: "/dashboard/placement",
     requirements: "/dashboard/requirements",
-    attendance: "/dashboard/attendance",
-    activity: "/dashboard/activity",
     weeklyReports: "/dashboard/weekly-reports",
     sections: "/dashboard/sections",
     reviewReports: "/dashboard/review-reports",
@@ -56,6 +53,7 @@ const staticPaths = StaticPathsSchema.parse({
     partners: "/dashboard/industry-partners",
     logs: "/dashboard/logs",
     settings: "/dashboard/settings",
+    skills: "/dashboard/settings/skills",
     internshipDetails: "/dashboard/settings/internship-details",
   },
 });
@@ -81,13 +79,12 @@ const dynamicPaths = {
     `/dashboard/sections/${slug}/weekly-reports/${id}`,
   sectionTraineeDetails: (id: string, slug: string) =>
     `/dashboard/sections/${slug}/trainees/${id}`,
+  sectionCalendar: (slug: string) =>
+    `/dashboard/sections/${slug}/calendar`,
 
-  attendanceReport: (id: string) => `/dashboard/attendance/${id}`,
-  activityReport: (id: string) => `/dashboard/activity/${id}`,
   weeklyReport: (id: string) => `/dashboard/weekly-reports/${id}`,
 
-  reviewReport: (id: string, slug: string) =>
-    `/dashboard/review-reports/${slug}/${id}`,
+  reviewReport: (id: string) => `/dashboard/review-reports/${id}`,
   traineeDetails: (id: string) => `/dashboard/trainees/${id}`,
   evaluteTrainee: (id: string) => `/dashboard/evaluations/${id}`,
 } as const;

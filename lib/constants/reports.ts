@@ -1,7 +1,9 @@
 import {
+  IconArchive,
   IconCircleCheckFilled,
   IconCircleMinus,
   IconCircleXFilled,
+  IconEdit,
   IconLoader,
   type Icon,
 } from "@tabler/icons-react";
@@ -55,6 +57,18 @@ export const documentStatusMap: Record<DocumentStatus, DocumentStatusConfig> = {
     badgeColor: "bg-gray-3 text-gray-11",
     textColor: "text-gray-11",
   },
+  "revision requested": {
+    label: "Revision Requested",
+    icon: IconEdit,
+    badgeColor: "",
+    textColor: "",
+  },
+  archived: {
+    label: "Archived",
+    icon: IconArchive,
+    badgeColor: "",
+    textColor: "",
+  },
 } as const;
 
 export const entryStatusMap: Record<EntryStatus, EntryStatusConfig> = {
@@ -77,6 +91,11 @@ export const entryStatusMap: Record<EntryStatus, EntryStatusConfig> = {
     label: "Holiday",
     badgeColor: "bg-blue-3 text-blue-11",
     textColor: "text-blue-11",
+  },
+  weekend: {
+    label: "Weekend",
+    badgeColor: "",
+    textColor: "",
   },
 } as const;
 

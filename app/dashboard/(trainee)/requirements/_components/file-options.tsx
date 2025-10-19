@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 
 import { FileInput, Loader2, Upload, X } from "lucide-react";
+import * as motion from "motion/react-client";
 import { toast } from "sonner";
 
 import {
@@ -131,22 +132,25 @@ export default function FileOptions({
             >
               <Button
                 size={"sm"}
-                className="w-full cursor-pointer sm:w-auto"
+                className="w-full cursor-pointer transition-none sm:w-auto"
                 onClick={handleSubmit}
                 disabled={isOperationInProgress}
+                asChild
               >
-                <If
-                  condition={submitRequirementMutation.isPending}
-                  fallback={
-                    <>
-                      <FileInput className="size-4" />
-                      Submit File
-                    </>
-                  }
-                >
-                  <Loader2 className="size-4 animate-spin" />
-                  Submitting...
-                </If>
+                <motion.button whileTap={{ scale: 0.85 }}>
+                  <If
+                    condition={submitRequirementMutation.isPending}
+                    fallback={
+                      <>
+                        <FileInput className="size-4" />
+                        Submit File
+                      </>
+                    }
+                  >
+                    <Loader2 className="size-4 animate-spin" />
+                    Submitting...
+                  </If>
+                </motion.button>
               </Button>
             </If>
 
@@ -171,17 +175,20 @@ export default function FileOptions({
               >
                 <Button
                   variant={"ghost"}
-                  size={"sm"}
-                  className="hover:bg-destructive/20 cursor-pointer"
+                  size={"icon-sm"}
+                  className="hover:bg-destructive/20 cursor-pointer transition-none"
                   onClick={handleDelete}
                   disabled={isOperationInProgress}
                 >
-                  <If
-                    condition={deleteRequirementMutation.isPending}
-                    fallback={<X className="text-destructive size-4" />}
-                  >
-                    <Loader2 className="size-4 animate-spin" />
-                  </If>
+                  <motion.button whileTap={{ scale: 0.85 }}>
+                    <If
+                      condition={deleteRequirementMutation.isPending}
+                      fallback={<X className="text-destructive size-4" />}
+                    >
+                      <Loader2 className="size-4 animate-spin" />
+                      <span className="sr-only">Remove</span>
+                    </If>
+                  </motion.button>
                 </Button>
               </If>
             </div>
@@ -190,22 +197,25 @@ export default function FileOptions({
       >
         <Button
           size={"sm"}
-          className="w-full cursor-pointer sm:w-auto"
+          className="w-full cursor-pointer transition-none sm:w-auto"
           onClick={() => fileInputRef.current?.click()}
           disabled={isOperationInProgress}
+          asChild
         >
-          <If
-            condition={uploadRequiementMutation.isPending}
-            fallback={
-              <>
-                <Upload className="size-4" />
-                Upload File
-              </>
-            }
-          >
-            <Loader2 className="size-4 animate-spin" />
-            Uploading...
-          </If>
+          <motion.button whileTap={{ scale: 0.85 }}>
+            <If
+              condition={uploadRequiementMutation.isPending}
+              fallback={
+                <>
+                  <Upload className="size-4" />
+                  Upload File
+                </>
+              }
+            >
+              <Loader2 className="size-4 animate-spin" />
+              Uploading...
+            </If>
+          </motion.button>
         </Button>
       </If>
     </div>

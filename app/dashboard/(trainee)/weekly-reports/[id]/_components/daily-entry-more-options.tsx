@@ -1,56 +1,69 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+
+import { IconDotsVertical } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
 
-export default function DailyEntryMoreOptions() {
+interface DailyEntryMoreOptionsProps {
+  entryId: string;
+  isAbsent: boolean;
+  isHoliday: boolean;
+  disabled?: boolean;
+  onToggleAbsent: (entryId: string) => void;
+  onToggleHoliday: (entryId: string) => void;
+}
+
+export default function DailyEntryMoreOptions({
+  entryId,
+  isAbsent,
+  isHoliday,
+  disabled = false,
+  onToggleAbsent,
+  onToggleHoliday,
+}: DailyEntryMoreOptionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">Slide Up Animation</Button>
+        <Button
+          variant={"ghost"}
+          size={"icon-sm"}
+          className="rounded-full"
+          disabled={disabled}
+        >
+          <IconDotsVertical />
+          <span className="sr-only">More Options</span>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="data-[state=closed]:slide-out-to-left-0 data-[state=open]:slide-in-from-left-0 data-[state=closed]:slide-out-to-bottom-20 data-[state=open]:slide-in-from-bottom-20 data-[state=closed]:zoom-out-100 w-56 duration-400">
-        <DropdownMenuLabel>Apps notification</DropdownMenuLabel>
+      <DropdownMenuContent
+        className="data-[state=closed]:slide-out-to-left-0 data-[state=open]:slide-in-from-left-0 data-[state=closed]:slide-out-to-bottom-20 data-[state=open]:slide-in-from-bottom-20 data-[state=closed]:zoom-out-100 duration-400"
+        align="end"
+      >
+        <DropdownMenuLabel>More Options</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            className="justify-between"
-            onSelect={(event) => event.preventDefault()}
+          <DropdownMenuCheckboxItem
+            checked={isAbsent}
+            onCheckedChange={() => onToggleAbsent(entryId)}
+            disabled={disabled}
           >
             Mark as Absent
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="justify-between"
-            onSelect={(event) => event.preventDefault()}
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={isHoliday}
+            onCheckedChange={() => onToggleHoliday(entryId)}
+            disabled={disabled}
           >
             Mark as Holiday
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="justify-between"
-            onSelect={(event) => event.preventDefault()}
-          >
-           
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="justify-between"
-            onSelect={(event) => event.preventDefault()}
-          >
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="justify-between"
-            onSelect={(event) => event.preventDefault()}
-          >
-          
-          </DropdownMenuItem>
+          </DropdownMenuCheckboxItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -9,6 +9,8 @@ export type BatchRequirementsWithCompliance = {
   not_submitted: number | null;
   pending_count: number | null;
   program_batch_id: string | null;
+  template_file_path: string | null;
+  template_file_name: string | null;
   requirement_description: string | null;
   requirement_name: string | null;
   max_file_size_bytes: number | null;

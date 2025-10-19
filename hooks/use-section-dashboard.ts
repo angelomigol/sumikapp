@@ -1,9 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 
 import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 import { Database, Tables } from "@/utils/supabase/supabase.types";
-
-const queryKey = ["supabase:program_batch_overview_dashboard_view"];
 
 export interface SectionDashboardData {
   totalTrainees: number;
@@ -24,29 +22,35 @@ export interface SectionDashboardData {
   rejectedInternshipForms: number;
 
   totalCompanies: number;
-  companies: Companies[];
+  companies: {
+    companyName: string;
+    traineeCount: number;
+  }[];
 
   jobRoles: string[];
 
   totalHoursLogged: number;
   avgHoursPerTrainee: number;
   completionPercentage: number;
-
   avgAttendanceRate: number;
-  totalAttendanceReports: number;
-  approvedAttendanceReports: number;
-  pendingAttendanceReports: number;
 
-  totalActivityReports: number;
-  approvedActivityReports: number;
-  pendingActivityeReports: number;
+  totalWeeklyReports: number;
+  approvedWeeklyReports: number;
+  pendingWeeklyReports: number;
+  rejectedWeeklyReports: number;
+
+  weeklyReportStatistics: Array<{
+    week: string;
+    week_number: number;
+    start_date: string;
+    end_date: string | null;
+    approved: number;
+    pending: number;
+    rejected: number;
+    total: number;
+  }>;
 
   recentActivities: RecentActivity[];
-}
-
-interface Companies {
-  companyName: string;
-  traineeCount: number;
 }
 
 // Safe default object factory
@@ -76,16 +80,14 @@ const createDefaultSectionDashboardData = (): SectionDashboardData => ({
   totalHoursLogged: 0,
   avgHoursPerTrainee: 0,
   completionPercentage: 0,
-
   avgAttendanceRate: 0,
-  totalAttendanceReports: 0,
-  approvedAttendanceReports: 0,
-  pendingAttendanceReports: 0,
 
-  totalActivityReports: 0,
-  approvedActivityReports: 0,
-  pendingActivityeReports: 0,
+  totalWeeklyReports: 0,
+  approvedWeeklyReports: 0,
+  pendingWeeklyReports: 0,
+  rejectedWeeklyReports: 0,
 
+  weeklyReportStatistics: [],
   recentActivities: [],
 });
 
@@ -106,13 +108,9 @@ export function useFetchSectionDashboard(slug: string) {
     try {
       const response = await client.auth.getUser();
 
-      if (response.error) {
+      if (response.error)
         throw new Error(`Authentication error: ${response.error.message}`);
-      }
-
-      if (!response.data.user) {
-        throw new Error("No authenticated user found");
-      }
+      if (!response.data.user) throw new Error("No authenticated user found");
 
       const { data, error } = await client
         .from("program_batch_overview_dashboard")
@@ -121,42 +119,75 @@ export function useFetchSectionDashboard(slug: string) {
         .eq("coordinator_id", response.data.user.id)
         .single();
 
-      if (error) {
-        throw new Error(`Database error: ${error.message}`);
-      }
+      if (error) throw new Error(`Database error: ${error.message}`);
 
-      if (!data) {
-        return createDefaultSectionDashboardData();
-      }
+      if (!data) return createDefaultSectionDashboardData();
 
       return transformTraineeDashboardData(data);
     } catch (error) {
-      console.error("Error fetching trainee dashboard data:", error);
-
+      console.error("Error fetching section dashboard data:", error);
       return createDefaultSectionDashboardData();
     }
   };
+
+  const queryKey = ["sectionDashboard", slug];
 
   return useQuery({
     queryKey,
     queryFn,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
-    retry: (failureCount, error) => {
-      // Don't retry on auth errors
-      if (error.message.includes("Authentication error")) {
-        return false;
-      }
-      // Retry up to 3 times for other errors
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error.message?.includes("Authentication error")) return false;
       return failureCount < 3;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    // Add meta for error handling
     meta: {
       errorMessage: "Failed to load dashboard data",
     },
+  });
+}
+
+export async function prefetchSectionDashboard(
+  queryClient: QueryClient,
+  slug: string
+) {
+  const client = useSupabase();
+
+  const queryFn = async (): Promise<SectionDashboardData> => {
+    try {
+      const response = await client.auth.getUser();
+
+      if (response.error)
+        throw new Error(`Authentication error: ${response.error.message}`);
+      if (!response.data.user) throw new Error("No authenticated user found");
+
+      const { data, error } = await client
+        .from("program_batch_overview_dashboard")
+        .select("*")
+        .eq("batch_title", slug)
+        .eq("coordinator_id", response.data.user.id)
+        .single();
+
+      if (error) throw new Error(`Database error: ${error.message}`);
+
+      if (!data) return createDefaultSectionDashboardData();
+
+      return transformTraineeDashboardData(data);
+    } catch (error) {
+      console.error("Error prefetching section dashboard data:", error);
+      return createDefaultSectionDashboardData();
+    }
+  };
+
+  const queryKey = ["sectionDashboard", slug];
+
+  await queryClient.prefetchQuery({
+    queryKey,
+    queryFn,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -209,9 +240,10 @@ function transformTraineeDashboardData(
 
   // Parse JSON fields with safe defaults
   const jsonFields = {
-    companies: parseJsonField<Companies[]>(data.top_companies, []).filter(
-      (company) => company?.companyName && company?.traineeCount
-    ), // Filter out invalid entries
+    companies: parseJsonField<{ companyName: string; traineeCount: number }[]>(
+      data.top_companies,
+      []
+    ).filter((company) => company?.companyName && company?.traineeCount), // Filter out invalid entries
     recent_activities: parseJsonField<RecentActivity[]>(
       data.recent_activities,
       []
@@ -220,6 +252,18 @@ function transformTraineeDashboardData(
       data.job_role_distribution,
       []
     ),
+    weekly_report_statistics: parseJsonField<
+      {
+        week: string;
+        week_number: number;
+        start_date: string;
+        end_date: string | null;
+        approved: number;
+        pending: number;
+        rejected: number;
+        total: number;
+      }[]
+    >(data.weekly_report_statistics, []),
   };
 
   // Safe number parsing with defaults
@@ -252,20 +296,12 @@ function transformTraineeDashboardData(
 
   const totalCompanies = safeNumber(data.total_companies);
 
-  const totalAttendanceReports = safeNumber(data.total_attendance_reports);
-  const approvedAttendanceReports = safeNumber(
-    data.approved_attendance_reports
-  );
-  const pendingAttendanceReports = safeNumber(data.pending_attendance_reports);
+  const totalWeeklyReports = safeNumber(data.total_weekly_reports);
+  const approvedWeeklyReports = safeNumber(data.approved_weekly_reports);
+  const pendingWeeklyReports = safeNumber(data.pending_weekly_reports);
+  const rejectedWeeklyReports = safeNumber(data.rejected_weekly_reports);
 
-  const totalActivityReports = safeNumber(data.total_accomplishment_reports);
   const totalHoursLogged = safeNumber(data.total_hours_logged);
-  const approvedActivityReports = safeNumber(
-    data.approved_accomplishment_reports
-  );
-  const pendingActivityeReports = safeNumber(
-    data.pending_accomplishment_reports
-  );
 
   return {
     totalTrainees,
@@ -295,14 +331,12 @@ function transformTraineeDashboardData(
     completionPercentage: Math.min(100, safeNumber(data.completion_percentage)),
 
     avgAttendanceRate: safeNumber(data.avg_attendance_rate),
-    totalAttendanceReports,
-    approvedAttendanceReports,
-    pendingAttendanceReports,
+    totalWeeklyReports,
+    approvedWeeklyReports,
+    pendingWeeklyReports,
+    rejectedWeeklyReports,
 
-    totalActivityReports,
-    approvedActivityReports,
-    pendingActivityeReports,
-
+    weeklyReportStatistics: jsonFields.weekly_report_statistics,
     recentActivities: jsonFields.recent_activities,
   };
 }

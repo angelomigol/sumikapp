@@ -12,15 +12,19 @@ import {
   useSubmitWeeklyReport,
 } from "@/hooks/use-weekly-reports";
 
-import { documentStatusMap, internCodeMap } from "@/lib/constants";
+import { documentStatusMap, EntryStatus, internCodeMap } from "@/lib/constants";
 
 import {
   calculateTotalHours,
   createTableEntries,
+  formatHoursDisplay,
   safeFormatDate,
 } from "@/utils/shared";
 
-import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
+import {
+  EntryUploadedFile,
+  WeeklyReportEntryWithFiles,
+} from "@/schemas/weekly-report/weekly-report.schema";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,19 +48,25 @@ import ReportMoreOptions from "@/components/sumikapp/report-more-options";
 
 import NotFoundPage from "@/app/not-found";
 
-import { deleteWeeklyReportAction } from "../server/server-actions";
+import {
+  deleteWeeklyReportAction,
+  uploadEntryFileAttachmentsAction,
+} from "../server/server-actions";
 import DailyEntryRow from "./daily-entry-row";
 
 export default function WeeklyReportDetailsContainer(params: {
   reportId: string;
 }) {
-  const [activeTab, setActiveTab] = useState("0");
-  const [tableEntries, setTableEntries] = useState<WeeklyReportEntry[]>([]);
-  const [isInternSigned, setIsInternSigned] = useState(false);
-
   const report = useFetchWeeklyReport(params.reportId);
   const insertEntryMutation = useInsertWeeklyReportEntry(params.reportId);
   const submitReportMutation = useSubmitWeeklyReport(params.reportId);
+
+  const [activeTab, setActiveTab] = useState("0");
+  const [tableEntries, setTableEntries] = useState<
+    WeeklyReportEntryWithFiles[]
+  >([]);
+
+  const [isInternSigned, setIsInternSigned] = useState(false);
 
   const startDate = report.data?.start_date ?? "";
   const endDate = report.data?.end_date ?? "";
@@ -72,7 +82,26 @@ export default function WeeklyReportDetailsContainer(params: {
         report.data?.weekly_report_entries,
         params.reportId
       );
-      setTableEntries(entries);
+
+      const entriesWithFiles = entries.map((entry) => {
+        const entryFiles =
+          report.data.file_attachments
+            ?.filter((file) => file.entry_id === entry.id)
+            .map((file) => ({
+              entry_id: file.entry_id,
+              file_name: file.file_name,
+              file_size: file.file_size,
+              file_type: file.file_type,
+              file_path: file.file_path,
+            })) || [];
+
+        return {
+          ...entry,
+          files: entryFiles,
+        };
+      });
+
+      setTableEntries(entriesWithFiles);
     }
   }, [report.data, startDate, endDate, params.reportId]);
 
@@ -162,21 +191,134 @@ export default function WeeklyReportDetailsContainer(params: {
     );
   };
 
+  const handleAdditionalNotesChange = (entryId: string, notes: string) => {
+    setTableEntries((prevEntries) =>
+      prevEntries.map((entry) =>
+        entry.id === entryId ? { ...entry, additional_notes: notes } : entry
+      )
+    );
+  };
+
+  const handleToggleAbsent = (entryId: string) => {
+    setTableEntries((prevEntries) =>
+      prevEntries.map((entry) => {
+        if (entry.id === entryId) {
+          const newStatus = entry.status === "absent" ? "present" : "absent";
+
+          if (newStatus === "absent") {
+            return {
+              ...entry,
+              status: newStatus,
+              time_in: null,
+              time_out: null,
+              total_hours: 0,
+              daily_accomplishments: null,
+              is_confirmed: false,
+            };
+          }
+
+          return {
+            ...entry,
+            status: newStatus,
+          };
+        }
+        return entry;
+      })
+    );
+
+    toast.info(
+      tableEntries.find((e) => e.id === entryId)?.status === "absent"
+        ? "Entry unmarked as absent"
+        : "Entry marked as absent"
+    );
+  };
+
+  const handleToggleHoliday = (entryId: string) => {
+    setTableEntries((prevEntries) =>
+      prevEntries.map((entry) => {
+        if (entry.id === entryId) {
+          const newStatus = entry.status === "holiday" ? "present" : "holiday";
+
+          if (newStatus === "holiday") {
+            return {
+              ...entry,
+              status: newStatus,
+              time_in: null,
+              time_out: null,
+              total_hours: 0,
+              daily_accomplishments: null,
+              is_confirmed: false,
+            };
+          }
+
+          return {
+            ...entry,
+            status: newStatus,
+          };
+        }
+        return entry;
+      })
+    );
+
+    toast.info(
+      tableEntries.find((e) => e.id === entryId)?.status === "holiday"
+        ? "Entry unmarked as holiday"
+        : "Entry marked as holiday"
+    );
+  };
+
+  const handleFilesChange = (entryId: string, files: EntryUploadedFile[]) => {
+    setTableEntries((prevEntries) =>
+      prevEntries.map((entry) =>
+        entry.id === entryId ? { ...entry, files } : entry
+      )
+    );
+  };
+
   const handleConfirmEntry = (entryId: string) => {
     const entryToConfirm = tableEntries.find((entry) => entry.id === entryId);
 
-    if (!entryToConfirm?.time_in || !entryToConfirm?.time_out) {
-      toast.error("Time in and time out are required");
+    if (!entryToConfirm) return;
+
+    if (new Date(entryToConfirm?.entry_date) > new Date()) {
+      toast.error("The entry date cannot be later than today.");
       return;
     }
 
-    if (!entryToConfirm?.daily_accomplishments) {
-      toast.error("Daily accomplishments are required");
-      return;
+    let status: EntryStatus | null = entryToConfirm.status;
+
+    if (status !== "absent" && status !== "holiday") {
+      status =
+        entryToConfirm.time_in && entryToConfirm.time_out ? "present" : null;
     }
+
+    const updatedEntry = {
+      ...entryToConfirm,
+      status: status,
+      files: entryToConfirm.files || [],
+    };
 
     const promise = async () => {
-      await insertEntryMutation.mutateAsync(entryToConfirm);
+      const result = await insertEntryMutation.mutateAsync(updatedEntry);
+
+      if (
+        entryToConfirm.files &&
+        entryToConfirm.files.length > 0 &&
+        result?.data?.id
+      ) {
+        const formData = new FormData();
+        formData.append("entry_id", result.data.id);
+        formData.append("report_id", params.reportId);
+
+        // Add all files to FormData
+        entryToConfirm.files.forEach((fileData) => {
+          if (fileData.file instanceof File) {
+            formData.append("files", fileData.file);
+          }
+        });
+
+        await uploadEntryFileAttachmentsAction(formData);
+      }
     };
 
     toast.promise(promise, {
@@ -185,7 +327,11 @@ export default function WeeklyReportDetailsContainer(params: {
         setTableEntries((prevEntries) =>
           prevEntries.map((entry) => {
             if (entry.id === entryId) {
-              return { ...entry, is_confirmed: true };
+              return {
+                ...entry,
+                is_confirmed: true,
+                status: updatedEntry.status as EntryStatus,
+              };
             }
             return entry;
           })
@@ -269,7 +415,7 @@ export default function WeeklyReportDetailsContainer(params: {
       <Card>
         <CardHeader className="flex justify-between">
           <div className="space-y-2">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <CardTitle>
                 {`${safeFormatDate(startDate, "PP")} - ${safeFormatDate(endDate, "PP")}`}{" "}
               </CardTitle>
@@ -320,9 +466,13 @@ export default function WeeklyReportDetailsContainer(params: {
             onTimeInChange={handleTimeInChange}
             onTimeOutChange={handleTimeOutChange}
             onDailyAccomplishmentChange={handleDailyAccomplishmentsChange}
+            onAdditionalNotesChange={handleAdditionalNotesChange}
             onConfirmEntry={handleConfirmEntry}
+            onToggleAbsent={handleToggleAbsent}
+            onToggleHoliday={handleToggleHoliday}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            onFilesChange={handleFilesChange}
           />
           <Separator />
         </CardContent>
@@ -334,7 +484,7 @@ export default function WeeklyReportDetailsContainer(params: {
                 Total Hours Logged This Week
               </p>
               <p className="text-xl font-bold md:text-2xl">
-                {report.data.period_total.toFixed(0)} hrs
+                {formatHoursDisplay(report.data.period_total)}
               </p>
             </div>
             <div className="flex-1 text-right">

@@ -17,9 +17,10 @@ export default function BackButton({
 }) {
   return (
     <div className="flex w-full items-center gap-2 md:gap-4">
-      <Button asChild size={"icon-sm"} variant={"outline"}>
+      <Button asChild size={"icon-sm"} variant={"outline"} aria-label="Go Back">
         <Link href={link}>
           <ChevronLeft />
+          <span className="sr-only">Go Back</span>
         </Link>
       </Button>
       <PageTitle text={title} />

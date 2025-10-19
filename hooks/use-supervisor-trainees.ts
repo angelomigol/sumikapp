@@ -5,14 +5,13 @@ import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { OJTStatus } from "@/lib/constants";
 import { UserStatus } from "@/lib/constants/userStatus";
 
+import { Tables } from "@/utils/supabase/supabase.types";
+
 import { getTraineesForEvaluationAction } from "@/app/dashboard/(supervisor)/evaluations/server/server-actions";
 import {
   getSupervisorTraineeByIdAction,
   getSupervisorTraineesAction,
 } from "@/app/dashboard/(supervisor)/trainees/server/server-actions";
-
-import { NormalizedAccomplishmentReport } from "./use-activity-reports";
-import { NormalizedAttendanceReport } from "./use-attendance-reports";
 
 export const SUPERVISOR_TRAINEES_QUERY_KEY = [
   "supabase:supervisor_trainees",
@@ -64,8 +63,7 @@ export type TraineeFullDetails = SupervisorTrainees & {
     end_date: string;
   };
 
-  attendance_reports: NormalizedAttendanceReport[];
-  accomplishment_reports: NormalizedAccomplishmentReport[];
+  weekly_reports: Tables<"weekly_reports">[];
 };
 
 export function useFetchSupervisorTrainees() {

@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 
 import { UserPlus2 } from "lucide-react";
+import * as motion from "motion/react-client";
 
 import pathsConfig from "@/config/paths.config";
 import { useFetchUsers, useUserStatsCards } from "@/hooks/use-users";
@@ -19,11 +19,7 @@ import { userColumns } from "./users-columns";
 import { UserTableToolbar } from "./users-table-toolbar";
 
 export default function UserListContainer() {
-  const {
-    data: users = [],
-    isLoading: isLoadingUsers,
-    error,
-  } = useFetchUsers();
+  const { data: users = [], isLoading: isLoadingUsers } = useFetchUsers();
   const { cards, isLoading: isLoadingStats } = useUserStatsCards();
 
   if (!users || isLoadingStats || isLoadingUsers) {
@@ -38,11 +34,16 @@ export default function UserListContainer() {
         <div className="flex gap-2">
           {/* <InviteUserDialog /> */}
 
-          <Button size={"sm"} asChild>
-            <Link href={pathsConfig.app.addUsers}>
-              <UserPlus2 />
-              Add Account
-            </Link>
+          <Button size={"sm"} className="transition-none" asChild>
+            <motion.button whileTap={{ scale: 0.85 }}>
+              <a
+                href={pathsConfig.app.addUsers}
+                className="inline-flex items-center justify-center gap-2"
+              >
+                <UserPlus2 />
+                Add User
+              </a>
+            </motion.button>
           </Button>
         </div>
       </div>

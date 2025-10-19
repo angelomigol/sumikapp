@@ -17,6 +17,8 @@ import {
   exportAttendanceReportToPDF,
 } from "@/lib/exports/export-attendance-report";
 
+import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
+
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -32,7 +34,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import ConfirmationDialog from "./confirmation-dialog";
 import { If } from "./if";
-import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
 
 interface ReportMoreOptionsProps {
   id: string;
@@ -167,6 +168,7 @@ export default function ReportMoreOptions({
             <DropdownMenuTrigger asChild>
               <Button variant={"outline"} size={"icon-sm"}>
                 <MoreHorizontal />
+                <span className="sr-only">More Options</span>
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>

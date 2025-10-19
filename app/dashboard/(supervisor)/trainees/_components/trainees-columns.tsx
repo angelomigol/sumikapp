@@ -6,6 +6,8 @@ import { SupervisorTrainees } from "@/hooks/use-supervisor-trainees";
 
 import { getOJTStatusConfig } from "@/lib/constants";
 
+import { formatHoursDisplay } from "@/utils/shared";
+
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table";
@@ -56,7 +58,11 @@ export const traineeColumns: ColumnDef<SupervisorTrainees>[] = [
       const fullName = `${trainee.last_name}, ${trainee.first_name} ${
         trainee.middle_name ? trainee.middle_name + " " : ""
       }`;
-      return <span className="max-w-20 truncate lg:max-w-32">{fullName}</span>;
+      return (
+        <span className="block max-w-20 truncate lg:max-w-32" title={fullName}>
+          {fullName}
+        </span>
+      );
     },
     enableHiding: false,
     enableSorting: false,
@@ -68,7 +74,11 @@ export const traineeColumns: ColumnDef<SupervisorTrainees>[] = [
     ),
     cell: ({ row }) => {
       const email = row.original.email;
-      return <span className="max-w-20 truncate lg:max-w-32">{email}</span>;
+      return (
+        <span className="block max-w-20 truncate lg:max-w-32" title={email}>
+          {email}
+        </span>
+      );
     },
   },
   {
@@ -78,7 +88,14 @@ export const traineeColumns: ColumnDef<SupervisorTrainees>[] = [
     ),
     cell: ({ row }) => {
       const course = row.original.course;
-      return <span className="max-w-20 truncate lg:max-w-32">{course}</span>;
+      return (
+        <span
+          className="block max-w-20 truncate lg:max-w-32"
+          title={course ?? undefined}
+        >
+          {course}
+        </span>
+      );
     },
   },
   {
@@ -107,7 +124,7 @@ export const traineeColumns: ColumnDef<SupervisorTrainees>[] = [
     ),
     cell: ({ row }) => {
       const hoursLogged = row.original.hours_logged;
-      return <span>{hoursLogged ? `${hoursLogged} hrs` : "-"}</span>;
+      return formatHoursDisplay(hoursLogged);
     },
   },
   {

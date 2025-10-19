@@ -50,7 +50,7 @@ class AuthCallbackService {
 
     const token_hash = searchParams.get("token_hash");
     const type = searchParams.get("type") as EmailOtpType | null;
-    const redirectTo = searchParams.get("redirect_to");
+    const email = searchParams.get("email");
     const callbackParam =
       searchParams.get("next") ?? searchParams.get("callback");
 
@@ -65,10 +65,10 @@ class AuthCallbackService {
     const errorPath = params.errorPath ?? "/auth/callback/error";
 
     // Remove sensitive params to avoid leaking them in redirects
-    searchParams.delete("token_hash");
+    searchParams.delete("token");
     searchParams.delete("type");
+    searchParams.delete("email");
     searchParams.delete("next");
-    searchParams.delete("redirect_to");
 
     if (token_hash && type) {
       const { error } = await this.client.auth.verifyOtp({
@@ -77,25 +77,12 @@ class AuthCallbackService {
       });
 
       if (!error) {
-        // ✅ Successful verification
-
-        // If redirect_to is a custom scheme (e.g., sumikapp://auth-callback)
-        if (redirectTo && redirectTo.startsWith("sumikapp://")) {
-          return new URL(`${redirectTo}?verified=true`);
-        }
-
-        // If we have a next path (for web redirects)
-        if (nextPath) {
-          url.pathname = nextPath;
-        } else {
-          url.pathname = params.redirectPath;
-        }
-
         return url;
       }
 
-      // 🧨 Handle Supabase verifyOtp error
-      if (error.code) url.searchParams.set("code", error.code);
+      if (error.code) {
+        url.searchParams.set("code", error.code);
+      }
 
       const errorMessage = getAuthErrorMessage({
         error: error.message,
@@ -105,8 +92,9 @@ class AuthCallbackService {
       url.searchParams.set("error", errorMessage);
     }
 
-    // 🚨 If we reach here, verification failed
+    // return the user to an error page with some instructions
     url.pathname = errorPath;
+
     return url;
   }
 

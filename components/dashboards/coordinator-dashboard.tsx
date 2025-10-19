@@ -11,8 +11,10 @@ import { formatTimestamp } from "@/utils/shared";
 
 import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
+import { If } from "../sumikapp/if";
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
+import RefreshButton from "../sumikapp/refresh-button";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -26,6 +28,8 @@ export default function CoordinatorDashboard() {
     isLoading,
     error,
     isError,
+    refetch,
+    isFetching,
   } = useFetchCoordinatorDashboard();
 
   const dashboard = [
@@ -84,7 +88,11 @@ export default function CoordinatorDashboard() {
 
   return (
     <>
-      <PageTitle text={"Dashboard"} />
+      <div className="flex items-start justify-between gap-2">
+        <PageTitle text={"Dashboard"} />
+
+        <RefreshButton refetch={refetch} isFetching={isFetching} />
+      </div>
 
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
         {dashboard.map((card, index) => (
@@ -109,14 +117,20 @@ export default function CoordinatorDashboard() {
           <CardContent className="flex h-full max-h-80 flex-col px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-6">
-                {coordinatorData?.recentActivities.length === 0 ? (
-                  <div className="flex h-80 items-center justify-center">
-                    <p className="text-muted-foreground text-sm">
-                      No recent activities
-                    </p>
-                  </div>
-                ) : (
-                  coordinatorData?.recentActivities.map((activity) => (
+                <If
+                  condition={
+                    coordinatorData?.recentActivities &&
+                    coordinatorData?.recentActivities.length > 0
+                  }
+                  fallback={
+                    <div className="flex h-80 items-center justify-center">
+                      <p className="text-muted-foreground text-sm">
+                        No recent activities
+                      </p>
+                    </div>
+                  }
+                >
+                  {coordinatorData?.recentActivities.map((activity) => (
                     <div
                       key={activity.id}
                       className="flex items-start space-x-4 px-6"
@@ -149,8 +163,8 @@ export default function CoordinatorDashboard() {
                         </div>
                       </div>
                     </div>
-                  ))
-                )}
+                  ))}
+                </If>
               </div>
             </ScrollArea>
           </CardContent>
@@ -166,14 +180,20 @@ export default function CoordinatorDashboard() {
           <CardContent className="flex h-full max-h-80 flex-col px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-6">
-                {coordinatorData?.sectionProgress.length === 0 ? (
-                  <div className="flex h-80 items-center justify-center">
-                    <p className="text-muted-foreground text-sm">
-                      No sections created
-                    </p>
-                  </div>
-                ) : (
-                  coordinatorData?.sectionProgress.map((section) => (
+                <If
+                  condition={
+                    coordinatorData?.sectionProgress &&
+                    coordinatorData?.sectionProgress.length > 0
+                  }
+                  fallback={
+                    <div className="flex h-80 items-center justify-center">
+                      <p className="text-muted-foreground text-sm">
+                        No sections created
+                      </p>
+                    </div>
+                  }
+                >
+                  {coordinatorData?.sectionProgress.map((section) => (
                     <div
                       key={section.program}
                       className="flex items-center justify-between px-6"
@@ -199,8 +219,8 @@ export default function CoordinatorDashboard() {
                         />
                       </div>
                     </div>
-                  ))
-                )}
+                  ))}
+                </If>
               </div>
             </ScrollArea>
           </CardContent>

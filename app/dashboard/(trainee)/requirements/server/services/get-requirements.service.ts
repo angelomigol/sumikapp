@@ -9,7 +9,8 @@ import { DocumentStatus } from "@/lib/constants";
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
-type RequirementHistoryEntry = Database["public"]["Tables"]["requirements_history"]["Row"];
+type RequirementHistoryEntry =
+  Database["public"]["Tables"]["requirements_history"]["Row"];
 
 export function createGetRequirementsService() {
   return new GetRequirementsService();
@@ -83,7 +84,9 @@ class GetRequirementsService {
             name,
             description,
             allowed_file_types,
-            max_file_size_bytes
+            max_file_size_bytes,
+            template_file_name,
+            template_file_path
           )
         `
           )
@@ -113,7 +116,9 @@ class GetRequirementsService {
               name,
               description,
               allowed_file_types,
-              max_file_size_bytes
+              max_file_size_bytes,
+              template_file_name,
+              template_file_path
             )
           )
         `
@@ -182,6 +187,8 @@ class GetRequirementsService {
           file_type: req.file_type,
           allowed_file_types: requirementType?.allowed_file_types || null,
           max_file_size_bytes: requirementType?.max_file_size_bytes || null,
+          template_file_name: requirementType?.template_file_name || null,
+          template_file_path: requirementType?.template_file_path || null,
           submitted_at: req.submitted_at,
           status: latestStatus,
           history: historyItems,
@@ -209,6 +216,10 @@ class GetRequirementsService {
             batchReq.requirement_types!.allowed_file_types || null,
           max_file_size_bytes:
             batchReq.requirement_types!.max_file_size_bytes || null,
+          template_file_name:
+            batchReq.requirement_types!.template_file_name || null,
+          template_file_path:
+            batchReq.requirement_types!.template_file_path || null,
           history: [],
         }));
 

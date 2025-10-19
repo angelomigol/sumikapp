@@ -7,10 +7,14 @@ import {
   IconCalendarEvent,
   IconCircleDashedCheck,
   IconClock12,
+  IconRefresh,
 } from "@tabler/icons-react";
 import { AlertCircle, Clock } from "lucide-react";
+import * as motion from "motion/react-client";
 
 import { useFetchSectionDashboard } from "@/hooks/use-section-dashboard";
+
+import { cn } from "@/lib/utils";
 
 import { formatTimestamp } from "@/utils/shared";
 
@@ -18,10 +22,10 @@ import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -40,6 +44,8 @@ export default function SectionDashboardContainer(params: { slug: string }) {
     isLoading,
     error,
     isError,
+    refetch,
+    isFetching,
   } = useFetchSectionDashboard(params.slug);
 
   if (isLoading) {
@@ -64,10 +70,24 @@ export default function SectionDashboardContainer(params: { slug: string }) {
 
   return (
     <>
-      <div className="flex flex-col items-start justify-between gap-2 md:flex-row">
-        <div>
-          <PageTitle text={"Overview"} />
-        </div>
+      <div className="flex items-start justify-between gap-2">
+        <PageTitle text={"Overview"} />
+
+        <Button
+          variant={"outline"}
+          size={"sm"}
+          className="transition-none"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          asChild
+        >
+          <motion.button whileTap={{ scale: 0.85 }}>
+            <IconRefresh
+              className={cn("size-4", isFetching && "animate-spin")}
+            />
+            {isFetching ? "Refreshing..." : "Refresh"}
+          </motion.button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-6 gap-5 lg:grid-cols-12">
@@ -106,26 +126,12 @@ export default function SectionDashboardContainer(params: { slug: string }) {
         <div className="col-span-6">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Weekly Reports Statistics
-              </CardTitle>
-              <CardDescription className="flex">
-                <div className="flex flex-1 items-center gap-2 text-xs">
-                  <p className="text-foreground text-2xl font-semibold">
-                    {sectionData?.totalAttendanceReports.toLocaleString()}
-                  </p>
-                  Total Attendance Reports
-                </div>
-                <div className="flex flex-1 items-center gap-2 text-xs">
-                  <p className="text-foreground text-2xl font-semibold">
-                    {sectionData?.totalActivityReports.toLocaleString()}
-                  </p>
-                  Total Accomplishment Reports
-                </div>
-              </CardDescription>
+              <CardTitle>Weekly Reports Statistics</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pt-0">
-              <ReportStatisticsBarChart data={sectionData} />
+              <ReportStatisticsBarChart
+                data={sectionData?.weeklyReportStatistics}
+              />
             </CardContent>
           </Card>
         </div>

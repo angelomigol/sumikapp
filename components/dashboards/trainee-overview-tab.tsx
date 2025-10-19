@@ -96,7 +96,10 @@ export default function TraineeOverviewTab({
             {traineeData?.announcements &&
               traineeData.announcements.filter((a) => !a.is_read).length >
                 0 && (
-                <Badge variant="destructive" className="rounded-full">
+                <Badge
+                  variant="destructive"
+                  className="h-5 min-w-5 rounded-full px-1 tabular-nums"
+                >
                   {traineeData?.announcements.filter((a) => !a.is_read).length}
                 </Badge>
               )}
@@ -105,17 +108,23 @@ export default function TraineeOverviewTab({
         <CardContent className="flex h-80 max-h-80 flex-col gap-4 px-0">
           <ScrollArea className="flex flex-col overflow-hidden">
             <div className="space-y-6">
-              {traineeData?.announcements.length === 0 ? (
-                <div className="flex h-80 items-center justify-center">
-                  <div className="text-center">
-                    <Megaphone className="text-muted-foreground mx-auto mb-2 size-7" />
-                    <p className="text-muted-foreground text-sm">
-                      No announcements
-                    </p>
+              <If
+                condition={
+                  traineeData?.announcements &&
+                  traineeData?.announcements.length > 0
+                }
+                fallback={
+                  <div className="flex h-80 items-center justify-center">
+                    <div className="text-center">
+                      <Megaphone className="text-muted-foreground mx-auto mb-2 size-7" />
+                      <p className="text-muted-foreground text-sm">
+                        No announcements
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                traineeData?.announcements.map((announcement) => (
+                }
+              >
+                {traineeData?.announcements.map((announcement) => (
                   <div
                     key={announcement.id}
                     className="flex flex-col gap-1 px-6"
@@ -139,8 +148,8 @@ export default function TraineeOverviewTab({
                       {announcement.content}
                     </p>
                   </div>
-                ))
-              )}
+                ))}
+              </If>
             </div>
           </ScrollArea>
         </CardContent>
@@ -159,7 +168,14 @@ export default function TraineeOverviewTab({
             </CardDescription>
           </CardHeader>
           <CardContent className="h-full max-h-80">
-            {traineeData?.attendance.weeklyChart.length === 0 ? (
+            <If
+              condition={traineeData?.attendance.weeklyChart.length === 0}
+              fallback={
+                <TraineeAttendanceChart
+                  entries={traineeData?.attendance.weeklyChart}
+                />
+              }
+            >
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
                   <IconChartHistogram className="text-muted-foreground mx-auto mb-2 size-8" />
@@ -168,11 +184,7 @@ export default function TraineeOverviewTab({
                   </p>
                 </div>
               </div>
-            ) : (
-              <TraineeAttendanceChart
-                entries={traineeData?.attendance.weeklyChart}
-              />
-            )}
+            </If>
           </CardContent>
         </Card>
 
@@ -188,17 +200,23 @@ export default function TraineeOverviewTab({
           <CardContent className="flex h-80 max-h-80 flex-col gap-4 px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-4">
-                {traineeData?.attendance.recentEntries.length === 0 ? (
-                  <div className="flex h-80 items-center justify-center">
-                    <div className="text-center">
-                      <CalendarClock className="text-muted-foreground mx-auto mb-2 size-7" />
-                      <p className="text-muted-foreground text-sm">
-                        No recent attendance
-                      </p>
+                <If
+                  condition={
+                    traineeData?.attendance &&
+                    traineeData?.attendance.recentEntries.length > 0
+                  }
+                  fallback={
+                    <div className="flex h-80 items-center justify-center">
+                      <div className="text-center">
+                        <CalendarClock className="text-muted-foreground mx-auto mb-2 size-7" />
+                        <p className="text-muted-foreground text-sm">
+                          No recent attendance
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  traineeData?.attendance.recentEntries.map((entry, index) => (
+                  }
+                >
+                  {traineeData?.attendance.recentEntries.map((entry, index) => (
                     <div
                       key={`${entry.date}-${index}`}
                       className="flex items-start justify-between border-b px-6 pb-4 last:border-0 last:pb-0"
@@ -224,38 +242,42 @@ export default function TraineeOverviewTab({
                         {entry.status}
                       </Badge>
                     </div>
-                  ))
-                )}
+                  ))}
+                </If>
               </div>
             </ScrollArea>
           </CardContent>
         </Card>
 
-        {/* Recent Activity Reports */}
+        {/* Recent Weekly Reports */}
         <Card className="col-span-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardCheck className="size-5" />
-              Recent Activity Reports
+              Recent Weekly Reports
             </CardTitle>
-            <CardDescription>
-              Your latest weekly activity reports
-            </CardDescription>
+            <CardDescription>Your latest weekly reports</CardDescription>
           </CardHeader>
           <CardContent className="flex h-80 max-h-80 flex-col gap-4 px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-4">
-                {traineeData?.recentReports.length === 0 ? (
-                  <div className="flex h-80 items-center justify-center">
-                    <div className="text-center">
-                      <ClipboardCheck className="text-muted-foreground mx-auto mb-2 size-7" />
-                      <p className="text-muted-foreground text-sm">
-                        No recent reports
-                      </p>
+                <If
+                  condition={
+                    traineeData?.recentReports &&
+                    traineeData?.recentReports.length > 0
+                  }
+                  fallback={
+                    <div className="flex h-80 items-center justify-center">
+                      <div className="text-center">
+                        <ClipboardCheck className="text-muted-foreground mx-auto mb-2 size-7" />
+                        <p className="text-muted-foreground text-sm">
+                          No recent reports
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  traineeData?.recentReports.map((report) => (
+                  }
+                >
+                  {traineeData?.recentReports.map((report) => (
                     <div
                       key={report.id}
                       className="flex flex-col justify-between gap-2 border-b px-6 pb-4 last:border-0 last:pb-0 sm:flex-row sm:items-start"
@@ -287,16 +309,14 @@ export default function TraineeOverviewTab({
                           </div>
                         </div>
                       </div>
-                      <Link
-                        href={pathsConfig.dynamic.activityReport(report.id)}
-                      >
-                        <Button variant="outline" size="sm">
+                      <Link href={pathsConfig.dynamic.weeklyReport(report.id)}>
+                        <Button variant={"outline"} size={"sm"}>
                           View Report
                         </Button>
                       </Link>
                     </div>
-                  ))
-                )}
+                  ))}
+                </If>
               </div>
             </ScrollArea>
           </CardContent>

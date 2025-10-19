@@ -154,7 +154,12 @@ class GetWeeklyReportsService {
               )
             )
           ),
-          weekly_report_entries(*)
+          weekly_report_entries(
+            *,
+            weekly_report_entry_files(
+              *
+            )
+          )
         `
         )
         .eq("id", reportId)
@@ -215,6 +220,16 @@ class GetWeeklyReportsService {
           additional_notes: entry.additional_notes,
           feedback: entry.feedback,
         })),
+        file_attachments: data.weekly_report_entries.flatMap((entry) =>
+          entry.weekly_report_entry_files.map((file) => ({
+            entry_id: file.entry_id,
+            file_name: file.file_name,
+            created_at: file.created_at,
+            file_path: file.file_path,
+            file_size: file.file_size,
+            file_type: file.file_type,
+          }))
+        ),
       };
 
       return {

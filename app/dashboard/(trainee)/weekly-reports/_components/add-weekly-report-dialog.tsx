@@ -156,7 +156,6 @@ export default function AddWeeklyReportDialog({
                     <FormItem className="flex flex-col">
                       <FormLabel>Report Period</FormLabel>
                       <DateRangePicker
-                        side="right"
                         disabledDates={getDisabledDates()}
                         selected={{
                           from: field.value,

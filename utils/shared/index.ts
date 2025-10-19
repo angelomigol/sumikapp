@@ -1,7 +1,9 @@
-import { format, isValid } from "date-fns";
+import { format, isSameDay, isValid } from "date-fns";
 
-import { AttendanceEntry } from "@/hooks/use-attendance-reports";
-
+import {
+  CalendarEvent,
+  EventColor,
+} from "@/schemas/event-calendar/event-calendar.schema";
 import { WeeklyReportEntry } from "@/schemas/weekly-report/weekly-report.schema";
 
 /**
@@ -28,50 +30,6 @@ export function formatDatePH(date?: Date | string): string {
     hour12: true,
     timeZone: "Asia/Manila",
   });
-}
-
-type NameData = {
-  first_name?: string;
-  middle_name?: string;
-  last_name?: string;
-  email?: string;
-};
-
-type PersonalAccountData = {
-  data?: NameData;
-};
-
-/**
- * @name getDisplayName
- * @description
- * Generates a display name from available name fields.
- * Tries:
- * 1. personalAccountData.data (first, middle, last)
- * 2. account (first, middle, last)
- * 3. user (first, middle, last, email)
- * 4. fallback: empty string
- *
- * @param personalAccountData - Optional deeply nested user info
- * @param account - Optional flat account object
- * @param user - Optional user object, may contain names or fallback email
- * @returns A clean full name string or email fallback
- */
-export function getDisplayName(
-  personalAccountData?: PersonalAccountData,
-  account?: NameData,
-  user?: NameData
-): string {
-  const tryBuildName = (source?: NameData): string =>
-    [source?.first_name, source?.middle_name, source?.last_name]
-      .filter(Boolean)
-      .join(" ");
-
-  const fullName =
-    tryBuildName(personalAccountData?.data) ||
-    tryBuildName(account) ||
-    tryBuildName(user);
-
-  return fullName || user?.email || "";
 }
 
 export function formatFileSize(bytes: number): string {
@@ -175,7 +133,6 @@ export const formatTimestamp = (timestamp: unknown) => {
  * @param options - Configuration options for cleaning
  * @returns The cleaned slug according to specified options
  */
-
 export function cleanSlugAdvanced(
   slug: string,
   options: {
@@ -299,55 +256,15 @@ export function createTableEntries(
   return dateEntries;
 }
 
-export function createAttendanceTableEntries(
-  startDate: string,
-  endDate: string,
-  weeklyReportEntries: AttendanceEntry[] = [],
-  reportId: string
-): AttendanceEntry[] {
-  if (!startDate || !endDate) return [];
-
-  const dateEntries: AttendanceEntry[] = [];
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split("T")[0];
-
-    const existingEntry = weeklyReportEntries.find(
-      (entry) => entry.entry_date === dateStr
-    );
-
-    if (existingEntry) {
-      dateEntries.push({
-        id: existingEntry.id || `temp-${dateStr}`,
-        created_at: existingEntry.created_at || new Date().toISOString(),
-        entry_date: existingEntry.entry_date,
-        time_in: existingEntry.time_in,
-        time_out: existingEntry.time_out,
-        total_hours: existingEntry.total_hours,
-        is_confirmed: existingEntry.is_confirmed || false,
-        status: existingEntry.status,
-        report_id: existingEntry.report_id || reportId,
-      });
-    } else {
-      dateEntries.push({
-        id: `temp-${dateStr}`,
-        created_at: new Date().toISOString(),
-        entry_date: dateStr,
-        time_in: null,
-        time_out: null,
-        total_hours: 0,
-        is_confirmed: false,
-        status: null,
-        report_id: reportId,
-      });
-    }
-  }
-
-  return dateEntries;
-}
-
+/**
+ * Calculate total hours worked based on time in, time out, and lunch break.
+ * Matches the database calculation logic to ensure consistency.
+ *
+ * @param timeIn - Time in format "HH:MM"
+ * @param timeOut - Time out format "HH:MM"
+ * @param lunchBreakMinutes - Lunch break duration in minutes (default: 0)
+ * @returns Total hours worked, rounded to 2 decimal places
+ */
 export function calculateTotalHours(
   timeIn: string,
   timeOut: string,
@@ -369,7 +286,47 @@ export function calculateTotalHours(
   // Deduct lunch break
   const totalMinutesAfterBreak = Math.max(0, diffMinutes - lunchBreakMinutes);
 
-  return Math.round(totalMinutesAfterBreak / 60);
+  // Convert to hours and round to 2 decimal places (matches database ROUND(calculated_hours, 2))
+  const totalHours = totalMinutesAfterBreak / 60;
+
+  // Round to 2 decimal places to match PostgreSQL ROUND() function
+  return Math.round(totalHours * 100) / 100;
+}
+
+/**
+ * Format decimal hours into a human-readable string.
+ * Converts decimal hours to "X hrs Y mins" format.
+ *
+ * @param hours - Total hours as a decimal number (e.g., 5.65)
+ * @returns Formatted string (e.g., "5 hrs 39 mins" or "8 hrs")
+ *
+ * @example
+ * formatHoursDisplay(5.65) // "5 hrs 39 mins"
+ * formatHoursDisplay(8) // "8 hrs"
+ * formatHoursDisplay(0.5) // "30 mins"
+ * formatHoursDisplay(0) // "0 hrs"
+ */
+export function formatHoursDisplay(hours: number): string {
+  if (hours === 0) return "0 hrs";
+
+  // Extract whole hours and remaining minutes
+  const wholeHours = Math.floor(hours);
+  const decimalPart = hours - wholeHours;
+  const minutes = Math.round(decimalPart * 60);
+
+  // Handle edge case where rounding brings minutes to 60
+  if (minutes === 60) {
+    return `${wholeHours + 1} hrs`;
+  }
+
+  // Format based on hours and minutes
+  if (wholeHours === 0) {
+    return `${minutes} mins`;
+  } else if (minutes === 0) {
+    return `${wholeHours} hrs`;
+  } else {
+    return `${wholeHours} hrs ${minutes} mins`;
+  }
 }
 
 export function displayDays(days: string[] = []) {
@@ -384,4 +341,153 @@ export function displayDays(days: string[] = []) {
   };
 
   return days.map((d) => dayMap[d] || d).join(", ");
+}
+
+/**
+ * Get CSS classes for event colors
+ */
+export function getEventColorClasses(color?: EventColor | string): string {
+  const eventColor = color || "sky";
+
+  switch (eventColor) {
+    case "sky":
+      return "bg-sky-200/50 hover:bg-sky-200/40 text-sky-950/80 dark:bg-sky-400/25 dark:hover:bg-sky-400/20 dark:text-sky-200 shadow-sky-700/8";
+    case "amber":
+      return "bg-amber-200/50 hover:bg-amber-200/40 text-amber-950/80 dark:bg-amber-400/25 dark:hover:bg-amber-400/20 dark:text-amber-200 shadow-amber-700/8";
+    case "violet":
+      return "bg-violet-200/50 hover:bg-violet-200/40 text-violet-950/80 dark:bg-violet-400/25 dark:hover:bg-violet-400/20 dark:text-violet-200 shadow-violet-700/8";
+    case "rose":
+      return "bg-rose-200/50 hover:bg-rose-200/40 text-rose-950/80 dark:bg-rose-400/25 dark:hover:bg-rose-400/20 dark:text-rose-200 shadow-rose-700/8";
+    case "emerald":
+      return "bg-emerald-200/50 hover:bg-emerald-200/40 text-emerald-950/80 dark:bg-emerald-400/25 dark:hover:bg-emerald-400/20 dark:text-emerald-200 shadow-emerald-700/8";
+    case "orange":
+      return "bg-orange-200/50 hover:bg-orange-200/40 text-orange-950/80 dark:bg-orange-400/25 dark:hover:bg-orange-400/20 dark:text-orange-200 shadow-orange-700/8";
+    default:
+      return "bg-sky-200/50 hover:bg-sky-200/40 text-sky-950/80 dark:bg-sky-400/25 dark:hover:bg-sky-400/20 dark:text-sky-200 shadow-sky-700/8";
+  }
+}
+
+/**
+ * Get CSS classes for border radius based on event position in multi-day events
+ */
+export function getBorderRadiusClasses(
+  isFirstDay: boolean,
+  isLastDay: boolean
+): string {
+  if (isFirstDay && isLastDay) {
+    return "rounded";
+  } else if (isFirstDay) {
+    return "rounded-l rounded-r-none";
+  } else if (isLastDay) {
+    return "rounded-r rounded-l-none";
+  } else {
+    return "rounded-none";
+  }
+}
+
+/**
+ * Check if an event is a multi-day event
+ */
+export function isMultiDayEvent(event: CalendarEvent): boolean {
+  const eventStart = new Date(event.start);
+  const eventEnd = new Date(event.end);
+  return event.allDay || eventStart.getDate() !== eventEnd.getDate();
+}
+
+/**
+ * Filter events for a specific day
+ */
+export function getEventsForDay(
+  events: CalendarEvent[],
+  day: Date
+): CalendarEvent[] {
+  return events
+    .filter((event) => {
+      const eventStart = new Date(event.start);
+      return isSameDay(day, eventStart);
+    })
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+}
+
+/**
+ * Sort events with multi-day events first, then by start time
+ */
+export function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
+  return [...events].sort((a, b) => {
+    const aIsMultiDay = isMultiDayEvent(a);
+    const bIsMultiDay = isMultiDayEvent(b);
+
+    if (aIsMultiDay && !bIsMultiDay) return -1;
+    if (!aIsMultiDay && bIsMultiDay) return 1;
+
+    return new Date(a.start).getTime() - new Date(b.start).getTime();
+  });
+}
+
+/**
+ * Get multi-day events that span across a specific day (but don't start on that day)
+ */
+export function getSpanningEventsForDay(
+  events: CalendarEvent[],
+  day: Date
+): CalendarEvent[] {
+  return events.filter((event) => {
+    if (!isMultiDayEvent(event)) return false;
+
+    const eventStart = new Date(event.start);
+    const eventEnd = new Date(event.end);
+
+    // Only include if it's not the start day but is either the end day or a middle day
+    return (
+      !isSameDay(day, eventStart) &&
+      (isSameDay(day, eventEnd) || (day > eventStart && day < eventEnd))
+    );
+  });
+}
+
+/**
+ * Get all events visible on a specific day (starting, ending, or spanning)
+ */
+export function getAllEventsForDay(
+  events: CalendarEvent[],
+  day: Date
+): CalendarEvent[] {
+  return events.filter((event) => {
+    const eventStart = new Date(event.start);
+    const eventEnd = new Date(event.end);
+    return (
+      isSameDay(day, eventStart) ||
+      isSameDay(day, eventEnd) ||
+      (day > eventStart && day < eventEnd)
+    );
+  });
+}
+
+/**
+ * Get all events for a day (for agenda view)
+ */
+export function getAgendaEventsForDay(
+  events: CalendarEvent[],
+  day: Date
+): CalendarEvent[] {
+  return events
+    .filter((event) => {
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      return (
+        isSameDay(day, eventStart) ||
+        isSameDay(day, eventEnd) ||
+        (day > eventStart && day < eventEnd)
+      );
+    })
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+}
+
+/**
+ * Add hours to a date
+ */
+export function addHoursToDate(date: Date, hours: number): Date {
+  const result = new Date(date);
+  result.setHours(result.getHours() + hours);
+  return result;
 }

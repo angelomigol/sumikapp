@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { If } from "../sumikapp/if";
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
+import RefreshButton from "../sumikapp/refresh-button";
 import DashboardStatsCard from "./dashboard-stats-card";
 import TraineeOverviewTab from "./trainee-overview-tab";
 
@@ -29,14 +30,16 @@ export default function TraineeDashboard() {
     isLoading,
     error,
     isError,
+    refetch,
+    isFetching,
   } = useFetchTraineeDashboard();
 
-  const getAccomplishmentReportSummary = () => {
+  const getWeeklyReportSummary = () => {
     if (isLoading || !traineeData) return "";
 
-    const approved = traineeData.approvedAccomplishmentReports;
-    const rejected = traineeData.rejectedAccomplishmentReports;
-    const pending = traineeData.pendingAccomplishmentReports;
+    const approved = traineeData.approvedWeeklyReports;
+    const rejected = traineeData.rejectedWeeklyReports;
+    const pending = traineeData.pendingWeeklyReports;
 
     const parts = [];
     if (approved > 0) parts.push(`${approved} approved`);
@@ -51,9 +54,7 @@ export default function TraineeDashboard() {
       name: "Attendance Rate",
       icon: CalendarCheck,
       data: {
-        main: isLoading
-          ? "..."
-          : `${traineeData?.attendanceRatePercentage}%`,
+        main: isLoading ? "..." : `${traineeData?.attendanceRatePercentage}%`,
       },
       tooltip:
         "Based on the percentage of approved attendance reports you've submitted",
@@ -73,15 +74,13 @@ export default function TraineeDashboard() {
         "Your total completed OJT hours based on approved attendance reports",
     },
     {
-      name: "Activity Reports",
+      name: "Weekly Reports",
       icon: FileText,
       data: {
-        main: isLoading
-          ? "..."
-          : `${traineeData?.totalAccomplishmentReports}`,
-        sub: getAccomplishmentReportSummary(),
+        main: isLoading ? "..." : `${traineeData?.totalWeeklyReports}`,
+        sub: getWeeklyReportSummary(),
       },
-      tooltip: "Your total number of weekly activity reports",
+      tooltip: "Your total number of weekly reports",
     },
   ];
 
@@ -107,7 +106,11 @@ export default function TraineeDashboard() {
 
   return (
     <>
-      <PageTitle text={"Dashboard"} />
+      <div className="flex items-start justify-between gap-2">
+        <PageTitle text={"Dashboard"} />
+
+        <RefreshButton refetch={refetch} isFetching={isFetching} />
+      </div>
 
       <If
         condition={

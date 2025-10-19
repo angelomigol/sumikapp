@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircle } from "lucide-react";
+import { FileText, PlusCircle, Upload, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -13,6 +13,9 @@ import {
 } from "@/hooks/use-batch-requirements";
 
 import { COMMON_FILE_TYPES, FILE_SIZE_OPTIONS } from "@/lib/constants";
+import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
+
+import { formatFileSize } from "@/utils/shared";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,6 +77,8 @@ interface AddEditCustomRequirementSheetProps {
     description?: string;
     allowedFileTypes: string[];
     maxFileSizeBytes: number;
+    filePath: string;
+    fileName: string;
   } | null;
   slug: string;
   handleAdd: () => void;
@@ -88,6 +93,9 @@ export default function AddEditCustomRequirementSheet({
 }: AddEditCustomRequirementSheetProps) {
   const createCustomRequirementMutation = useCreateCustomRequirement(slug);
   const updateCustomRequirementMutation = useUpdateCustomRequirement(slug);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [existingFileName, setExistingFileName] = useState<string | null>(null);
 
   const isEditing = !!editingRequirement;
 
@@ -113,6 +121,9 @@ export default function AddEditCustomRequirementSheet({
         maxFileSizeBytes: editingRequirement.maxFileSizeBytes || 5242880,
         slug: slug,
       });
+
+      setExistingFileName(editingRequirement.fileName || null);
+      setSelectedFile(null);
     } else if (open && !editingRequirement) {
       form.reset({
         id: undefined,
@@ -122,8 +133,47 @@ export default function AddEditCustomRequirementSheet({
         maxFileSizeBytes: 5242880,
         slug: slug,
       });
+
+      setExistingFileName(null);
+      setSelectedFile(null);
     }
   }, [open, editingRequirement, form, slug]);
+
+  const validateFile = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `File size exceeds the maximum limit of ${formatFileSize(MAX_FILE_SIZE)}.`;
+    }
+
+    return null;
+  };
+
+  const handleFileSelect = (file: File | undefined) => {
+    if (file) {
+      const validationError = validateFile(file);
+
+      if (validationError) {
+        setSelectedFile(null);
+        form.setValue("template", undefined);
+        toast.error(validationError);
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
+      }
+
+      setSelectedFile(file);
+      form.setValue("template", file);
+    }
+  };
+
+  const handleFileRemove = () => {
+    setSelectedFile(null);
+    form.setValue("template", undefined);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   async function onSubmit(data: CustomRequirementFormValues) {
     let promise;
@@ -148,7 +198,11 @@ export default function AddEditCustomRequirementSheet({
 
       toast.promise(promise, {
         loading: "Adding requirement...",
-        success: "Requirement created successfully!",
+        success: () => {
+          form.reset();
+          setOpen(false);
+          return "Requirement created successfully!";
+        },
         error: (err) => {
           if (err instanceof Error) {
             return err.message;
@@ -159,9 +213,72 @@ export default function AddEditCustomRequirementSheet({
     }
 
     await promise;
-    form.reset();
-    setOpen(false);
   }
+
+  const renderFileSelection = () => {
+    if (selectedFile) {
+      return (
+        <div className="flex items-center justify-between rounded-lg border bg-gray-50 p-3">
+          <div className="flex items-center space-x-2">
+            <FileText className="size-4 text-gray-400" />
+            <span className="text-sm font-medium">{selectedFile.name}</span>
+            <span className="text-xs text-gray-500">
+              {formatFileSize(selectedFile.size)}
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            variant={"ghost"}
+            size={"sm"}
+            onClick={handleFileRemove}
+            className="size-8 p-0"
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      );
+    }
+
+    if (isEditing && existingFileName) {
+      return (
+        <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <div className="flex items-center space-x-2">
+            <FileText className="size-4 text-blue-400" />
+            <span className="text-sm font-medium text-blue-900">
+              {existingFileName}
+            </span>
+            <span className="text-xs text-blue-600">(Current File)</span>
+          </div>
+          <Button
+            type="button"
+            variant={"outline"}
+            size={"sm"}
+            onClick={() => fileInputRef.current?.click()}
+            className="h-8 border-blue-300 text-blue-700 hover:bg-blue-100"
+          >
+            <Upload className="m-1 size-3" />
+            Replace
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 transition-colors hover:border-gray-400 hover:bg-gray-50"
+      >
+        <Upload className="mb-2 size-8 text-gray-400" />
+        <span className="text-sm font-medium text-gray-700">
+          Click to upload template or file reference
+        </span>
+        <span className="mt-1 text-center text-xs text-gray-500">
+          Max File Size: 50MB
+        </span>
+      </div>
+    );
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -365,6 +482,35 @@ export default function AddEditCustomRequirementSheet({
                       </FormControl>
                       <FormMessage />
                     </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="template"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <div className="flex items-center justify-between gap-1">
+                      <FormLabel>File Template</FormLabel>
+                      <span className="text-muted-foreground text-xs">
+                        Optional field
+                      </span>
+                    </div>
+                    <FormControl>
+                      <div className="space-y-2">
+                        {renderFileSelection()}
+                        <Input
+                          ref={fileInputRef}
+                          type="file"
+                          onChange={(e) =>
+                            handleFileSelect(e.target.files?.[0])
+                          }
+                          className="hidden"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

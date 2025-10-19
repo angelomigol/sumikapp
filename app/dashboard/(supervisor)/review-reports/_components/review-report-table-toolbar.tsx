@@ -1,7 +1,7 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
-import { FileQuestion, FileText, X } from "lucide-react";
+import { FileQuestion, X } from "lucide-react";
 
 import { documentStatusFilterOptions } from "@/lib/constants";
 
@@ -44,24 +44,6 @@ export function ReviewReportTableToolbar<TData>({
             options={documentStatusFilterOptions.filter(
               (option) => option.value !== "not submitted"
             )}
-          />
-        )}
-
-        {table.getColumn("report_type") && (
-          <ReportTypeFacetedFilter
-            column={table.getColumn("report_type")}
-            title="Report Type"
-            icon={FileText}
-            options={[
-              {
-                label: "Attendance",
-                value: "attendance",
-              },
-              {
-                label: "Accomplishment",
-                value: "accomplishment",
-              },
-            ]}
           />
         )}
 

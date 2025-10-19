@@ -5,6 +5,8 @@ import { formatDate } from "date-fns";
 
 import { getDocumentStatusConfig } from "@/lib/constants/reports";
 
+import { formatHoursDisplay } from "@/utils/shared";
+
 import { WeeklyReport } from "@/schemas/weekly-report/weekly-report.schema";
 
 import { Badge } from "@/components/ui/badge";
@@ -86,9 +88,7 @@ export const weeklyReportsColumns: ColumnDef<WeeklyReport>[] = [
     ),
     cell: ({ row }) => {
       const totalHours = row.getValue("period_total") as number;
-      return (
-        totalHours.toLocaleString() + (totalHours === 1 ? " Hour" : " Hours")
-      );
+      return formatHoursDisplay(totalHours);
     },
     enableHiding: false,
   },
@@ -106,7 +106,7 @@ export const weeklyReportsColumns: ColumnDef<WeeklyReport>[] = [
         <Badge variant={"outline"} className="text-muted-foreground">
           {status.icon && (
             <status.icon
-              className={`size-2 ${status.label === "pending" ? "" : status.textColor}`}
+              className={`${status.label === "pending" ? "" : status.textColor}`}
             />
           )}
           {status.label}

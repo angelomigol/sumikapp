@@ -5,8 +5,6 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { getLogger } from "@/utils/logger";
 import { Database, TablesUpdate } from "@/utils/supabase/supabase.types";
 
-const REQS_BUCKET = "moa-files";
-
 export function createUpdateIndustryPartnerService() {
   return new UpdateIndustryPartnerService();
 }
@@ -21,6 +19,7 @@ export function createUpdateIndustryPartnerService() {
  */
 class UpdateIndustryPartnerService {
   private namespace = "industry_partner.update";
+  private bucketName = "moa-files";
 
   /**
    * @name updateIndustryPartner
@@ -78,7 +77,7 @@ class UpdateIndustryPartnerService {
         originalFileName = moaFile.name;
 
         const { data: uploadData, error: uploadError } = await client.storage
-          .from(REQS_BUCKET)
+          .from(this.bucketName)
           .upload(filePath, moaFile, {
             cacheControl: "3600",
             upsert: true,
@@ -105,7 +104,7 @@ class UpdateIndustryPartnerService {
           existingPartner.moa_file_path !== filePath
         ) {
           const { error: deleteError } = await client.storage
-            .from(REQS_BUCKET)
+            .from(this.bucketName)
             .remove([existingPartner.moa_file_path]);
 
           if (deleteError) {

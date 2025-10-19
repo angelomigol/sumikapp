@@ -65,7 +65,7 @@ export default function InternshipStatusCell({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2">
+    <div className="flex flex-col items-start gap-2">
       <Badge className={getStatusColor(internship_details.status)}>
         {internship_details.status.charAt(0).toUpperCase() +
           internship_details.status.slice(1)}

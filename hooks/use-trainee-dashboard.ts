@@ -16,13 +16,12 @@ export interface TraineeDashboardData {
   };
 
   attendanceRatePercentage: number;
-  approvedAttendanceReports: number;
   totalSubmittedReports: number;
 
-  approvedAccomplishmentReports: number;
-  rejectedAccomplishmentReports: number;
-  pendingAccomplishmentReports: number;
-  totalAccomplishmentReports: number;
+  approvedWeeklyReports: number;
+  rejectedWeeklyReports: number;
+  pendingWeeklyReports: number;
+  totalWeeklyReports: number;
 
   attendance: {
     recentEntries: AttendanceEntry[];
@@ -73,7 +72,6 @@ interface RecentReport {
   status: DocumentStatus;
   submitted_at: string | null;
   total_hours: number;
-  type: "attendance" | "accomplishment";
 }
 
 // Safe default object factory
@@ -86,13 +84,12 @@ const createDefaultTraineeDashboardData = (): TraineeDashboardData => ({
   },
 
   attendanceRatePercentage: 0,
-  approvedAttendanceReports: 0,
   totalSubmittedReports: 0,
 
-  approvedAccomplishmentReports: 0,
-  rejectedAccomplishmentReports: 0,
-  pendingAccomplishmentReports: 0,
-  totalAccomplishmentReports: 0,
+  approvedWeeklyReports: 0,
+  rejectedWeeklyReports: 0,
+  pendingWeeklyReports: 0,
+  totalWeeklyReports: 0,
 
   attendance: {
     recentEntries: [],
@@ -298,26 +295,18 @@ function transformTraineeDashboardData(
       100,
       safeNumber(data.attendance_rate_percentage)
     ),
-    approvedAttendanceReports: safeNumber(data.approved_attendance_reports),
-    totalSubmittedReports: safeNumber(data.total_submitted_reports),
-
-    // Accomplishment Report Stats
-    approvedAccomplishmentReports: safeNumber(
-      data.approved_accomplishment_reports
-    ),
-    rejectedAccomplishmentReports: safeNumber(
-      data.rejected_accomplishment_reports
-    ),
-    pendingAccomplishmentReports: safeNumber(
-      data.pending_accomplishment_reports
-    ),
-    totalAccomplishmentReports: safeNumber(data.total_accomplishment_reports),
+    totalSubmittedReports: safeNumber(data.total_submitted_reports, 0),
 
     // Attendance with validated arrays
     attendance: {
       recentEntries: jsonFields.recentAttendance,
       weeklyChart: jsonFields.weeklyAttendanceChart,
     },
+
+    approvedWeeklyReports: safeNumber(data.approved_weekly_reports, 0),
+    rejectedWeeklyReports: safeNumber(data.rejected_weekly_reports, 0),
+    pendingWeeklyReports: safeNumber(data.pending_weekly_reports, 0),
+    totalWeeklyReports: safeNumber(data.total_weekly_reports, 0),
 
     // Activities & Reports with validated arrays
     recentActivities: jsonFields.recentActivities,

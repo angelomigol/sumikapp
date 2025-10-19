@@ -1,18 +1,18 @@
 "use client";
 
 import React from "react";
-
-import { FileCheck, FileClock } from "lucide-react";
+import Link from "next/link";
 
 import pathsConfig from "@/config/paths.config";
 import { useFetchSupervisorTrainee } from "@/hooks/use-supervisor-trainees";
 
-import { getOJTStatusConfig } from "@/lib/constants";
+import { getDocumentStatusConfig, getOJTStatusConfig } from "@/lib/constants";
 
 import { safeFormatDate } from "@/utils/shared";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,9 +22,14 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ActivityTabContent from "@/components/sumikapp/activity-tab-content";
-import AttendanceTabContent from "@/components/sumikapp/attendance-tab-content";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import BackButton from "@/components/sumikapp/back-button";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
@@ -175,35 +180,75 @@ export default function TraineeDetailsContainer(params: { traineeId: string }) {
 
             <Separator />
 
-            <CardHeader className="px-0">
-              <CardTitle>Reports</CardTitle>
-              <CardDescription>Attendance and activity reports</CardDescription>
-            </CardHeader>
+            <Card className="gap-2 border-none py-0 shadow-none">
+              <CardHeader className="px-0">
+                <CardTitle>Weekly Reports</CardTitle>
+              </CardHeader>
 
-            <Tabs defaultValue="att">
-              <TabsList>
-                <TabsTrigger value="att">
-                  <FileClock className="size-4" />
-                  Attendance
-                </TabsTrigger>
-                <TabsTrigger value="acc">
-                  <FileCheck className="size-4" />
-                  Accomplishment
-                </TabsTrigger>
-              </TabsList>
+              <CardContent className="max-h-11/12 px-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-none">
+                      <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r">
+                        Period
+                      </TableHead>
+                      <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r">
+                        Submitted Date
+                      </TableHead>
+                      <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r">
+                        Total Hours
+                      </TableHead>
+                      <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r">
+                        Status
+                      </TableHead>
+                      <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {trainee.data.weekly_reports.map((report) => {
+                      const status = getDocumentStatusConfig(report.status);
+                      const startDate = report.start_date ?? "";
+                      const endDate = report.end_date ?? "";
 
-              <TabsContent value="att">
-                <AttendanceTabContent
-                  reports={trainee.data.attendance_reports}
-                />
-              </TabsContent>
-
-              <TabsContent value="acc">
-                <ActivityTabContent
-                  reports={trainee.data.accomplishment_reports}
-                />
-              </TabsContent>
-            </Tabs>
+                      return (
+                        <TableRow key={report.id}>
+                          <TableCell className="h-10 overflow-hidden border-b px-3 py-2 text-sm text-ellipsis">
+                            {`${safeFormatDate(startDate, "PP")} - ${safeFormatDate(endDate, "PP")}`}
+                          </TableCell>
+                          <TableCell className="h-10 overflow-hidden border-b px-3 py-2 text-sm text-ellipsis">
+                            {report.submitted_at
+                              ? safeFormatDate(report.submitted_at, "PP")
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="h-10 overflow-hidden border-b px-3 py-2 text-sm text-ellipsis">
+                            {`${report.period_total} ${report.period_total === 1 ? " Hour" : " Hours"}`}
+                          </TableCell>
+                          <TableCell className="h-10 overflow-hidden border-b px-3 py-2 text-sm text-ellipsis">
+                            <div className="flex items-center gap-2">
+                              {status.icon && (
+                                <status.icon className="size-4" />
+                              )}
+                              {status.label}
+                            </div>
+                          </TableCell>
+                          <TableCell className="h-10 overflow-hidden border-b px-3 py-2 text-sm text-ellipsis">
+                            <Button size={"sm"} variant={"outline"} asChild>
+                              <Link
+                                href={pathsConfig.dynamic.weeklyReport(
+                                  report.id
+                                )}
+                              >
+                                View
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </CardContent>
         </Card>
       </div>

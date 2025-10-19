@@ -8,7 +8,7 @@ import {
 } from "@/hooks/use-review-reports";
 
 import { getLogger } from "@/utils/logger";
-import { Database, Tables } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
 
 export function createGetTraineeReportsService() {
   return new GetTraineeReportsService();
@@ -30,7 +30,7 @@ class GetTraineeReportsService {
    * @description Fetch reports by the trainees
    */
   async getTraineeReports(params: {
-    client: SupabaseClient<Database>;
+    server: SupabaseClient<Database>;
     userId: string;
   }): Promise<ReviewReports[]> {
     const logger = await getLogger();
@@ -45,27 +45,19 @@ class GetTraineeReportsService {
     logger.info(ctx, "Fetching trainee reports for user...");
 
     try {
-      const { data, error } = await params.client
+      const { data, error } = await params.server
         .from("internship_details")
         .select(
           `
-          attendance_reports (
+          weekly_reports (
             id,
             start_date,
             end_date,
             period_total,
+            status,
             submitted_at,
             supervisor_approved_at,
-            status
-          ),
-          accomplishment_reports (
-            id,
-            start_date,
-            end_date,
-            total_hours,
-            submitted_at,
-            supervisor_approved_at,
-            status
+            created_at
           ),
           trainee_batch_enrollment!inner (
             trainees!inner (
@@ -80,23 +72,24 @@ class GetTraineeReportsService {
         `
         )
         .eq("supervisor_id", userId)
-        .in("attendance_reports.status", ["approved", "pending", "rejected"])
-        .in("accomplishment_reports.status", [
-          "approved",
-          "pending",
-          "rejected",
-        ]);
+        .in("weekly_reports.status", ["approved", "pending", "rejected"]);
 
       if (error) {
         logger.error(
           {
             ...ctx,
-            error,
+            supabaseError: {
+              code: error.code,
+              message: error.message,
+              hint: error.hint,
+              details: error.details,
+            },
           },
-          "Error fetching supervisor trainees"
+
+          `Supabase error while fetching trainee reports: ${error.message}`
         );
 
-        throw new Error(`Failed to fetch supervisor trainees`);
+        throw new Error(`Failed to fetch trainee reports`);
       }
 
       logger.info(
@@ -112,38 +105,16 @@ class GetTraineeReportsService {
       data.forEach((supervisor) => {
         const trainee = supervisor.trainee_batch_enrollment.trainees;
 
-        supervisor.attendance_reports.forEach((report) => {
+        supervisor.weekly_reports.forEach((report) => {
           result.push({
             trainee_id: trainee.id,
             first_name: trainee.users.first_name,
             middle_name: trainee.users.middle_name,
             last_name: trainee.users.last_name,
-            report_type: "attendance",
             report_id: report.id,
             start_date: report.start_date,
             end_date: report.end_date,
             total_hours: report.period_total?.toString() || "0",
-            submitted_at: report.submitted_at || "",
-            supervisor_approved_at: report.supervisor_approved_at,
-            status: report.status,
-          });
-        });
-      });
-
-      data.forEach((supervisor) => {
-        const trainee = supervisor.trainee_batch_enrollment.trainees;
-
-        supervisor.accomplishment_reports.forEach((report) => {
-          result.push({
-            trainee_id: trainee.id,
-            first_name: trainee.users.first_name,
-            middle_name: trainee.users.middle_name,
-            last_name: trainee.users.last_name,
-            report_type: "accomplishment",
-            report_id: report.id,
-            start_date: report.start_date,
-            end_date: report.end_date,
-            total_hours: report.total_hours?.toString() || "0",
             submitted_at: report.submitted_at || "",
             supervisor_approved_at: report.supervisor_approved_at,
             status: report.status,
@@ -197,8 +168,8 @@ class GetTraineeReportsService {
     logger.info(ctx, "Fetching trainee report by ID...");
 
     try {
-      const { data: attendanceData, error: attendanceError } = await client
-        .from("attendance_reports")
+      const { data: weeklyReportData, error: weeklyReportError } = await client
+        .from("weekly_reports")
         .select(
           `
             id,
@@ -227,166 +198,90 @@ class GetTraineeReportsService {
                 )
               )
             ),
-            attendance_entries (*)
-          `
+            weekly_report_entries(
+            *,
+            weekly_report_entry_files(
+              *
+            )
+          )
+        `
         )
         .eq("id", reportId)
         .eq("internship_details.supervisor_id", userId)
         .single();
 
-      if (attendanceData && !attendanceError) {
-        const trainee =
-          attendanceData.internship_details.trainee_batch_enrollment.trainees;
-
-        logger.info(
-          {
-            ...ctx,
-            reportType: "attendance",
-          },
-          "Successfully fetched attendance report by ID"
-        );
-
-        return {
-          trainee_id: trainee.id,
-          first_name: trainee.users.first_name,
-          middle_name: trainee.users.middle_name,
-          last_name: trainee.users.last_name,
-          email: trainee.users.email,
-          report_type: "attendance",
-          intern_code:
-            attendanceData.internship_details.trainee_batch_enrollment
-              .program_batch.internship_code,
-          report_id: attendanceData.id,
-          start_date: attendanceData.start_date,
-          end_date: attendanceData.end_date,
-          total_hours: attendanceData.period_total?.toString() || "0",
-          submitted_at: attendanceData.submitted_at || "",
-          supervisor_approved_at: attendanceData.supervisor_approved_at,
-          status: attendanceData.status,
-          entries: attendanceData.attendance_entries.map(
-            (entry: Tables<"attendance_entries">) => ({
-              id: entry.id,
-              entry_date: entry.entry_date,
-              time_in: entry.time_in,
-              time_out: entry.time_out,
-              report_id: entry.report_id,
-              total_hours: entry.total_hours,
-              status: entry.status,
-              is_confirmed: entry.is_confirmed,
-              created_at: entry.created_at,
-            })
-          ),
-          company_name: attendanceData.internship_details.company_name,
-          job_role: attendanceData.internship_details.job_role,
-        };
-      }
-
-      const { data: accomplishmentData, error: accomplishmentError } =
-        await client
-          .from("accomplishment_reports")
-          .select(
-            `
-            id,
-            start_date,
-            end_date,
-            total_hours,
-            submitted_at,
-            supervisor_approved_at,
-            status,
-            internship_details!inner (
-              supervisor_id,
-              company_name,
-              job_role,
-              trainee_batch_enrollment!inner (
-                program_batch!inner (
-                  internship_code
-                ),
-                trainee:trainee_id (
-                  id,
-                  user:users (
-                    first_name,
-                    middle_name,
-                    last_name,
-                    email
-                  )
-                )
-              )
-            ),
-            accomplishment_entries (*)
-          `
-          )
-          .eq("id", reportId)
-          .eq("internship_details.supervisor_id", userId)
-          .single();
-
-      if (accomplishmentData && !accomplishmentError) {
-        const trainee =
-          accomplishmentData.internship_details.trainee_batch_enrollment
-            .trainee;
-
-        logger.info(
-          {
-            ...ctx,
-            reportType: "activity",
-          },
-          "Successfully fetched activty report by ID"
-        );
-
-        return {
-          trainee_id: trainee.id,
-          first_name: trainee.user.first_name,
-          middle_name: trainee.user.middle_name,
-          last_name: trainee.user.last_name,
-          email: trainee.user.email,
-          report_type: "accomplishment",
-          intern_code:
-            accomplishmentData.internship_details.trainee_batch_enrollment
-              .program_batch.internship_code,
-          report_id: accomplishmentData.id,
-          start_date: accomplishmentData.start_date,
-          end_date: accomplishmentData.end_date,
-          total_hours: accomplishmentData.total_hours?.toString() || "0",
-          submitted_at: accomplishmentData.submitted_at || "",
-          supervisor_approved_at: accomplishmentData.supervisor_approved_at,
-          status: accomplishmentData.status,
-          entries: accomplishmentData.accomplishment_entries.map(
-            (entry: Tables<"accomplishment_entries">) => ({
-              created_at: entry.created_at,
-              daily_accomplishment: entry.daily_accomplishments,
-              entry_date: entry.entry_date,
-              id: entry.id,
-              is_confirmed: entry.is_confirmed,
-              no_of_working_hours: entry.no_of_working_hours,
-              report_id: entry.report_id,
-              status: entry.status,
-            })
-          ),
-          company_name: accomplishmentData.internship_details.company_name,
-          job_role: accomplishmentData.internship_details.job_role,
-        };
-      }
-
-      if (attendanceError && accomplishmentError) {
+      if (weeklyReportError) {
         logger.error(
           {
             ...ctx,
-            attendanceError,
-            accomplishmentError,
+            supabaseError: {
+              code: weeklyReportError.code,
+              message: weeklyReportError.message,
+              hint: weeklyReportError.hint,
+              details: weeklyReportError.details,
+            },
           },
-          "Error fetching trainee report by ID from both tables"
+
+          `Supabase error while fetching report by ID from weekly_reports table: ${weeklyReportError.message}`
         );
 
         throw new Error(`Failed to fetch trainee report by ID: ${reportId}`);
       }
 
-      logger.warn(
+      const trainee =
+        weeklyReportData.internship_details.trainee_batch_enrollment.trainees;
+
+      logger.info(
         {
           ...ctx,
+          reportType: "attendance",
         },
-        "Trainee report not found"
+        "Successfully fetched attendance report by ID"
       );
 
-      throw new Error(`Trainee report not found with ID: ${reportId}`);
+      return {
+        trainee_id: trainee.id,
+        first_name: trainee.users.first_name,
+        middle_name: trainee.users.middle_name,
+        last_name: trainee.users.last_name,
+        email: trainee.users.email,
+        intern_code:
+          weeklyReportData.internship_details.trainee_batch_enrollment
+            .program_batch.internship_code,
+        report_id: weeklyReportData.id,
+        start_date: weeklyReportData.start_date,
+        end_date: weeklyReportData.end_date,
+        total_hours: weeklyReportData.period_total?.toString() || "0",
+        submitted_at: weeklyReportData.submitted_at || "",
+        supervisor_approved_at: weeklyReportData.supervisor_approved_at,
+        status: weeklyReportData.status,
+        entries: weeklyReportData.weekly_report_entries.map((entry) => ({
+          id: entry.id,
+          created_at: entry.created_at,
+          entry_date: entry.entry_date,
+          time_in: entry.time_in,
+          time_out: entry.time_out,
+          daily_accomplishments: entry.daily_accomplishments,
+          total_hours: entry.total_hours,
+          status: entry.status,
+          is_confirmed: entry.is_confirmed,
+          report_id: entry.report_id,
+          additional_notes: entry.additional_notes,
+          feedback: entry.feedback,
+          files: entry.weekly_report_entry_files
+            .filter((file) => file.entry_id === entry.id)
+            .map((file) => ({
+              entry_id: file.entry_id,
+              file_name: file.file_name,
+              created_at: file.created_at,
+              file_path: file.file_path,
+              file_size: file.file_size,
+              file_type: file.file_type,
+            })),
+        })),
+        company_name: weeklyReportData.internship_details.company_name,
+        job_role: weeklyReportData.internship_details.job_role,
+      };
     } catch (error) {
       logger.error(
         {

@@ -55,6 +55,8 @@ class CreateUserService {
             first_name: userData.firstName,
             last_name: userData.lastName,
             middle_name: userData.middleName || null,
+            role: userData.role,
+            status: "inactive",
           },
         });
 
@@ -81,41 +83,8 @@ class CreateUserService {
 
       userId = authData.user.id;
 
-      // Step 2: Create the base user record
-      const userInsert: TablesInsert<"users"> = {
-        id: userId,
-        email: userData.email,
-        first_name: userData.firstName,
-        last_name: userData.lastName,
-        middle_name: userData.middleName || null,
-        role: userData.role,
-        status: "inactive",
-      };
-
-      const { error: userError } = await client
-        .from("users")
-        .insert(userInsert);
-
-      if (userError) {
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              code: userError.code,
-              message: userError.message,
-              hint: userError.hint,
-              details: userError.details,
-            },
-          },
-
-          `Supabase error while creating user record: ${userError.message}`
-        );
-
-        await adminClient.auth.admin.deleteUser(userId);
-        throw new Error(`Failed to create user record: ${userError.message}`);
-      }
-
-      // Step 3: Create role-specific records
+      // Step 2: Create role-specific records
+      // (The trigger has already created the base users record)
       await this.createRoleSpecificRecord(client, userId, userData);
 
       logger.info(ctx, "Account successfully created");

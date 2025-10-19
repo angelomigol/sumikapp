@@ -3,13 +3,16 @@ import {
   BookOpen,
   Building,
   CalendarClock,
+  CalendarDays,
   ClipboardCheck,
   ClipboardPen,
   FileBarChart,
   FileCheck2,
   FileText,
   GraduationCap,
+  Image,
   LayoutDashboard,
+  Logs,
   Megaphone,
   NotepadText,
   Settings,
@@ -54,20 +57,6 @@ export const sidebarRoutes = [
       },
 
       // Extend trainee routes if trainee status is 'active' or 'completed'
-      {
-        label: "Attendance Reports",
-        path: pathsConfig.app.attendance,
-        Icon: <CalendarClock className={iconClasses} />,
-        authorizedRoles: ["trainee"],
-        allowedOJTStatus: ["completed", "active"],
-      },
-      {
-        label: "Activity Reports",
-        path: pathsConfig.app.activity,
-        Icon: <ClipboardCheck className={iconClasses} />,
-        authorizedRoles: ["trainee"],
-        allowedOJTStatus: ["completed", "active"],
-      },
       {
         label: "Weekly Reports",
         path: pathsConfig.app.weeklyReports,
@@ -124,7 +113,19 @@ export const sidebarRoutes = [
         authorizedRoles: ["admin"],
       },
       // {
+      //   label: "Assets",
+      //   path: pathsConfig.app.partners,
+      //   Icon: <Image className={iconClasses} />,
+      //   authorizedRoles: ["admin"],
+      // },
+      // {
       //   label: "Events/Logs",
+      //   path: pathsConfig.app.logs,
+      //   Icon: <Logs className={iconClasses} />,
+      //   authorizedRoles: ["admin"],
+      // },
+      // {
+      //   label: "Settings",
       //   path: pathsConfig.app.logs,
       //   Icon: <Logs className={iconClasses} />,
       //   authorizedRoles: ["admin"],
@@ -170,6 +171,11 @@ export const createSectionRoutes = (slug: string) =>
           path: pathsConfig.dynamic.sectionReports(slug),
           Icon: <FileText className={iconClasses} />,
         },
+        {
+          label: "Event Calendar",
+          path: pathsConfig.dynamic.sectionCalendar(slug),
+          Icon: <CalendarDays className={iconClasses} />,
+        },
       ],
     },
     {
@@ -180,11 +186,11 @@ export const createSectionRoutes = (slug: string) =>
           path: pathsConfig.dynamic.sectionSettings(slug),
           Icon: <Settings className={iconClasses} />,
         },
-        {
-          label: "Members",
-          path: pathsConfig.dynamic.sectionMembers(slug),
-          Icon: <Users2 className={iconClasses} />,
-        },
+        // {
+        //   label: "Members",
+        //   path: pathsConfig.dynamic.sectionMembers(slug),
+        //   Icon: <Users2 className={iconClasses} />,
+        // },
       ],
     },
   ] satisfies z.infer<typeof NavigationConfigSchema>["routes"];
@@ -199,17 +205,17 @@ export const createSectionNavigation = (slug: string) =>
 export const settingsNavConfig = [
   {
     label: "Profile",
-    path: "/dashboard/settings",
+    path: pathsConfig.app.settings,
     authorizedRoles: ["trainee", "admin", "coordinator", "supervisor"],
   },
   {
     label: "Skills",
-    path: "/dashboard/settings/skills",
+    path: pathsConfig.app.skills,
     authorizedRoles: ["trainee"],
   },
   {
     label: "Internship Details",
-    path: "/dashboard/settings/internship-details",
+    path: pathsConfig.app.internshipDetails,
     authorizedRoles: ["trainee"],
   },
 ];

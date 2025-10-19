@@ -19,6 +19,7 @@ export function createInsertWeeklyReportEntryService() {
  */
 class InsertWeeklyReportEntryService {
   private namespace = "daily_entry.create";
+  private bucketName = "additional-attachments";
 
   /**
    * @name insertEntry
@@ -80,7 +81,7 @@ class InsertWeeklyReportEntryService {
           total_hours: data.total_hours,
           daily_accomplishments: data.daily_accomplishments,
           additional_notes: data.additional_notes,
-          status: "present",
+          status: data.status,
           is_confirmed: true,
           report_id: data.report_id,
         })
@@ -109,7 +110,7 @@ class InsertWeeklyReportEntryService {
 
       return {
         success: true,
-        data: entryData,
+        data: { id: entryData.id },
         message: "Successfully created weekly report entry",
       };
     } catch (error) {
@@ -123,5 +124,142 @@ class InsertWeeklyReportEntryService {
 
       throw error;
     }
+  }
+
+  /**
+   * @name uploadAttachments
+   * Upload attachments for the specific entry.
+   */
+  async uploadAttachments(params: {
+    server: SupabaseClient<Database>;
+    userId: string;
+    entryId: string;
+    reportId: string;
+    files: File[];
+  }) {
+    const logger = await getLogger();
+
+    const { userId, server, entryId, reportId, files } = params;
+    const ctx = {
+      name: "entry_files.upload",
+      userId,
+      entryId,
+      fileCount: files.length,
+    };
+
+    logger.info(ctx, `Processing ${files.length} file(s)...`);
+
+    for (const file of files) {
+      // Check if file is valid
+      if (!file || file.size === 0) {
+        logger.warn(
+          {
+            ...ctx,
+            fileName: file?.name || "unknown",
+          },
+
+          "Skipping invalid or empty file"
+        );
+        continue;
+      }
+
+      try {
+        const filePath = `${reportId}/${entryId}/${file.name}`;
+
+        logger.info(
+          {
+            ...ctx,
+            fileName: file.name,
+            fileSize: file.size,
+          },
+
+          "Uploading file to storage..."
+        );
+
+        // Upload to storage
+        const { data: uploadData, error: uploadError } = await server.storage
+          .from(this.bucketName)
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          logger.error(
+            {
+              ...ctx,
+              error: uploadError,
+              fileName: file.name,
+            },
+
+            "Failed to upload file to storage"
+          );
+          continue;
+        }
+
+        logger.info(
+          {
+            ...ctx,
+            fileName: file.name,
+            filePath: uploadData.path,
+          },
+
+          "File uploaded, saving metadata..."
+        );
+
+        // Save file metadata to database
+        const { error: fileDbError } = await server
+          .from("weekly_report_entry_files")
+          .insert({
+            entry_id: entryId,
+            file_name: file.name,
+            file_path: uploadData.path,
+            file_size: file.size,
+            file_type: file.type,
+          });
+
+        if (fileDbError) {
+          logger.error(
+            {
+              ...ctx,
+              error: fileDbError,
+              fileName: file.name,
+            },
+
+            "Failed to save file metadata"
+          );
+
+          // Cleanup: remove uploaded file
+          await server.storage.from(this.bucketName).remove([uploadData.path]);
+          continue;
+        }
+
+        logger.info(
+          {
+            ...ctx,
+            fileName: file.name,
+          },
+
+          "Successfully uploaded file"
+        );
+      } catch (error) {
+        logger.error(
+          {
+            ...ctx,
+            error,
+            fileName: file.name,
+          },
+
+          "Error processing file"
+        );
+      }
+    }
+
+    logger.info(ctx, "File upload process completed");
+
+    return {
+      success: true,
+      message: "Files uploaded successfully",
+    };
   }
 }

@@ -42,27 +42,18 @@ export type SectionTraineeFullDetails = {
     start_date: string;
     end_date: string;
   };
-  attendance_reports?: {
+  weekly_reports?: {
     id: string;
     created_at: string;
     start_date: string;
-    end_date: string;
+    end_date: string | null;
     period_total: number;
     status: DocumentStatus;
     submitted_at: string | null;
   }[];
-  accomplishment_reports?: {
-    id: string;
-    created_at: string;
-    start_date: string;
-    end_date: string;
-    total_hours: number;
-    status: DocumentStatus;
-    submitted_at: string | null;
-  }[];
   submitted_requirements?: RequirementWithHistory[];
-  evaluation_results?: {
-    prediction_label: string | null;
+  evaluation_results: {
+    prediction_label: string;
     prediction_probability: number | null;
     confidence_level: string | null;
     prediction_date: string | null;
@@ -70,7 +61,7 @@ export type SectionTraineeFullDetails = {
     feature_scores: Record<string, number> | null;
     recommendations: Record<string, number> | null;
     risk_factors: Record<string, number> | null;
-  };
+  } | null;
 };
 
 export const SECTION_TRAINEES_QUERY_KEY = (slug: string) =>

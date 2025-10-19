@@ -81,6 +81,8 @@ export default function RequirementsContainer() {
                     status: "not submitted",
                     allowed_file_types: [".pdf"],
                     max_file_size_bytes: 50 * 1024 * 1024,
+                    template_file_name: null,
+                    template_file_path: null,
                     history: [],
                   }
                 }
@@ -100,7 +102,7 @@ function MissingRequirementsAlert({
 }) {
   const x = missingCount;
   return (
-    <Alert variant="destructive" className="border-destructive">
+    <Alert variant={"destructive"} className="border-destructive">
       <AlertTriangle className="size-4" />
       <AlertTitle>Missing Requirements</AlertTitle>
       <AlertDescription>

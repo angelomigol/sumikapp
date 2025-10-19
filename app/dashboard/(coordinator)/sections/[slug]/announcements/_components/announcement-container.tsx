@@ -78,12 +78,14 @@ export default function AnnouncementContainer(params: { slug: string }) {
     return <NotFoundPage />;
   }
 
-  // const getExcerpt = (json: SerializedEditorState, length = 120) => {
-  //   const plain = JSON.stringify(json);
-  //   return plain.length <= length ? plain : plain.slice(0, length) + "...";
-  // };
+  const getTextFromHtml = (html: string) => {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
 
-  const getExcerpt = (text: string, length = 120) => {
+  const getExcerpt = (html: string, length = 120) => {
+    const text = getTextFromHtml(html);
     if (text.length <= length) return text;
     return text.slice(0, length) + "...";
   };
@@ -177,15 +179,17 @@ export default function AnnouncementContainer(params: { slug: string }) {
                             </Button>
                           </CardAction>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-sm">
+                        <CardContent className="max-h-[400px] overflow-y-auto">
+                          <div className="text-sm">
                             <If
                               condition={expanded[a.id]}
                               fallback={getExcerpt(a.content)}
                             >
-                              {a.content}
+                              <div
+                                dangerouslySetInnerHTML={{ __html: a.content }}
+                              />
                             </If>
-                          </p>
+                          </div>
                         </CardContent>
                         <CardFooter className="flex justify-end">
                           <If condition={a.content.length > 120}>

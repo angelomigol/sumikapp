@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/rich-text-editor";
 
@@ -143,7 +144,7 @@ export default function AddEditAnnouncementDialog({
           <DialogContent
             onInteractOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
-            className="w-full"
+            className="data-[state=open]:!zoom-in-100 data-[state=open]:slide-in-from-bottom-20 mb-8 flex min-w-[calc(50vw-2rem)] flex-col overflow-y-auto data-[state=open]:duration-600 lg:h-[calc(100vh-2rem)]"
           >
             <DialogHeader>
               <DialogTitle>
@@ -176,11 +177,7 @@ export default function AddEditAnnouncementDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        className="h-40 max-h-40 resize-none"
-                      />
-                      {/* <RichTextEditor {...field} /> */}
+                      <RichTextEditor {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -62,8 +62,7 @@ export default function RequirementsTabContent({
       </TableHeader>
       <TableBody>
         {requirements.map((requirement) => {
-          const statusConfig = getDocumentStatusConfig(requirement.status);
-          const StatusIcon = statusConfig.icon;
+          const status = getDocumentStatusConfig(requirement.status);
 
           return (
             <TableRow key={requirement.id}>
@@ -88,9 +87,12 @@ export default function RequirementsTabContent({
 
               <TableCell>
                 <div className="space-y-1">
-                  <div className="max-w-[200px] truncate text-sm font-medium">
+                  <span
+                    className="block max-w-[200px] truncate text-sm font-medium"
+                    title={requirement.file_name}
+                  >
                     {requirement.file_name}
-                  </div>
+                  </span>
                   <div className="text-muted-foreground flex items-center gap-2 text-xs">
                     <span className="uppercase">{requirement.file_type}</span>
                   </div>
@@ -98,9 +100,13 @@ export default function RequirementsTabContent({
               </TableCell>
 
               <TableCell>
-                <Badge className={`${statusConfig.badgeColor} capitalize`}>
-                  <StatusIcon className="size-3" />
-                  {statusConfig.label}
+                <Badge variant={"outline"} className="text-muted-foreground">
+                  {status.icon && (
+                    <status.icon
+                      className={`${status.label === "pending" ? "" : status.textColor}`}
+                    />
+                  )}
+                  {status.label}
                 </Badge>
               </TableCell>
 

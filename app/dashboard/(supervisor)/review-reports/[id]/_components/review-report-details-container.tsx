@@ -2,28 +2,21 @@
 
 import React from "react";
 
-import { Check, CircleAlert, X } from "lucide-react";
+import { CircleAlert, ShieldCheckIcon, ShieldXIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import pathsConfig from "@/config/paths.config";
 import {
-  AccomplishmentEntryData,
-  AttendanceEntryData,
   useApproveTraineeReport,
   useFetchTraineeReport,
   useRejectTraineeReport,
   useUpdateEntryStatus,
 } from "@/hooks/use-review-reports";
 
-import {
-  documentStatusMap,
-  EntryStatus,
-  entryStatusOptions,
-  internCodeMap,
-} from "@/lib/constants";
+import { documentStatusMap, EntryStatus, internCodeMap } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-import { safeFormatDate } from "@/utils/shared";
+import { formatHoursDisplay, safeFormatDate } from "@/utils/shared";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,42 +26,24 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import BackButton from "@/components/sumikapp/back-button";
 import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
 import NotFoundPage from "@/app/not-found";
 
-import { UpdateEntryStatusFormValues } from "../schema/update-entry-status.schema";
+import ReviewReportDailyEntries from "./review-report-daily-entries";
 
 export default function ReviewReportDetailsContainer(params: {
   reportId: string;
 }) {
   const reportData = useFetchTraineeReport(params.reportId);
-
-  console.log(reportData.data);
 
   const approveMutation = useApproveTraineeReport(params.reportId);
   const rejectMutation = useRejectTraineeReport(params.reportId);
@@ -98,18 +73,6 @@ export default function ReviewReportDetailsContainer(params: {
     (entry) => entry.status === null || entry.status === undefined
   );
 
-  const isAttendanceEntry = (
-    entry: AttendanceEntryData | AccomplishmentEntryData
-  ): entry is AttendanceEntryData => {
-    return reportData.data.report_type === "attendance";
-  };
-
-  const isAccomplishmentEntry = (
-    entry: AttendanceEntryData | AccomplishmentEntryData
-  ): entry is AccomplishmentEntryData => {
-    return reportData.data.report_type === "accomplishment";
-  };
-
   const handleApproveReport = () => {
     const promise = async () => {
       await approveMutation.mutateAsync(params.reportId);
@@ -117,7 +80,7 @@ export default function ReviewReportDetailsContainer(params: {
 
     toast.promise(promise, {
       loading: "Updating report...",
-      success: `${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} report successfully approved!`,
+      success: "Weekly report successfully approved!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -134,7 +97,7 @@ export default function ReviewReportDetailsContainer(params: {
 
     toast.promise(promise, {
       loading: "Updating report...",
-      success: `${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} report successfully rejected!`,
+      success: "Weekly report successfully rejected!",
       error: (err) => {
         if (err instanceof Error) {
           return err.message;
@@ -159,6 +122,8 @@ export default function ReviewReportDetailsContainer(params: {
     });
   };
 
+  const handleFeedbackChange = (entryId: string, feedback: string) => {};
+
   return (
     <>
       <If condition={approveMutation.isPending || rejectMutation.isPending}>
@@ -167,7 +132,7 @@ export default function ReviewReportDetailsContainer(params: {
 
       <div className="flex flex-row items-center gap-2">
         <BackButton
-          title={`Weekly ${reportData.data.report_type === "attendance" ? "Attendance" : "Activity"} Report`}
+          title={`Weekly Report`}
           link={pathsConfig.app.reviewReports}
         />
 
@@ -241,140 +206,45 @@ export default function ReviewReportDetailsContainer(params: {
             </Alert>
           </If>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                {reportData.data.report_type === "attendance" ? (
-                  <>
-                    <TableHead>Time-In</TableHead>
-                    <TableHead>Time-Out</TableHead>
-                  </>
-                ) : (
-                  <TableHead>Daily Accomplishments</TableHead>
-                )}
-                <TableHead>Total Hours</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reportData.data.entries.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell>
-                    {safeFormatDate(entry.entry_date, "PP")}
-                  </TableCell>
+          <ReviewReportDailyEntries
+            entries={reportData.data.entries}
+            reportStatus={reportData.data.status}
+            onStatusChange={handleUpdateStatus}
+            onFeedbackChange={handleFeedbackChange}
+          />
 
-                  {reportData.data.report_type === "attendance" ? (
-                    <>
-                      <TableCell>
-                        {isAttendanceEntry(entry) ? (
-                          <Input
-                            type="time"
-                            value={entry.time_in || ""}
-                            readOnly
-                            className="cursor-default"
-                          />
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {isAttendanceEntry(entry) ? (
-                          <Input
-                            type="time"
-                            value={entry.time_out || ""}
-                            readOnly
-                            className="cursor-default"
-                          />
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                    </>
-                  ) : (
-                    <TableCell>
-                      {isAccomplishmentEntry(entry) ? (
-                        <div className="max-w-md text-wrap">
-                          <p className="text-sm">
-                            {entry.daily_accomplishment ||
-                              "No accomplishments recorded"}
-                          </p>
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  )}
-
-                  <TableCell>
-                    <Input
-                      className="bg-muted w-fit"
-                      readOnly
-                      value={
-                        reportData.data.report_type === "attendance"
-                          ? isAttendanceEntry(entry)
-                            ? `${entry.total_hours} hrs`
-                            : "0 hrs"
-                          : isAccomplishmentEntry(entry)
-                            ? `${entry.no_of_working_hours} hrs`
-                            : "0 hrs"
-                      }
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <Select
-                      value={entry.status ?? ""}
-                      onValueChange={(value) =>
-                        handleUpdateStatus(
-                          entry.id,
-                          value as UpdateEntryStatusFormValues["status"]
-                        )
-                      }
-                      disabled={reportData.data.status !== "pending"}
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          "w-fit capitalize",
-                          reportData.data.status !== "pending" &&
-                            "cursor-not-allowed data-[disabled]:opacity-100"
-                        )}
-                      >
-                        {entry.status ?? ""}
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Status</SelectLabel>
-                          {entryStatusOptions.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          <div className="flex justify-end">
-            <div className="space-y-2">
-              <Label>Total Hours</Label>
-              <span className="font-medium">
-                {reportData.data.total_hours} hrs
-              </span>
+          <div className="bg-accent/50 rounded-lg border p-3 md:p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <p className="text-muted-foreground mb-0.5 text-xs">
+                  Total Hours Logged This Week
+                </p>
+                <p className="text-xl font-bold md:text-2xl">
+                  {formatHoursDisplay(Number(reportData.data.total_hours))}
+                </p>
+              </div>
+              <div className="flex-1 text-right">
+                <p className="text-muted-foreground mb-0.5 text-xs">
+                  Days Logged
+                </p>
+                <p className="text-xl font-bold md:text-2xl">
+                  {reportData.data.entries.filter((d) => d.is_confirmed).length}
+                  /{reportData.data.entries.length}
+                </p>
+              </div>
             </div>
           </div>
+        </CardContent>
 
+        <Separator />
+
+        <CardFooter className="justify-between">
           <If
             condition={reportData.data.status === "pending"}
             fallback={
               <>
                 {reportData.data.supervisor_approved_at && (
                   <>
-                    <Separator />
                     <div className="flex justify-end gap-2">
                       <Label>
                         You approved this report on{" "}
@@ -389,27 +259,23 @@ export default function ReviewReportDetailsContainer(params: {
               </>
             }
           >
-            <Separator />
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-                onClick={handleRejectReport}
-              >
-                <X className="size-4" />
-                Reject Report
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700"
-                onClick={handleApproveReport}
-                disabled={hasEntriesWithNullStatus}
-              >
-                <Check className="size-4" />
-                Approve Report
-              </Button>
-            </div>
+            <Button
+              className="bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40"
+              onClick={handleRejectReport}
+            >
+              Reject Report
+              <ShieldXIcon className="size-4" />
+            </Button>
+            <Button
+              className="bg-green-600/10 text-green-600 hover:bg-green-600/20 focus-visible:ring-green-600/20 dark:bg-green-400/10 dark:text-green-400 dark:hover:bg-green-400/20 dark:focus-visible:ring-green-400/40"
+              onClick={handleApproveReport}
+              disabled={hasEntriesWithNullStatus}
+            >
+              Approve Report
+              <ShieldCheckIcon className="size-4" />
+            </Button>
           </If>
-        </CardContent>
+        </CardFooter>
       </Card>
     </>
   );

@@ -34,6 +34,20 @@ export const deleteWeeklyReportSchema = z.object({
   id: z.uuid(),
 });
 
+export const entryUploadedFileSchema = z.object({
+  entry_id: z.uuid(),
+  file: z
+    .any()
+    .refine((file) => file == null || file instanceof File, {
+      error: "Invalid file type.",
+    })
+    .optional(),
+  file_name: z.string(),
+  file_size: z.number(),
+  file_type: z.string(),
+  file_path: z.string(),
+});
+
 export const insertDailyEntrySchema = z
   .object({
     report_id: z.uuid(),
@@ -44,33 +58,48 @@ export const insertDailyEntrySchema = z
     total_hours: z.number().min(0).max(24),
     is_confirmed: z.boolean().default(false),
     status: z.enum(EntryStatus).nullable(),
+    additional_notes: z
+      .string()
+      .max(1000, "Additional notes must not exceed 1000 characters")
+      .nullable(),
+    files: z.array(entryUploadedFileSchema).optional(),
   })
-  .refine(
-    (data) => {
-      if (data.time_in && data.time_out) {
-        const [inHours, inMinutes] = data.time_in.split(":").map(Number);
-        const [outHours, outMinutes] = data.time_out.split(":").map(Number);
+  .superRefine((data, ctx) => {
+    if (!data.time_in || !data.time_out) return;
 
-        const inTotalMinutes = inHours * 60 + inMinutes;
-        const outTotalMinutes = outHours * 60 + outMinutes;
+    const [inHours, inMinutes] = data.time_in.split(":").map(Number);
+    const [outHours, outMinutes] = data.time_out.split(":").map(Number);
 
-        const diffMinutes =
-          outTotalMinutes >= inTotalMinutes
-            ? outTotalMinutes - inTotalMinutes
-            : 24 * 60 - inTotalMinutes + outTotalMinutes;
+    const inTotalMinutes = inHours * 60 + inMinutes;
+    const outTotalMinutes = outHours * 60 + outMinutes;
 
-        return diffMinutes <= 16 * 60;
-      }
-      return true;
-    },
-    {
-      error: "Shift duration cannot exceed 16 hours",
-      path: ["time_out"],
+    // Check if time_out is after time_in (same day only)
+    if (outTotalMinutes <= inTotalMinutes) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Time out must be later than time in on the same day. Overnight shifts are not allowed.",
+        path: ["time_out"],
+      });
+      return;
     }
-  );
+
+    // Check shift duration (max 16 hours, same day)
+    const diffMinutes = outTotalMinutes - inTotalMinutes;
+    if (diffMinutes > 16 * 60) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Shift duration cannot exceed 16 hours",
+        path: ["time_out"],
+      });
+    }
+  });
 
 export type WeeklyReportFormValues = z.infer<typeof weeklyReportFormSchema>;
 export type DailyEntrySchema = z.infer<typeof insertDailyEntrySchema>;
+export type WeeklyReportEntryWithFiles = WeeklyReportEntry & {
+  files?: EntryUploadedFile[];
+};
 export type WeeklyReport = Tables<"weekly_reports"> & {
   internship_code: InternshipCode;
 };
@@ -79,4 +108,6 @@ export type NormalizedWeeklyReport = WeeklyReport & {
   company_name: string;
   lunch_break: number;
   weekly_report_entries: WeeklyReportEntry[];
+  file_attachments: EntryUploadedFile[];
 };
+export type EntryUploadedFile = z.infer<typeof entryUploadedFileSchema>;

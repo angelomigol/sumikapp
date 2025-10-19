@@ -9,7 +9,7 @@ import {
 
 import { DocumentStatus } from "@/lib/constants";
 
-import { BatchRequirementsWithCompliance } from "@/schemas/batch-requirements-with-compliance";
+import { BatchRequirementsWithCompliance } from "@/schemas/requirements-tracker/batch-requirements-with-compliance";
 
 import {
   approveDocumentAction,
@@ -124,6 +124,9 @@ export function useCreateCustomRequirement(slug: string) {
       JSON.stringify(payload.allowedFileTypes)
     );
     formData.append("maxFileSizeBytes", payload.maxFileSizeBytes.toString());
+    if (payload.template) {
+      formData.append("template", payload.template);
+    }
 
     const result = await createCustomRequirementAction(formData);
 
@@ -159,6 +162,9 @@ export function useUpdateCustomRequirement(slug: string) {
     );
     formData.append("maxFileSizeBytes", payload.maxFileSizeBytes.toString());
     formData.append("slug", payload.slug || slug);
+    if (payload.template) {
+      formData.append("template", payload.template);
+    }
 
     const result = await updateCustomRequirementAction(formData);
 

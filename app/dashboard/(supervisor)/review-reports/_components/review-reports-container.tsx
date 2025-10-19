@@ -27,8 +27,7 @@ export default function ReviewReportsContainer() {
       <div>
         <PageTitle text={"Review & Approve Reports"} />
         <p className="text-muted-foreground text-sm">
-          Review and approve weekly accomplishment and attendance reports
-          submitted by trainees
+          Review and approve weekly reports submitted by trainees
         </p>
       </div>
 

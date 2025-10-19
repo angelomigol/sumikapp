@@ -13,12 +13,12 @@ import ReviewReportDetailsContainer from "./_components/review-report-details-co
 export default async function ReviewReportDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string; slug: "attendance" | "accomplishment" }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { id, slug } = await params;
+  const { id } = await params;
   const queryClient = getQueryClient();
 
-  if (slug !== "attendance" && slug !== "accomplishment") {
+  if (!id) {
     return <NotFoundPage />;
   }
 

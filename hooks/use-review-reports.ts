@@ -9,14 +9,16 @@ import {
 
 import { DocumentStatus, EntryStatus } from "@/lib/constants";
 
-import { Database } from "@/utils/supabase/supabase.types";
+import {
+  WeeklyReportEntryWithFiles,
+} from "@/schemas/weekly-report/weekly-report.schema";
 
-import { UpdateEntryStatusFormValues } from "@/app/dashboard/(supervisor)/review-reports/[slug]/[id]/schema/update-entry-status.schema";
+import { UpdateEntryStatusFormValues } from "@/app/dashboard/(supervisor)/review-reports/[id]/schema/update-entry-status.schema";
 import {
   approveReportAction,
   rejectReportAction,
   updateEntryAction,
-} from "@/app/dashboard/(supervisor)/review-reports/[slug]/[id]/server/server-actions";
+} from "@/app/dashboard/(supervisor)/review-reports/[id]/server/server-actions";
 import {
   getTraineeReportByIdAction,
   getTraineeReportsAction,
@@ -37,10 +39,9 @@ export type ReviewReports = {
   first_name: string;
   middle_name: string | null;
   last_name: string;
-  report_type: "attendance" | "accomplishment";
   report_id: string;
   start_date: string;
-  end_date: string;
+  end_date: string | null;
   total_hours: string;
   submitted_at: string;
   status: DocumentStatus;
@@ -71,7 +72,7 @@ export type AccomplishmentEntryData = {
 };
 
 export type NormalizedReviewReport = ReviewReports & {
-  entries: AccomplishmentEntryData[] | AttendanceEntryData[];
+  entries: WeeklyReportEntryWithFiles[];
   email: string;
   supervisor_approved_at: string | null;
   intern_code: string;

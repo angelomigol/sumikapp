@@ -35,14 +35,21 @@ export default function CheckboxEntryDialog({
 
   if (isConfirmed) {
     return (
-      <Label className="flex items-center gap-2 text-green-700">
+      <div className="flex gap-2">
         <Checkbox
           checked={true}
           disabled
           className="data-[state=checked]:text-green-700"
         />
-        <span className="text-sm">Confirmed</span>
-      </Label>
+        <div className="grid gap-2">
+          <Label htmlFor="save-entry" className="leading-4">
+            Confirmed
+          </Label>
+          <p className="text-muted-foreground text-xs">
+            This entry is already confirmed. Changes cannot be made.
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -61,10 +68,10 @@ export default function CheckboxEntryDialog({
         <div className="flex gap-2">
           <Checkbox disabled={disabled} id="save-entry" checked={false} />
           <div className="grid gap-2">
-            <Label htmlFor={"save-entry"} className="leading-4">
+            <Label htmlFor="save-entry" className="leading-4">
               Confirm Entry
             </Label>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground w-3/4 text-xs">
               Clicking this checkbox means that you agree that the above
               information is correct.
             </p>

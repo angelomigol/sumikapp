@@ -3,14 +3,27 @@
 import { useState } from "react";
 
 import { formatDate } from "date-fns";
-import { ChevronUp, FileText, History, TriangleAlert } from "lucide-react";
+import {
+  ChevronUp,
+  Download,
+  FileText,
+  History,
+  TriangleAlert,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import { DocumentStatus, getDocumentStatusConfig } from "@/lib/constants";
 
 import { formatFileSize } from "@/utils/shared";
+import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { If } from "@/components/sumikapp/if";
 
 import FileOptions from "./file-options";
@@ -28,13 +41,15 @@ export default function RequirementItem({
   requirement: {
     id: string;
     requirement_name: string;
-    requirement_description?: string | null;
+    requirement_description: string | null;
     file_name?: string | null;
     file_size?: number | null;
     submitted_at?: string | null;
     status: DocumentStatus;
     allowed_file_types?: string[] | null;
     max_file_size_bytes?: number | null;
+    template_file_name?: string | null;
+    template_file_path?: string | null;
     history: {
       id: string;
       document_id: string;
@@ -45,11 +60,10 @@ export default function RequirementItem({
     }[];
   };
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const supabase = useSupabase();
+  const [open, setOpen] = useState(false);
 
   const historyItems = requirement.history ?? [];
-
-  // Get latest history
   const latest =
     historyItems.length > 0 ? historyItems[historyItems.length - 1] : null;
 
@@ -61,14 +75,48 @@ export default function RequirementItem({
   const maxSizeBytes =
     requirement.max_file_size_bytes || DEFAULT_FILE_CONSTRAINTS.maxSizeBytes;
 
+  const handleDownloadTemplate = async () => {
+    if (requirement.template_file_path) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("requirement-templates")
+          .download(requirement.template_file_path);
+
+        if (error) {
+          toast.error("Failed to download template.");
+          console.error("Error downloading template:", error);
+          return;
+        }
+
+        const url = URL.createObjectURL(data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = requirement.template_file_name || "template";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Failed to download template:", err);
+      }
+    }
+  };
+
   return (
-    <div className="border first:rounded-t-xl last:rounded-b-xl">
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="border first:rounded-t-xl last:rounded-b-xl"
+    >
       <div className="bg-muted/30 flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2">
           <div className="flex items-start gap-3 sm:items-center">
             <FileText className="size-5 shrink-0" />
             <div className="w-full min-w-0">
-              <h3 className="line-clamp-2 leading-tight font-medium capitalize sm:line-clamp-1">
+              <h3
+                className="line-clamp-2 block leading-tight font-medium capitalize sm:line-clamp-1"
+                title={title}
+              >
                 {title}
               </h3>
               <p className="text-muted-foreground line-clamp-2 text-sm sm:line-clamp-1">
@@ -86,9 +134,27 @@ export default function RequirementItem({
               {formatFileSize(maxSizeBytes)}
             </span>
           </p>
+
+          <If
+            condition={
+              requirement.template_file_path !== null &&
+              requirement.template_file_path !== undefined
+            }
+          >
+            <div className="pl-8">
+              <Button
+                variant={"outline"}
+                onClick={handleDownloadTemplate}
+                className="gap-2 px-2 text-xs has-[>svg]:px-2"
+              >
+                <Download className="size-4" />
+                Download Template
+              </Button>
+            </div>
+          </If>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+        <div className="flex items-center justify-between gap-2">
           <FileOptions
             id={requirement.id}
             requirement_name={requirement.requirement_name}
@@ -99,55 +165,63 @@ export default function RequirementItem({
           />
 
           <If condition={historyItems.length > 0}>
-            <Button
-              variant={"ghost"}
-              size={"sm"}
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              <ChevronUp
-                className={`scale-125 transition-transform duration-200 ${
-                  isExpanded ? "rotate-0" : "rotate-180"
-                }`}
-              />
-            </Button>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant={"ghost"}
+                size={"icon-sm"}
+                aria-label="Toggle collapsible"
+              >
+                <ChevronUp
+                  className={`scale-125 transition-transform duration-200 ${
+                    open ? "rotate-0" : "rotate-180"
+                  }`}
+                />
+              </Button>
+            </CollapsibleTrigger>
           </If>
         </div>
       </div>
 
-      <If condition={isExpanded && historyItems.length > 0}>
-        <div className="bg-muted/30 space-y-4 border-y p-4">
-          <p className="flex items-center gap-2 text-sm font-medium">
-            <History className="size-4" />
-            Submission History
-          </p>
-          <div className="space-y-3">
-            {historyItems.map((item) => {
-              const config = getDocumentStatusConfig(item.document_status);
-              return (
-                <div
-                  key={item.id}
-                  className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4"
-                >
-                  <div className="text-muted-foreground shrink-0 text-xs sm:text-sm">
-                    {formatDate(item.date, "PPpp")}
+      <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down flex flex-col gap-2 overflow-hidden transition-all duration-300">
+        <If condition={historyItems.length > 0}>
+          <div className="bg-muted/30 space-y-4 border-y p-4">
+            <p className="flex items-center gap-2 text-sm font-medium">
+              <History className="size-4" />
+              Submission History
+            </p>
+            <div className="space-y-3">
+              {historyItems.map((item) => {
+                const config = getDocumentStatusConfig(item.document_status);
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4"
+                  >
+                    <div className="text-muted-foreground shrink-0 text-xs sm:text-sm">
+                      {formatDate(item.date, "PPpp")}
+                    </div>
+                    <div className="flex flex-col">
+                      <Badge className={config.badgeColor}>
+                        <config.icon />
+                        {config.label}
+                      </Badge>
+                      <p className="mt-1 text-sm">{item.description}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <Badge className={`${config.badgeColor}`}>
-                      <config.icon />
-                      {config.label}
-                    </Badge>
-                    <p className="mt-1 text-sm">{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </If>
+        </If>
+      </CollapsibleContent>
 
       <div className="flex flex-col items-start justify-between gap-2 px-4 py-3 sm:flex-row sm:items-center">
         <div
-          className={`flex items-center gap-1.5 ${requirement.status === "not submitted" ? "text-destructive" : TextColor}`}
+          className={`flex items-center gap-1.5 ${
+            requirement.status === "not submitted"
+              ? "text-destructive"
+              : TextColor
+          }`}
         >
           <If
             condition={requirement.status === "not submitted"}
@@ -168,6 +242,6 @@ export default function RequirementItem({
           </div>
         </If>
       </div>
-    </div>
+    </Collapsible>
   );
 }

@@ -9,17 +9,24 @@ import { formatTimestamp } from "@/utils/shared";
 
 import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
+import { If } from "../sumikapp/if";
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
+import RefreshButton from "../sumikapp/refresh-button";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import DashboardStatsCard from "./dashboard-stats-card";
 
 export default function SupervisorDashboard() {
-  const supervisor = useFetchSupervisorDashboard();
+  const {
+    data: supervisor,
+    isLoading,
+    refetch,
+    isFetching,
+  } = useFetchSupervisorDashboard();
 
-  if (!supervisor.data || supervisor.isLoading) {
+  if (!supervisor || isLoading) {
     return <LoadingOverlay fullPage />;
   }
 
@@ -28,12 +35,10 @@ export default function SupervisorDashboard() {
       name: "Total Trainees",
       icon: Users2,
       data: {
-        main: supervisor.isLoading
+        main: isLoading ? "..." : `${supervisor.totalActiveTrainees || 0}`,
+        sub: isLoading
           ? "..."
-          : `${supervisor.data.totalActiveTrainees || 0}`,
-        sub: supervisor.isLoading
-          ? "..."
-          : `${supervisor.data.completedTrainees} Completed, ${supervisor.data.currentlyActiveTrainees} Ongoing`,
+          : `${supervisor.completedTrainees} Completed, ${supervisor.currentlyActiveTrainees} Ongoing`,
       },
 
       tooltip: "Trainees currently under your supervision",
@@ -42,9 +47,9 @@ export default function SupervisorDashboard() {
       name: "Pending Reports",
       icon: FileClock,
       data: {
-        main: supervisor.isLoading
+        main: isLoading
           ? "..."
-          : `${(supervisor.data.pendingAccomplishmentReports || 0) + (supervisor.data.pendingAttendanceReports || 0)}`,
+          : `${(supervisor.pendingAccomplishmentReports || 0) + (supervisor.pendingAttendanceReports || 0)}`,
       },
       tooltip:
         "Number of weekly reports submitted by trainees that are waiting for your review",
@@ -53,9 +58,7 @@ export default function SupervisorDashboard() {
       name: "Pending Evaluations",
       icon: FileEdit,
       data: {
-        main: supervisor.isLoading
-          ? "..."
-          : `${supervisor.data.pendingEvaluationsCount}`,
+        main: isLoading ? "..." : `${supervisor.pendingEvaluationsCount}`,
       },
       tooltip:
         "Trainees needing your evaluation at the end of their OJT period",
@@ -64,7 +67,11 @@ export default function SupervisorDashboard() {
 
   return (
     <>
-      <PageTitle text={"Dashboard"} />
+      <div className="flex items-start justify-between gap-2">
+        <PageTitle text={"Dashboard"} />
+
+        <RefreshButton refetch={refetch} isFetching={isFetching} />
+      </div>
 
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">
         {dashboard.map((card, index) => (
@@ -89,14 +96,17 @@ export default function SupervisorDashboard() {
           <CardContent className="flex h-80 max-h-80 flex-col gap-4 px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-6">
-                {supervisor.data.recentActivities.length === 0 ? (
-                  <div className="flex h-80 items-center justify-center">
-                    <p className="text-muted-foreground text-sm">
-                      No recent activities
-                    </p>
-                  </div>
-                ) : (
-                  supervisor.data.recentActivities.map((activity, index) => (
+                <If
+                  condition={supervisor.recentActivities.length > 0}
+                  fallback={
+                    <div className="flex h-80 items-center justify-center">
+                      <p className="text-muted-foreground text-sm">
+                        No recent activities
+                      </p>
+                    </div>
+                  }
+                >
+                  {supervisor.recentActivities.map((activity, index) => (
                     <div
                       key={`${activity.id}-${index}`}
                       className="flex items-start space-x-4 px-6"
@@ -129,8 +139,8 @@ export default function SupervisorDashboard() {
                         </div>
                       </div>
                     </div>
-                  ))
-                )}
+                  ))}
+                </If>
               </div>
             </ScrollArea>
           </CardContent>
@@ -146,14 +156,17 @@ export default function SupervisorDashboard() {
           <CardContent className="flex h-80 max-h-80 flex-col gap-4 px-0">
             <ScrollArea className="flex flex-col overflow-hidden">
               <div className="space-y-6">
-                {supervisor.data.traineesPendingEvaluation.length === 0 ? (
-                  <div className="flex h-80 items-center justify-center">
-                    <p className="text-muted-foreground text-sm">
-                      No upcoming evaluations
-                    </p>
-                  </div>
-                ) : (
-                  supervisor.data.traineesPendingEvaluation.map(
+                <If
+                  condition={supervisor.traineesPendingEvaluation.length > 0}
+                  fallback={
+                    <div className="flex h-80 items-center justify-center">
+                      <p className="text-muted-foreground text-sm">
+                        No upcoming evaluations
+                      </p>
+                    </div>
+                  }
+                >
+                  {supervisor.traineesPendingEvaluation.map(
                     (trainee, index) => (
                       <div
                         key={`${trainee.trainee_id}-${index}`}
@@ -176,8 +189,8 @@ export default function SupervisorDashboard() {
                         </div>
                       </div>
                     )
-                  )
-                )}
+                  )}
+                </If>
               </div>
             </ScrollArea>
           </CardContent>

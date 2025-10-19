@@ -11,7 +11,7 @@ import MenuBar from "./menu-bar";
 
 interface RichTextEditorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -54,8 +54,10 @@ export default function RichTextEditor({
     },
     content: value,
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onChange(html);
+      if (!disabled && onChange) {
+        const html = editor.getHTML();
+        onChange(html);
+      }
     },
   });
 
@@ -73,7 +75,7 @@ export default function RichTextEditor({
 
   return (
     <div className="border-border bg-card overflow-hidden rounded-lg border shadow-sm">
-      <MenuBar editor={editor} disabled={disabled} />
+      {!disabled && <MenuBar editor={editor} disabled={disabled} />}
       <EditorContent editor={editor} />
     </div>
   );

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { If } from "@/components/sumikapp/if";
 
 import { Button } from "../ui/button";
-import { MagicLinkAuthContainer } from "./magic-link-auth-container";
+import { OtpCodeAuthContainer } from "./otp-code-auth-container";
 import { PasswordSignInContainer } from "./password-sign-in-container";
 
 export function SignInMethodsContainer(props: {
@@ -41,7 +41,7 @@ export function SignInMethodsContainer(props: {
   return (
     <>
       <If condition={activeMethod === "magicLink" && props.providers.magicLink}>
-        <MagicLinkAuthContainer
+        <OtpCodeAuthContainer
           redirectUrl={redirectUrl}
           shouldCreateUser={false}
         />
@@ -73,7 +73,7 @@ export function SignInMethodsContainer(props: {
               onClick={() => setActiveMethod("magicLink")}
               className="text-white"
             >
-              Send me a magic link instead
+              Send me an OTP code instead
             </Button>
           </If>
         </div>

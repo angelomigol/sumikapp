@@ -55,7 +55,12 @@ export const evaluationColumns: ColumnDef<SupervisorTraineesForEvaluationTable>[
           trainee.middle_name ? trainee.middle_name + " " : ""
         }`;
         return (
-          <span className="max-w-20 truncate lg:max-w-32">{fullName}</span>
+          <span
+            className="block max-w-20 truncate lg:max-w-32"
+            title={fullName}
+          >
+            {fullName}
+          </span>
         );
       },
       enableHiding: false,
@@ -67,7 +72,11 @@ export const evaluationColumns: ColumnDef<SupervisorTraineesForEvaluationTable>[
       ),
       cell: ({ row }) => {
         const email = row.original.email;
-        return <span className="max-w-20 truncate lg:max-w-32">{email}</span>;
+        return (
+          <span className="block max-w-20 truncate lg:max-w-32" title={email}>
+            {email}
+          </span>
+        );
       },
     },
     {
@@ -77,7 +86,14 @@ export const evaluationColumns: ColumnDef<SupervisorTraineesForEvaluationTable>[
       ),
       cell: ({ row }) => {
         const course = row.original.course;
-        return <span className="max-w-20 truncate lg:max-w-32">{course}</span>;
+        return (
+          <span
+            className="block max-w-20 truncate lg:max-w-32"
+            title={course ?? undefined}
+          >
+            {course}
+          </span>
+        );
       },
     },
     {

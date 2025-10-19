@@ -28,7 +28,7 @@ export default function WeeklyReportsContainer() {
       <div className="flex items-center justify-between">
         <div>
           <PageTitle text={"Weekly Reports"} />
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-[10px] text-balance md:text-sm">
             View and track your weekly work hours, accomplishments, and receive
             supervisor feedback
           </p>

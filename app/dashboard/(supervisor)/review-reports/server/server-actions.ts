@@ -22,11 +22,11 @@ export const getTraineeReportsAction = enhanceAction(async (_, user) => {
   logger.info(ctx, "Fetching trainee reports");
 
   try {
-    const client = getSupabaseServerClient();
+    const server = getSupabaseServerClient();
     const service = createGetTraineeReportsService();
 
     const result = await service.getTraineeReports({
-      client,
+      server,
       userId: user.id,
     });
 

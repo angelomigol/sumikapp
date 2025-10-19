@@ -1,0 +1,313 @@
+"use client";
+
+import React, { useState } from "react";
+
+import { IconDownload, IconExternalLink } from "@tabler/icons-react";
+import { format } from "date-fns";
+import {
+  FileIcon,
+  FileSpreadsheetIcon,
+  FileTextIcon,
+  ImageIcon,
+} from "lucide-react";
+import * as motion from "motion/react-client";
+
+import {
+  EntryStatus,
+  entryStatusOptions,
+  getEntryStatusConfig,
+} from "@/lib/constants";
+
+import { formatFileSize, formatHoursDisplay } from "@/utils/shared";
+
+import {
+  WeeklyReportEntryWithFiles,
+} from "@/schemas/weekly-report/weekly-report.schema";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import RichTextEditor from "@/components/rich-text-editor";
+import { If } from "@/components/sumikapp/if";
+
+interface ReviewReportDailyEntriesProps {
+  entries: WeeklyReportEntryWithFiles[];
+  reportStatus: string;
+  onStatusChange?: (entryId: string, status: EntryStatus) => void;
+  onFeedbackChange?: (entryId: string, feedback: string) => void;
+}
+export default function ReviewReportDailyEntries({
+  entries,
+  reportStatus,
+  onStatusChange,
+  onFeedbackChange,
+}: ReviewReportDailyEntriesProps) {
+  const [activeTab, setActiveTab] = useState("0");
+
+  const canEditStatus = reportStatus === "pending";
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith("image/")) return <ImageIcon className="size-4" />;
+    if (fileType.includes("pdf")) return <FileTextIcon className="size-4" />;
+    if (fileType.includes("spreadsheet") || fileType.includes("excel"))
+      return <FileSpreadsheetIcon className="size-4" />;
+    return <FileIcon className="size-4" />;
+  };
+
+  return (
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="grid h-auto w-full grid-cols-7 gap-0.5 p-1 md:gap-1">
+        {entries.map((entry, index) => {
+          const dayDate = new Date(entry.entry_date);
+          const dayInitial = dayDate
+            .toLocaleDateString("en-PH", { weekday: "short" })
+            .slice(0, 1);
+          const dayShort = new Date(entry.entry_date).toLocaleDateString(
+            "en-PH",
+            {
+              weekday: "short",
+            }
+          );
+
+          return (
+            <TabsTrigger
+              key={entry.entry_date}
+              value={index.toString()}
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex min-h-[3rem] flex-col gap-0.5 px-1 py-2 md:min-h-[3.5rem] md:gap-1 md:px-2 md:py-2.5"
+            >
+              <span className="text-sm font-medium md:hidden md:text-xs">
+                {dayInitial}
+              </span>
+              <span className="hidden text-sm md:inline md:text-xs">
+                {dayShort}
+              </span>
+              <span className="text-sm opacity-70 md:text-xs">
+                {String(dayDate.getDate()).padStart(2, "0")}
+              </span>
+              {entry.status !== null && (
+                <div className="size-1 rounded-full bg-green-500 md:size-1.5" />
+              )}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+
+      {entries.map((entry, index) => (
+        <TabsContent
+          key={entry.entry_date}
+          value={index.toString()}
+          className="mt-3 space-y-6 md:space-y-8"
+        >
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">
+                  {format(entry.entry_date, "PPPP")}
+                </span>
+                {entry.status === "absent" && (
+                  <Badge
+                    className={`px-1.5 py-px ${getEntryStatusConfig("absent").badgeColor}`}
+                  >
+                    Absent
+                  </Badge>
+                )}
+                {entry.status === "holiday" && (
+                  <Badge
+                    className={`px-1.5 py-px ${getEntryStatusConfig("holiday").badgeColor}`}
+                  >
+                    Holiday
+                  </Badge>
+                )}
+              </div>
+
+              <If condition={canEditStatus && onStatusChange}>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Status:</Label>
+                  <Select
+                    value={entry.status || undefined}
+                    onValueChange={(value) =>
+                      onStatusChange?.(entry.id, value as EntryStatus)
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {entryStatusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </If>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
+                <div className="space-y-2">
+                  <Label>Time In</Label>
+                  <Input
+                    type="time"
+                    value={entry.time_in || ""}
+                    readOnly
+                    className="cursor-default"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Time Out</Label>
+                  <Input
+                    type="time"
+                    value={entry.time_out || ""}
+                    readOnly
+                    className="cursor-default"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Working Hours</Label>
+                  <Input
+                    readOnly
+                    value={formatHoursDisplay(entry.total_hours)}
+                    className="cursor-default"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Label>Daily Accomplishments</Label>
+                </div>
+                <RichTextEditor
+                  value={entry.daily_accomplishments || ""}
+                  disabled
+                />
+              </div>
+
+              <If condition={entry.additional_notes}>
+                <div className="space-y-2">
+                  <Label>Additional Notes</Label>
+                  <Textarea
+                    readOnly
+                    value={entry.additional_notes ?? ""}
+                    className="cursor-default resize-none"
+                  />
+                </div>
+              </If>
+
+              <If condition={entry.files && entry.files.length > 0}>
+                <div className="space-y-3">
+                  <Label>Attachments</Label>
+
+                  <div className="space-y-2">
+                    {entry.files?.map((file) => (
+                      <div
+                        key={`${file.entry_id}-${file.file_name}`}
+                        className="hover:bg-accent/50 flex items-center gap-3 rounded-lg border p-3 transition-colors"
+                      >
+                        <div className="flex-shrink-0">
+                          <div className="bg-muted flex size-10 items-center justify-center rounded">
+                            {getFileIcon(file.file_type)}
+                          </div>
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <p className="truncate text-sm font-medium">
+                                {file.file_name}
+                              </p>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{file.file_name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <p className="text-muted-foreground text-xs">
+                            {formatFileSize(file.file_size)}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            variant={"outline"}
+                            size={"icon-sm"}
+                            // onClick={}
+                            asChild
+                          >
+                            <motion.button whileTap={{ scale: 0.85 }}>
+                              <a
+                                href="#"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <IconExternalLink className="size-4" />
+                                <span className="sr-only">View</span>
+                              </a>
+                            </motion.button>
+                          </Button>
+
+                          <Button
+                            variant={"outline"}
+                            size={"icon-sm"}
+                            // onClick={}
+                            asChild
+                          >
+                            <motion.button whileTap={{ scale: 0.85 }}>
+                              <IconDownload className="size-4" />
+                              <span className="sr-only">Download</span>
+                            </motion.button>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </If>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-1">
+                  <Label htmlFor="feedback">Your Feedback</Label>
+
+                  <span className="text-muted-foreground text-xs">
+                    Optional field
+                  </span>
+                </div>
+                <Textarea
+                  id="feedback"
+                  placeholder="Type your feedback here..."
+                  maxLength={200}
+                  className="field-sizing-content max-h-30 min-h-20 resize-none py-1.75"
+                />
+                <div className="flex justify-between gap-1">
+                  <p className="text-muted-foreground text-xs">
+                    <span className="tabular-nums">{200 - 0}</span> characters
+                    left
+                  </p>
+                  <Button size={"sm"}>Submit Feedback</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+}

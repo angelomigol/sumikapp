@@ -1,39 +1,65 @@
 import type { SignInWithPasswordlessCredentials } from "@supabase/supabase-js";
-
 import { useMutation } from "@tanstack/react-query";
 
 import { useSupabase } from "./use-supabase";
 
 /**
  * @name useSignInWithOtp
- * @description Use Supabase to sign in a user with an OTP in a React component
+ * @description Handles both sending and verifying OTP authentication via Supabase.
  */
 export function useSignInWithOtp() {
   const client = useSupabase();
-  const mutationKey = ["auth", "sign-in-with-otp"];
 
-  const mutationFn = async (credentials: SignInWithPasswordlessCredentials) => {
-    const result = await client.auth.signInWithOtp(credentials);
+  const mutationKey = ["auth", "otp"];
 
-    if (result.error) {
-      if (shouldIgnoreError(result.error.message)) {
-        console.warn(
-          `Ignoring error during development: ${result.error.message}`
-        );
+  const mutationFn = async (params: {
+    action: "send" | "verify";
+    email: string;
+    otp?: string;
+    options?: SignInWithPasswordlessCredentials["options"];
+  }) => {
+    const { action, email, otp, options } = params;
 
-        return {} as never;
-      }
+    if (action === "send") {
+      // Step 1: Send OTP email
+      const result = await client.auth.signInWithOtp({
+        email,
+        options,
+      });
 
-      throw result.error.message;
+      if (result.error) handleSupabaseError(result.error.message);
+      return { status: "sent", data: result.data };
     }
 
-    return result.data;
+    if (action === "verify") {
+      // Step 2: Verify OTP code
+      if (!otp) throw new Error("Missing OTP code");
+
+      const result = await client.auth.verifyOtp({
+        email,
+        token: otp,
+        type: "email",
+      });
+
+      if (result.error) handleSupabaseError(result.error.message);
+      return { status: "verified", data: result.data };
+    }
+
+    throw new Error("Invalid OTP action");
   };
 
   return useMutation({
     mutationFn,
     mutationKey,
   });
+}
+
+function handleSupabaseError(errorMsg: string): never {
+  if (shouldIgnoreError(errorMsg)) {
+    console.warn(`Ignoring error during development: ${errorMsg}`);
+    return {} as never;
+  }
+  throw new Error(errorMsg);
 }
 
 function shouldIgnoreError(error: string) {

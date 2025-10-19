@@ -14,7 +14,10 @@ import {
   WeeklyReportFormValues,
 } from "@/schemas/weekly-report/weekly-report.schema";
 
-import { insertWeeklyReportEntryAction, submitWeeklyReportAction } from "@/app/dashboard/(trainee)/weekly-reports/[id]/server/server-actions";
+import {
+  insertWeeklyReportEntryAction,
+  submitWeeklyReportAction,
+} from "@/app/dashboard/(trainee)/weekly-reports/[id]/server/server-actions";
 import {
   createWeeklyReportAction,
   getWeeklyReportByIdAction,
@@ -24,10 +27,13 @@ import {
 export const WEEKLY_REPORTS_QUERY_KEYS = {
   all: ["supabase:weekly_reports"] as const,
   detail: (id: string) => ["supabase:weekly_report", id] as const,
+  entryFiles: (entryId: string) => ["supabase:entry_files", entryId] as const,
   mutations: {
     create: ["create_weekly_report"] as const,
     insertEntry: ["insert_weekly_report_entry"] as const,
     submit: ["submit_weekly_report"] as const,
+    uploadFiles: ["upload_entry_files"] as const,
+    deleteFile: ["delete_entry_file"] as const,
   },
 };
 

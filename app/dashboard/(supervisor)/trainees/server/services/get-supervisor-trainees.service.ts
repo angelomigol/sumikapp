@@ -49,10 +49,10 @@ class GetSupervisorTraineesService {
         .from("internship_details")
         .select(
           `
-          attendance_reports (
+          weekly_reports (
             period_total,
             status,
-            attendance_entries (
+            weekly_report_entries (
               status,
               total_hours
             )
@@ -101,9 +101,9 @@ class GetSupervisorTraineesService {
       const result = data.map((supervisor) => {
         const trainee = supervisor.trainee_batch_enrollment.trainee;
 
-        const hours_logged = supervisor.attendance_reports
+        const hours_logged = supervisor.weekly_reports
           .filter((r) => r.status === "approved")
-          .flatMap((r) => r.attendance_entries || [])
+          .flatMap((r) => r.weekly_report_entries || [])
           .filter(
             (entry) => entry.status === "present" || entry.status === "late"
           )
@@ -166,27 +166,18 @@ class GetSupervisorTraineesService {
           company_name,
           start_date,
           end_date,
-          attendance_reports (
+          lunch_break_in_mins,
+          weekly_reports (
             id,
             created_at,
             start_date,
             end_date,
             period_total,
-            previous_total,
-            total_hours_served,
             status,
             submitted_at,
-            attendance_entries (*)
-          ),
-          accomplishment_reports (
-            id,
-            created_at,
-            start_date,
-            end_date,
-            total_hours,
-            status,
-            submitted_at,
-            accomplishment_entries (*)
+            internship_id,
+            supervisor_approved_at,
+            weekly_report_entries (*)
           ),
           trainee_batch_enrollment!inner (
             ojt_status,
@@ -247,9 +238,9 @@ class GetSupervisorTraineesService {
 
       const trainee = data.trainee_batch_enrollment.trainees;
 
-      const hours_logged = data.attendance_reports
+      const hours_logged = data.weekly_reports
         .filter((r) => r.status === "approved")
-        .flatMap((r) => r.attendance_entries || [])
+        .flatMap((r) => r.weekly_report_entries || [])
         .filter(
           (entry) => entry.status === "present" || entry.status === "late"
         )
@@ -279,27 +270,16 @@ class GetSupervisorTraineesService {
           start_date: data.trainee_batch_enrollment.program_batch.start_date,
           end_date: data.trainee_batch_enrollment.program_batch.end_date,
         },
-        attendance_reports: data.attendance_reports.map((report) => ({
+        weekly_reports: data.weekly_reports.map((report) => ({
           id: report.id,
           created_at: report.created_at,
           start_date: report.start_date,
           end_date: report.end_date,
           period_total: report.period_total,
-          previous_total: report.previous_total,
-          total_hours_served: report.total_hours_served,
           status: report.status,
           submitted_at: report.submitted_at,
-          attendance_entries: report.attendance_entries,
-        })),
-        accomplishment_reports: data.accomplishment_reports.map((report) => ({
-          id: report.id,
-          created_at: report.created_at,
-          start_date: report.start_date,
-          end_date: report.end_date,
-          total_hours: report.total_hours,
-          status: report.status,
-          submitted_at: report.submitted_at,
-          accomplishment_entries: report.accomplishment_entries,
+          internship_id: report.internship_id,
+          supervisor_approved_at: report.supervisor_approved_at,
         })),
       };
     } catch (error) {

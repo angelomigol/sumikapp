@@ -42,14 +42,14 @@ class UpdateTraineeReportService {
 
     try {
       const { data: attData, error: attError } = await client
-        .from("attendance_reports")
+        .from("weekly_reports")
         .select("id")
         .eq("id", reportId)
         .single();
 
       if (attData && !attError) {
         const { error } = await client
-          .from("attendance_reports")
+          .from("weekly_reports")
           .update({
             status: "approved",
             supervisor_approved_at: new Date().toISOString(),
@@ -59,9 +59,8 @@ class UpdateTraineeReportService {
         logger.info(
           {
             ...ctx,
-            reportType: "attendance",
           },
-          "Successfully approved attendance report"
+          "Successfully approved weekly report"
         );
 
         if (error) {
@@ -78,47 +77,7 @@ class UpdateTraineeReportService {
 
         return {
           sucess: true,
-          message: "Attendance report successfully approved",
-        };
-      }
-
-      const { data: actData, error: actError } = await client
-        .from("accomplishment_reports")
-        .select("id")
-        .eq("id", reportId);
-
-      if (actData && !actError) {
-        const { error } = await client
-          .from("accomplishment_reports")
-          .update({
-            status: "approved",
-            supervisor_approved_at: new Date().toISOString(),
-          })
-          .eq("id", reportId);
-
-        logger.info(
-          {
-            ...ctx,
-            reportType: "activity",
-          },
-          "Successfully approved attendance report"
-        );
-
-        if (error) {
-          logger.error(
-            {
-              ...ctx,
-              error,
-            },
-            "Error updating trainee report status"
-          );
-
-          throw new Error("Failed to approve activity report");
-        }
-
-        return {
-          sucess: true,
-          message: "Activity report successfully approved",
+          message: "Weekly report successfully approved",
         };
       }
     } catch (error) {
@@ -156,14 +115,14 @@ class UpdateTraineeReportService {
 
     try {
       const { data: attData, error: attError } = await client
-        .from("attendance_reports")
+        .from("weekly_reports")
         .select("id")
         .eq("id", reportId)
         .single();
 
       if (attData && !attError) {
         const { error } = await client
-          .from("attendance_reports")
+          .from("weekly_reports")
           .update({
             status: "rejected",
           })
@@ -172,9 +131,8 @@ class UpdateTraineeReportService {
         logger.info(
           {
             ...ctx,
-            reportType: "attendance",
           },
-          "Successfully rejected attendance report"
+          "Successfully rejected weekly report"
         );
 
         if (error) {
@@ -186,51 +144,12 @@ class UpdateTraineeReportService {
             "Error updating trainee report status"
           );
 
-          throw new Error("Failed to reject attendance report ");
+          throw new Error("Failed to reject weekly report ");
         }
 
         return {
           sucess: true,
-          message: "Attendance report successfully rejected",
-        };
-      }
-
-      const { data: actData, error: actError } = await client
-        .from("accomplishment_reports")
-        .select("*")
-        .eq("id", reportId);
-
-      if (actData && !actError) {
-        const { error } = await client
-          .from("accomplishment_reports")
-          .update({
-            status: "rejected",
-          })
-          .eq("id", reportId);
-
-        logger.info(
-          {
-            ...ctx,
-            reportType: "activity",
-          },
-          "Successfully reject attendance report"
-        );
-
-        if (error) {
-          logger.error(
-            {
-              ...ctx,
-              error,
-            },
-            "Error updating trainee report status"
-          );
-
-          throw new Error("Failed to reject activity report ");
-        }
-
-        return {
-          sucess: true,
-          message: "Activity report successfully rejected",
+          message: "Weekly report successfully rejected",
         };
       }
     } catch (error) {
