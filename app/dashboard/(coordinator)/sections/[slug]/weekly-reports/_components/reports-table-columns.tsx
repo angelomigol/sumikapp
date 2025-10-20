@@ -59,9 +59,12 @@ export const reportsTableColumns: ColumnDef<ReviewReports>[] = [
         .join("");
 
       return (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <ProfileAvatar displayName={displayName} />
-          <span className="max-w-20 truncate lg:max-w-32" title={displayName}>
+          <span
+            className="block max-w-20 truncate lg:max-w-32"
+            title={displayName}
+          >
             {displayName}
           </span>
         </div>

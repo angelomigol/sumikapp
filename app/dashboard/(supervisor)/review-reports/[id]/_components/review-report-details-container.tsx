@@ -10,6 +10,7 @@ import {
   useApproveTraineeReport,
   useFetchTraineeReport,
   useRejectTraineeReport,
+  useSubmitEntryFeedback,
   useUpdateEntryStatus,
 } from "@/hooks/use-review-reports";
 
@@ -48,6 +49,7 @@ export default function ReviewReportDetailsContainer(params: {
   const approveMutation = useApproveTraineeReport(params.reportId);
   const rejectMutation = useRejectTraineeReport(params.reportId);
   const updateEntryMutation = useUpdateEntryStatus(params.reportId);
+  const submitFeedbackMutation = useSubmitEntryFeedback(params.reportId);
 
   if (reportData.isLoading) {
     return <LoadingOverlay fullPage />;
@@ -122,7 +124,30 @@ export default function ReviewReportDetailsContainer(params: {
     });
   };
 
-  const handleFeedbackChange = (entryId: string, feedback: string) => {};
+  const handleFeedbackSubmit = (entryId: string, feedback: string) => {
+    const trimmedFeedback = feedback.trim();
+
+    if (trimmedFeedback.length > 200) {
+      toast.error("Feedback cannot exceed 200 characters.");
+      return;
+    }
+
+    const promise = async () => {
+      await submitFeedbackMutation.mutateAsync({
+        entryId,
+        feedback: trimmedFeedback,
+      });
+    };
+
+    toast.promise(promise, {
+      loading: "Submitting feedback...",
+      success: "Feedback successfully submitted!",
+      error: (err) =>
+        err instanceof Error
+          ? err.message
+          : "Sorry, we encountered an error while submitting feedback. Please try again.",
+    });
+  };
 
   return (
     <>
@@ -209,8 +234,9 @@ export default function ReviewReportDetailsContainer(params: {
           <ReviewReportDailyEntries
             entries={reportData.data.entries}
             reportStatus={reportData.data.status}
+            isSubmitting={submitFeedbackMutation.isPending}
             onStatusChange={handleUpdateStatus}
-            onFeedbackChange={handleFeedbackChange}
+            onFeedbackSubmit={handleFeedbackSubmit}
           />
 
           <div className="bg-accent/50 rounded-lg border p-3 md:p-4">

@@ -13,16 +13,16 @@ import {
   getSupervisorTraineesAction,
 } from "@/app/dashboard/(supervisor)/trainees/server/server-actions";
 
-export const SUPERVISOR_TRAINEES_QUERY_KEY = [
-  "supabase:supervisor_trainees",
-] as const;
-export const TRAINEES_EVAL_QUERY_KEY = [
-  "supabase:trainees_for_evaluation",
-] as const;
-export const getSupervisorTraineeQueryKey = (id: string) =>
-  ["supabase:supervisor_trainees", id] as const;
+import { TraineeFullDetails } from "./use-section-trainees";
+
+export const SUPERVISOR_TRAINEES_QUERY_KEYS = {
+  all: ["supabase:supervisor_trainees"] as const,
+  detail: (id: string) => ["supabase:supervisor_trainees", id] as const,
+  evaluation: ["supabase:trainees_for_evaluation"] as const,
+};
 
 export type SupervisorTrainees = {
+  internship_id: string;
   trainee_id: string;
   student_id_number: string;
   course: string | null;
@@ -45,30 +45,9 @@ export type SupervisorTraineesForEvaluationTable = {
   email: string;
 };
 
-export type InternshipDetails = {
-  company_name: string | null;
-  job_role: string | null;
-  start_date: string;
-  end_date: string;
-};
-
-export type TraineeFullDetails = SupervisorTrainees & {
-  section: string | null;
-  status: UserStatus;
-  internship_details: InternshipDetails;
-
-  program_batch: {
-    required_hours: number;
-    start_date: string;
-    end_date: string;
-  };
-
-  weekly_reports: Tables<"weekly_reports">[];
-};
-
 export function useFetchSupervisorTrainees() {
   return useQuery<SupervisorTrainees[]>({
-    queryKey: SUPERVISOR_TRAINEES_QUERY_KEY,
+    queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.all,
     queryFn: async () => {
       const result = await getSupervisorTraineesAction(null);
       return result;
@@ -81,7 +60,7 @@ export function useFetchSupervisorTrainees() {
 
 export function useFetchSupervisorTrainee(id: string) {
   return useQuery<TraineeFullDetails>({
-    queryKey: getSupervisorTraineeQueryKey(id),
+    queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.detail(id),
     queryFn: async () => {
       const result = await getSupervisorTraineeByIdAction(id);
       return result;
@@ -95,7 +74,7 @@ export function useFetchSupervisorTrainee(id: string) {
 
 export function useFetchTraineesForEvaluation() {
   return useQuery<SupervisorTraineesForEvaluationTable[]>({
-    queryKey: TRAINEES_EVAL_QUERY_KEY,
+    queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.evaluation,
     queryFn: async () => {
       const result = await getTraineesForEvaluationAction(null);
       return result;
@@ -111,7 +90,7 @@ export function useRevalidateFetchSuperviorTrainees() {
 
   return useCallback(() => {
     queryClient.invalidateQueries({
-      queryKey: SUPERVISOR_TRAINEES_QUERY_KEY,
+      queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.all,
     });
   }, [queryClient]);
 }
@@ -121,14 +100,14 @@ export function useRevalidateFetchTraineesForEvaluation() {
 
   return useCallback(() => {
     queryClient.invalidateQueries({
-      queryKey: TRAINEES_EVAL_QUERY_KEY,
+      queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.evaluation,
     });
   }, [queryClient]);
 }
 
 export async function prefetchSupervisorTrainees(queryClient: QueryClient) {
   await queryClient.prefetchQuery({
-    queryKey: SUPERVISOR_TRAINEES_QUERY_KEY,
+    queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.all,
     queryFn: async () => {
       const result = await getSupervisorTraineesAction(null);
       return result;
@@ -142,7 +121,7 @@ export async function prefetchSupervisorTrainee(
   id: string
 ) {
   await queryClient.prefetchQuery({
-    queryKey: getSupervisorTraineeQueryKey(id),
+    queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.detail(id),
     queryFn: async () => {
       const result = await getSupervisorTraineeByIdAction(id);
       return result;
@@ -153,7 +132,7 @@ export async function prefetchSupervisorTrainee(
 
 export async function prefetchTraineesForEvaluation(queryClient: QueryClient) {
   await queryClient.prefetchQuery({
-    queryKey: TRAINEES_EVAL_QUERY_KEY,
+    queryKey: SUPERVISOR_TRAINEES_QUERY_KEYS.evaluation,
     queryFn: async () => {
       const result = await getTraineesForEvaluationAction(null);
       return result;

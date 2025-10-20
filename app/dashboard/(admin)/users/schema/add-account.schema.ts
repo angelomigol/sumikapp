@@ -89,4 +89,25 @@ export const addAccountSchema = z
     }
   });
 
+export const updateAccountSchema = z
+  .union([
+    traineeSchema.partial(),
+    coordinatorSchema.partial(),
+    supervisorSchema.partial(),
+    adminSchema.partial(),
+  ])
+  .superRefine((data, ctx) => {
+    if (data.role === "trainee" && data.email) {
+      const allowedDomain = "@students.nu-dasma.edu.ph";
+      if (!data.email.endsWith(allowedDomain)) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Trainee email must end with ${allowedDomain}`,
+          path: ["email"],
+        });
+      }
+    }
+  });
+
+export type UpdateAccountFormValues = z.infer<typeof updateAccountSchema>;
 export type AddAccountFormValues = z.infer<typeof addAccountSchema>;

@@ -2,10 +2,8 @@ import "server-only";
 
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import {
-  SupervisorTrainees,
-  TraineeFullDetails,
-} from "@/hooks/use-supervisor-trainees";
+import { TraineeFullDetails } from "@/hooks/use-section-trainees";
+import { SupervisorTrainees } from "@/hooks/use-supervisor-trainees";
 
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
@@ -49,6 +47,7 @@ class GetSupervisorTraineesService {
         .from("internship_details")
         .select(
           `
+          id,
           weekly_reports (
             period_total,
             status,
@@ -110,6 +109,7 @@ class GetSupervisorTraineesService {
           .reduce((sum, entry) => sum + (entry.total_hours || 0), 0);
 
         return {
+          internship_id: supervisor.id,
           trainee_id: trainee.id,
           student_id_number: trainee.student_id_number,
           first_name: trainee.user.first_name,
@@ -143,15 +143,15 @@ class GetSupervisorTraineesService {
   async getTraineeById(params: {
     client: SupabaseClient<Database>;
     userId: string;
-    traineeId: string;
+    internshipId: string;
   }): Promise<TraineeFullDetails> {
     const logger = await getLogger();
 
-    const { client, userId, traineeId } = params;
+    const { client, userId, internshipId } = params;
 
     const ctx = {
       userId,
-      traineeId,
+      internshipId,
       name: `${this.namespace}.ById`,
     };
 
@@ -180,6 +180,7 @@ class GetSupervisorTraineesService {
             weekly_report_entries (*)
           ),
           trainee_batch_enrollment!inner (
+            id,
             ojt_status,
             trainees!inner (
               id,
@@ -195,6 +196,7 @@ class GetSupervisorTraineesService {
               )
             ),
             program_batch (
+              internship_code,              
               required_hours,
               start_date,
               end_date
@@ -203,7 +205,7 @@ class GetSupervisorTraineesService {
         `
         )
         .eq("supervisor_id", userId)
-        .eq("trainee_batch_enrollment.trainee_id", traineeId)
+        .eq("id", internshipId)
         .single();
 
       if (error) {
@@ -226,6 +228,33 @@ class GetSupervisorTraineesService {
         );
 
         throw new Error(`Supabase error: ${error.message}`);
+      }
+
+      const { data: emp_data, error: emp_error } = await client
+        .from("employability_predictions")
+        .select("*")
+        .eq("trainee_batch_enrollment_id", data.trainee_batch_enrollment.id)
+        .maybeSingle();
+
+      if (emp_error) {
+        logger.error(
+          {
+            ...ctx,
+            supabaseError: {
+              code: emp_error.code,
+              message: emp_error.message,
+              hint: emp_error.hint,
+              details: emp_error.details,
+            },
+          },
+          "Supabase error while fetching trainee evaluation results"
+        );
+
+        throw new Error(`Supabase error: ${emp_error.message}`);
+      }
+
+      if (!emp_data) {
+        logger.info(ctx, "No evaluation results found for this trainee");
       }
 
       logger.info(
@@ -265,6 +294,7 @@ class GetSupervisorTraineesService {
           end_date: data.end_date,
         },
         program_batch: {
+          internship_code: data.trainee_batch_enrollment.program_batch.internship_code,
           required_hours:
             data.trainee_batch_enrollment.program_batch.required_hours,
           start_date: data.trainee_batch_enrollment.program_batch.start_date,
@@ -281,6 +311,30 @@ class GetSupervisorTraineesService {
           internship_id: report.internship_id,
           supervisor_approved_at: report.supervisor_approved_at,
         })),
+        evaluation_results: emp_data
+          ? {
+              prediction_label: emp_data.prediction_label,
+              prediction_probability: emp_data.prediction_probability,
+              confidence_level: emp_data.confidence_level,
+              prediction_date: emp_data.prediction_date,
+              evaluation_scores: emp_data.evaluation_scores as Record<
+                string,
+                number
+              > | null,
+              feature_scores: emp_data.feature_scores as Record<
+                string,
+                number
+              > | null,
+              recommendations: emp_data.recommendations as Record<
+                string,
+                number
+              > | null,
+              risk_factors: emp_data.risk_factors as Record<
+                string,
+                number
+              > | null,
+            }
+          : null,
       };
     } catch (error) {
       logger.error(

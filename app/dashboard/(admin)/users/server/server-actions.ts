@@ -405,6 +405,16 @@ export const createUserAction = enhanceAction(
 );
 
 /**
+ * @name updateUserAction
+ * Server action to
+ */
+export const updateUserAction = enhanceAction(
+  async (formData: FormData, user) => {
+
+  }, { auth: true }
+)
+
+/**
  * Helper function to get user permissions
  * Adjust this based on your actual permission system
  */

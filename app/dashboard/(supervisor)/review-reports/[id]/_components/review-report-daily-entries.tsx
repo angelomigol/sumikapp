@@ -11,14 +11,17 @@ import {
   ImageIcon,
 } from "lucide-react";
 import * as motion from "motion/react-client";
+import { toast } from "sonner";
 
 import {
+  DocumentStatus,
   EntryStatus,
   entryStatusOptions,
   getEntryStatusConfig,
 } from "@/lib/constants";
 
 import { formatFileSize, formatHoursDisplay } from "@/utils/shared";
+import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 
 import { WeeklyReportEntryWithFiles } from "@/schemas/weekly-report/weekly-report.schema";
 
@@ -46,19 +49,33 @@ import { If } from "@/components/sumikapp/if";
 
 interface ReviewReportDailyEntriesProps {
   entries: WeeklyReportEntryWithFiles[];
-  reportStatus: string;
+  reportStatus: DocumentStatus;
+  isSubmitting: boolean;
   onStatusChange: (entryId: string, status: EntryStatus) => void;
-  onFeedbackChange: (entryId: string, feedback: string) => void;
+  onFeedbackSubmit: (entryId: string, feedback: string) => void;
 }
+
 export default function ReviewReportDailyEntries({
   entries,
   reportStatus,
+  isSubmitting,
   onStatusChange,
-  onFeedbackChange,
+  onFeedbackSubmit,
 }: ReviewReportDailyEntriesProps) {
+  const supabase = useSupabase();
+
   const [activeTab, setActiveTab] = useState("0");
 
   const canEditStatus = reportStatus === "pending";
+  const [feedbackValues, setFeedbackValues] = useState<Record<string, string>>(
+    entries.reduce(
+      (acc, entry) => {
+        acc[entry.id] = entry.feedback || "";
+        return acc;
+      },
+      {} as Record<string, string>
+    )
+  );
 
   const getFileIcon = (fileType: string) => {
     if (fileType.startsWith("image/")) return <ImageIcon className="size-4" />;
@@ -66,6 +83,67 @@ export default function ReviewReportDailyEntries({
     if (fileType.includes("spreadsheet") || fileType.includes("excel"))
       return <FileSpreadsheetIcon className="size-4" />;
     return <FileIcon className="size-4" />;
+  };
+
+  const handleFeedbackChange = (entryId: string, value: string) => {
+    setFeedbackValues((prev) => ({
+      ...prev,
+      [entryId]: value,
+    }));
+  };
+
+  const handleDownloadFile = async ({
+    filePath,
+    fileName,
+  }: {
+    filePath: string;
+    fileName: string;
+  }) => {
+    if (fileName && filePath) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("additional-attachments")
+          .download(filePath);
+
+        if (error) {
+          toast.error(`Failed to download ${fileName}.`);
+          console.error("Error downloading file:", error);
+          return;
+        }
+
+        const url = URL.createObjectURL(data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Failed to download file:", err);
+      }
+    }
+  };
+
+  const handleViewFile = async ({ filePath }: { filePath: string }) => {
+    if (filePath) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("additional-attachments")
+          .createSignedUrl(filePath, 3600);
+
+        if (error) {
+          toast.error("Failed to view file.");
+          console.error("Error getting file URL:", error);
+          return;
+        }
+
+        window.open(data.signedUrl, "_blank");
+      } catch (err) {
+        console.error("Failed to view file:", err);
+        toast.error("Something went wrong while opening the file.");
+      }
+    }
   };
 
   return (
@@ -142,8 +220,9 @@ export default function ReviewReportDailyEntries({
                     onValueChange={(value) =>
                       onStatusChange?.(entry.id, value as EntryStatus)
                     }
+                    disabled={isSubmitting}
                   >
-                    <SelectTrigger className="h-8 w-[120px]">
+                    <SelectTrigger className="w-[120px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -245,17 +324,15 @@ export default function ReviewReportDailyEntries({
 
                         <div className="flex gap-2">
                           <Button
-                            variant={"outline"}
+                            variant={"ghost"}
                             size={"icon-sm"}
-                            // onClick={}
+                            onClick={() =>
+                              handleViewFile({ filePath: file.file_path })
+                            }
                             asChild
                           >
                             <motion.button whileTap={{ scale: 0.85 }}>
-                              <a
-                                href="#"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
+                              <a>
                                 <IconExternalLink className="size-4" />
                                 <span className="sr-only">View</span>
                               </a>
@@ -263,9 +340,14 @@ export default function ReviewReportDailyEntries({
                           </Button>
 
                           <Button
-                            variant={"outline"}
+                            variant={"ghost"}
                             size={"icon-sm"}
-                            // onClick={}
+                            onClick={() =>
+                              handleDownloadFile({
+                                filePath: file.file_path,
+                                fileName: file.file_name,
+                              })
+                            }
                             asChild
                           >
                             <motion.button whileTap={{ scale: 0.85 }}>
@@ -280,30 +362,53 @@ export default function ReviewReportDailyEntries({
                 </div>
               </If>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-1">
-                  <Label htmlFor="feedback">Your Feedback</Label>
+              <If
+                condition={
+                  reportStatus === "pending" || reportStatus === "rejected"
+                }
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-1">
+                    <Label htmlFor="feedback">Your Feedback</Label>
 
-                  <span className="text-muted-foreground text-xs">
-                    Optional field
-                  </span>
+                    <span className="text-muted-foreground text-xs">
+                      Optional field
+                    </span>
+                  </div>
+                  <Textarea
+                    value={feedbackValues[entry.id] ?? ""}
+                    onChange={(e) =>
+                      handleFeedbackChange(entry.id, e.target.value)
+                    }
+                    id={`feedback-${entry.id}`}
+                    placeholder="Type your feedback here..."
+                    maxLength={200}
+                    className="field-sizing-content max-h-30 min-h-20 resize-none py-1.75"
+                  />
+                  <div className="flex justify-between gap-1">
+                    <p className="text-muted-foreground text-xs">
+                      <span className="tabular-nums">
+                        {200 - (feedbackValues[entry.id]?.length || 0)}
+                      </span>{" "}
+                      characters left
+                    </p>
+                    <Button
+                      size={"sm"}
+                      onClick={() =>
+                        onFeedbackSubmit(
+                          entry.id,
+                          feedbackValues[entry.id] ?? ""
+                        )
+                      }
+                      disabled={
+                        feedbackValues[entry.id]?.length > 200 || isSubmitting
+                      }
+                    >
+                      Submit Feedback
+                    </Button>
+                  </div>
                 </div>
-                <Textarea
-                  value={entry.feedback ?? ""}
-                  onChange={(e) => onFeedbackChange(entry.id, e.target.value)}
-                  id="feedback"
-                  placeholder="Type your feedback here..."
-                  maxLength={200}
-                  className="field-sizing-content max-h-30 min-h-20 resize-none py-1.75"
-                />
-                <div className="flex justify-between gap-1">
-                  <p className="text-muted-foreground text-xs">
-                    <span className="tabular-nums">{200 - 0}</span> characters
-                    left
-                  </p>
-                  <Button size={"sm"}>Submit Feedback</Button>
-                </div>
-              </div>
+              </If>
             </div>
           </div>
         </TabsContent>

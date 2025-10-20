@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CircleAlertIcon, XIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -13,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { useCaptchaToken } from "@/utils/captcha/client/use-captcha-token";
 import { useSignInWithOtp } from "@/utils/supabase/hooks/use-sign-in-with-otp";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -139,34 +135,3 @@ export function EmailForm({
     </Form>
   );
 }
-
-const OtpSentAlert = ({ email }: { email: string }) => {
-  const [isActive, setIsActive] = useState(true);
-
-  if (!isActive) return null;
-
-  return (
-    <Alert className="flex justify-between">
-      <CircleAlertIcon />
-      <div className="flex-1 flex-col justify-center gap-1">
-        <AlertTitle>OTP code was sent to your email!</AlertTitle>
-        <AlertDescription>
-          <p className="text-pretty">
-            We&#39;ve sent an OTP code to <strong>{email}</strong>. Check your
-            email to complete the sign-in.
-          </p>
-        </AlertDescription>
-      </div>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="ml-2 cursor-pointer p-0"
-        onClick={() => setIsActive(false)}
-        aria-label="Close alert"
-      >
-        <XIcon className="size-4" />
-        <span className="sr-only">Close</span>
-      </Button>
-    </Alert>
-  );
-};

@@ -48,7 +48,6 @@ import NotFoundPage from "@/app/not-found";
 
 import AddEditCustomRequirementSheet from "./add-edit-custom-requirement-sheet";
 import CustomRequirementRowActions from "./custom-requirements-row-actions";
-import NewDocumentViewerModal from "./new-document-viewer-modal";
 import { RequirementTableToolbar } from "./requirements-table-toolbar";
 import { createTraineeRequirementColumns } from "./trainee-requirements-columns";
 
@@ -241,8 +240,6 @@ export default function RequirementsTrackerContainer(params: { slug: string }) {
           )}
         </div>
       </If>
-
-      {/* <NewDocumentViewerModal isOpen={true} /> */}
     </>
   );
 }

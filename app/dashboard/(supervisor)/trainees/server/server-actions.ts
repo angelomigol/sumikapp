@@ -11,58 +11,58 @@ import { createGetSupervisorTraineesService } from "./services/get-supervisor-tr
  * @name getSupervisorTraineesAction
  * @description Server action to
  */
-export const getSupervisorTraineesAction = enhanceAction(
-  async (_, user) => {
-    const logger = await getLogger();
+export const getSupervisorTraineesAction = enhanceAction(async (_, user) => {
+  const logger = await getLogger();
 
-    const ctx = {
-      name: "supervisor_trainees.fetch",
+  const ctx = {
+    name: "supervisor_trainees.fetch",
+    userId: user.id,
+  };
+
+  logger.info(ctx, "Fetching supervisor trainees...");
+
+  try {
+    const client = getSupabaseServerClient();
+    const service = createGetSupervisorTraineesService();
+
+    const result = await service.getTrainees({
+      client,
       userId: user.id,
-    };
+    });
 
-    logger.info(ctx, "Fetching supervisor trainees...");
+    logger.info(
+      {
+        ...ctx,
+        trainees: result,
+      },
+      "Successfully fetched supervisor trainees"
+    );
 
-    try {
-      const client = getSupabaseServerClient();
-      const service = createGetSupervisorTraineesService();
+    return result;
+  } catch (error) {
+    logger.error(
+      {
+        ...ctx,
+        error,
+      },
+      "Failed to fetch supervisor trainees"
+    );
 
-      const result = await service.getTrainees({
-        client,
-        userId: user.id,
-      });
-
-      logger.info(
-        {
-          ...ctx,
-          trainees: result,
-        },
-        "Successfully fetched supervisor trainees"
-      );
-
-      return result;
-    } catch (error) {
-      logger.error(
-        {
-          ...ctx,
-          error,
-        },
-        "Failed to fetch supervisor trainees"
-      );
-
-      throw error;
-    }
-  },
-  {}
-);
+    throw error;
+  }
+}, {});
 
 export const getSupervisorTraineeByIdAction = enhanceAction(
-  async (traineeId: string, user) => {
+  async (internshipId: string, user) => {
     const logger = await getLogger();
 
-    const ctx = {
-      name: "supervisor_trainee.fetchById",
-      userId: user.id,
-    };
+    if (!internshipId || typeof internshipId !== "string") {
+      throw new Error("Internship ID is required");
+    }
+      const ctx = {
+        name: "supervisor_trainee.fetchById",
+        userId: user.id,
+      };
 
     logger.info(ctx, "Fetching supervisor trainee...");
 
@@ -73,7 +73,7 @@ export const getSupervisorTraineeByIdAction = enhanceAction(
       const result = await service.getTraineeById({
         client,
         userId: user.id,
-        traineeId,
+        internshipId,
       });
 
       logger.info(

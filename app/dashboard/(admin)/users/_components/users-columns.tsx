@@ -55,11 +55,11 @@ export const userColumns: ColumnDef<Tables<"users">>[] = [
         .join(" ");
 
       return (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <ProfileAvatar displayName={displayName} />
           <Link
             href={pathsConfig.dynamic.userDetails(user.id)}
-            className="max-w-36 truncate underline-offset-2 hover:underline lg:max-w-52"
+            className="block max-w-36 truncate underline-offset-2 hover:underline lg:max-w-52"
           >
             {displayName}
           </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Image from "next/image";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,7 +42,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "../ui/input-otp";
-import Image from "next/image";
 
 export function MultiFactorAuthSetupDialog(props: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +55,7 @@ export function MultiFactorAuthSetupDialog(props: { userId: string }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Setup a new Factor</Button>
+        <Button size={"sm"}>Setup a new Factor</Button>
       </DialogTrigger>
 
       <DialogContent

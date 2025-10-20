@@ -12,8 +12,6 @@ import {
 } from "@/components/data-table";
 import CustomSearchbar from "@/components/sumikapp/custom-search-bar";
 
-import { ReportTypeFacetedFilter } from "./report-type-faceted-filter";
-
 interface ReviewReportTableToolbarProps<TData> {
   table: Table<TData>;
 }

@@ -7,7 +7,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { DocumentStatus, OJTStatus, UserStatus } from "@/lib/constants";
+import {
+  DocumentStatus,
+  InternshipCode,
+  OJTStatus,
+  UserStatus,
+} from "@/lib/constants";
 
 import { SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 
@@ -19,7 +24,7 @@ import {
 
 import { RequirementWithHistory } from "./use-batch-requirements";
 
-export type SectionTraineeFullDetails = {
+export type TraineeFullDetails = {
   trainee_id: string;
   student_id_number: string;
   course: string | null;
@@ -38,6 +43,7 @@ export type SectionTraineeFullDetails = {
     end_date: string;
   };
   program_batch: {
+    internship_code: InternshipCode;
     required_hours: number;
     start_date: string;
     end_date: string;
@@ -95,7 +101,7 @@ export function useFetchSectionTrainees(slug: string) {
 }
 
 export function useFetchSectionTrainee(data: { slug: string; id: string }) {
-  return useQuery<SectionTraineeFullDetails>({
+  return useQuery<TraineeFullDetails>({
     queryKey: SECTION_TRAINEE_QUERY_KEY(data.id),
     queryFn: async () => {
       const result = await getSectionTraineeByIdAction({

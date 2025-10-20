@@ -4,7 +4,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 import { RequirementWithHistory } from "@/hooks/use-batch-requirements";
 import {
-  SectionTraineeFullDetails,
+  TraineeFullDetails,
   TraineeWithUserAndHours,
 } from "@/hooks/use-section-trainees";
 
@@ -164,7 +164,7 @@ class GetSectionTraineesService {
     userId: string;
     sectionName: string;
     traineeId: string;
-  }): Promise<SectionTraineeFullDetails> {
+  }): Promise<TraineeFullDetails> {
     const logger = await getLogger();
 
     const { client, userId, traineeId, sectionName } = params;
@@ -213,6 +213,7 @@ class GetSectionTraineesService {
             )
           ),
           program_batch (
+            internship_code,
             required_hours,
             start_date,
             end_date
@@ -256,12 +257,8 @@ class GetSectionTraineesService {
         )
         .eq("program_batch_id", batchData.id)
         .eq("trainee_id", traineeId)
+        .eq("internship_details.weekly_reports.status", "approved")
         .is("trainees.users.deleted_at", null)
-        .in("internship_details.weekly_reports.status", [
-          "approved",
-          "pending",
-          "rejected",
-        ])
         .single();
 
       if (error) {
@@ -391,6 +388,7 @@ class GetSectionTraineesService {
           end_date: internshipDetails?.end_date,
         },
         program_batch: {
+          internship_code: data.program_batch.internship_code,
           required_hours: data.program_batch.required_hours,
           start_date: data.program_batch.start_date,
           end_date: data.program_batch.end_date,

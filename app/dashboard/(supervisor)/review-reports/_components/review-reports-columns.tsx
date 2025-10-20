@@ -61,7 +61,7 @@ export const reviewReportColumns: ColumnDef<ReviewReports>[] = [
         .join("");
 
       return (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <ProfileAvatar displayName={fullName} />
           <span
             className="block max-w-20 truncate lg:max-w-32"

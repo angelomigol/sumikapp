@@ -132,7 +132,7 @@ export function OtpForm({
                   maxLength={6}
                   pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
                   inputMode="text"
-                  onComplete={(value) => {
+                  onComplete={() => {
                     form.handleSubmit(onSubmit)();
                   }}
                   disabled={form.formState.isSubmitting}

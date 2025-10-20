@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 import { IconActivity, IconChartHistogram } from "@tabler/icons-react";
@@ -30,6 +30,14 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
 
 interface TraineeOverviewTabProps {
@@ -39,6 +47,14 @@ interface TraineeOverviewTabProps {
 export default function TraineeOverviewTab({
   traineeData,
 }: TraineeOverviewTabProps) {
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<{
+    id: string;
+    title: string;
+    content: string;
+    created_at: string;
+    is_read: boolean;
+  } | null>(null);
+
   return (
     <div className="grid auto-rows-auto grid-cols-3 gap-5 md:grid-cols-6 lg:grid-cols-9">
       <Card className="col-span-3 md:col-span-6">
@@ -127,7 +143,7 @@ export default function TraineeOverviewTab({
                 {traineeData?.announcements.map((announcement) => (
                   <div
                     key={announcement.id}
-                    className="flex flex-col gap-1 px-6"
+                    className="flex flex-col gap-2 px-6"
                   >
                     <div className="flex items-start justify-between">
                       <p
@@ -144,9 +160,39 @@ export default function TraineeOverviewTab({
                         </p>
                       </div>
                     </div>
-                    <p className="text-muted-foreground line-clamp-2 text-xs">
-                      {announcement.content}
-                    </p>
+                    <Dialog
+                      open={selectedAnnouncement?.id === announcement.id}
+                      onOpenChange={(open) =>
+                        setSelectedAnnouncement(open ? announcement : null)
+                      }
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          size={"sm"}
+                          className="w-fit"
+                        >
+                          View
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="data-[state=open]:!zoom-in-100 data-[state=open]:slide-in-from-bottom-20 flex max-h-[min(600px,80vh)] flex-col gap-0 p-0 data-[state=open]:duration-600">
+                        <DialogHeader className="border-b px-6 py-4">
+                          <DialogTitle>{announcement.title}</DialogTitle>
+                          <DialogDescription>
+                            Posted on{" "}
+                            {safeFormatDate(announcement.created_at, "PPp")}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <ScrollArea className="flex max-h-full flex-col overflow-hidden">
+                          <div
+                            className="prose max-w-none px-6 py-4"
+                            dangerouslySetInnerHTML={{
+                              __html: announcement.content,
+                            }}
+                          />
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 ))}
               </If>

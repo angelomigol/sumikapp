@@ -164,6 +164,10 @@ class GetWeeklyReportsService {
         )
         .eq("id", reportId)
         .eq("internship_details.trainee_batch_enrollment.trainees.id", userId)
+        .order("entry_date", {
+          ascending: true,
+          referencedTable: "weekly_report_entries",
+        })
         .single();
 
       if (error) {

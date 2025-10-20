@@ -15,6 +15,7 @@ import * as motion from "motion/react-client";
 import { toast } from "sonner";
 
 import { formatFileSize } from "@/utils/shared";
+import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 
 import { EntryUploadedFile } from "@/schemas/weekly-report/weekly-report.schema";
 
@@ -57,6 +58,8 @@ export default function EntryFileUpload({
   allowedTypes = Object.keys(ACCEPTED_FILE_TYPES),
   onFilesChange,
 }: EntryFileUploadProps) {
+  const supabase = useSupabase();
+
   const [files, setFiles] = useState<EntryUploadedFile[]>(existingFiles);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -170,6 +173,60 @@ export default function EntryFileUpload({
     }
   };
 
+  const handleDownloadFile = async ({
+    filePath,
+    fileName,
+  }: {
+    filePath: string;
+    fileName: string;
+  }) => {
+    if (files.length > 0) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("additional-attachments")
+          .download(filePath);
+
+        if (error) {
+          toast.error(`Failed to download ${fileName}.`);
+          console.error("Error downloading file:", error);
+          return;
+        }
+
+        const url = URL.createObjectURL(data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Failed to download file:", err);
+      }
+    }
+  };
+
+  const handleViewFile = async ({ filePath }: { filePath: string }) => {
+    if (files.length > 0) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("additional-attachments")
+          .createSignedUrl(filePath, 3600);
+
+        if (error) {
+          toast.error("Failed to view file.");
+          console.error("Error getting file URL:", error);
+          return;
+        }
+
+        window.open(data.signedUrl, "_blank");
+      } catch (err) {
+        console.error("Failed to view file:", err);
+        toast.error("Something went wrong while opening the file.");
+      }
+    }
+  };
+
   const canAddMoreFiles = files.length < maxFiles;
 
   return (
@@ -261,15 +318,13 @@ export default function EntryFileUpload({
                         <Button
                           variant={"ghost"}
                           size={"icon-sm"}
-                          // onClick={}
+                          onClick={() =>
+                            handleViewFile({ filePath: file.file_path })
+                          }
                           asChild
                         >
                           <motion.button whileTap={{ scale: 0.85 }}>
-                            <a
-                              href="#"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
+                            <a>
                               <IconExternalLink className="size-4" />
                               <span className="sr-only">View</span>
                             </a>
@@ -286,7 +341,12 @@ export default function EntryFileUpload({
                         <Button
                           variant={"ghost"}
                           size={"icon-sm"}
-                          // onClick={}
+                          onClick={() =>
+                            handleDownloadFile({
+                              filePath: file.file_path,
+                              fileName: file.file_name,
+                            })
+                          }
                           asChild
                         >
                           <motion.button whileTap={{ scale: 0.85 }}>

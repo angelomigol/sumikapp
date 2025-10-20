@@ -1,22 +1,15 @@
 "use client";
 
-import { IconEye } from "@tabler/icons-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { TraineeWithRequirementsAndInternship } from "@/hooks/use-batch-requirements";
 
-import { getDocumentStatusConfig } from "@/lib/constants";
+import { DocumentStatus, getDocumentStatusConfig } from "@/lib/constants";
 
 import { BatchRequirementsWithCompliance } from "@/schemas/requirements-tracker/batch-requirements-with-compliance";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 
 import { DocumentStatusCell } from "./document-status-cell";
@@ -76,7 +69,7 @@ export const createTraineeRequirementColumns = (
         }`;
         return (
           <span
-            className="block max-w-40 truncate lg:max-w-none"
+            className="block max-w-32 truncate lg:max-w-none"
             title={fullName}
           >
             {fullName}
@@ -117,105 +110,138 @@ export const createTraineeRequirementColumns = (
     {
       id: "requirements",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Requirements" />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-[2px]"
+        <DataTableColumnHeader
+          column={column}
+          title={`Requirements (${requirementTypes.length} total)`}
         />
       ),
+      cell: ({ row }) => {
+        const trainee = row.original;
+
+        const documents = requirementTypes.map((reqType) => {
+          const submittedReq = trainee.requirements?.find(
+            (req) => req.requirement_name === reqType.name
+          );
+
+          if (submittedReq && submittedReq.submitted_at !== null) {
+            const latestHistory = submittedReq.history?.length
+              ? [...submittedReq.history].sort(
+                  (a, b) =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                )[0]
+              : null;
+            return (
+              latestHistory?.document_status ||
+              submittedReq.status ||
+              "not submitted"
+            );
+          } else {
+            return "not submitted";
+          }
+        });
+
+        const statusCounts = {
+          approved: documents.filter((status) => status === "approved").length,
+          rejected: documents.filter((status) => status === "rejected").length,
+          pending: documents.filter((status) => status === "pending").length,
+          missing: documents.filter((status) => status === "not submitted")
+            .length,
+        };
+
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            {statusCounts.approved > 0 && (
+              <Badge
+                className={`${getDocumentStatusConfig("approved")?.badgeColor}`}
+              >
+                <span className="font-semibold">{statusCounts.approved}</span>
+                <span className="ml-1 text-xs">Approved</span>
+              </Badge>
+            )}
+
+            {statusCounts.pending > 0 && (
+              <Badge
+                className={`${getDocumentStatusConfig("pending")?.badgeColor}`}
+              >
+                <span className="font-semibold">{statusCounts.pending}</span>
+                <span className="ml-1 text-xs">Pending</span>
+              </Badge>
+            )}
+
+            {statusCounts.rejected > 0 && (
+              <Badge
+                className={`${getDocumentStatusConfig("rejected")?.badgeColor}`}
+              >
+                <span className="font-semibold">{statusCounts.rejected}</span>
+                <span className="ml-1 text-xs">Rejected</span>
+              </Badge>
+            )}
+
+            {statusCounts.missing > 0 && (
+              <Badge
+                className={`${getDocumentStatusConfig("not submitted")?.badgeColor}`}
+              >
+                <span className="font-semibold">{statusCounts.missing}</span>
+                <span className="ml-1 text-xs">Missing</span>
+              </Badge>
+            )}
+          </div>
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant={"outline"} size={"sm"}>
-              <IconEye />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>View</p>
-          </TooltipContent>
-        </Tooltip>
-      ),
+      cell: ({ row }) => {
+        const trainee = row.original;
+
+        const documents = requirementTypes.map((reqType) => {
+          const submittedReq = trainee.requirements?.find(
+            (req) => req.requirement_name === reqType.name
+          );
+
+          if (submittedReq && submittedReq.submitted_at !== null) {
+            const latestHistory = submittedReq.history?.length
+              ? [...submittedReq.history].sort(
+                  (a, b) =>
+                    new Date(b.date).getTime() - new Date(a.date).getTime()
+                )[0]
+              : null;
+            return {
+              id: submittedReq.id,
+              requirementName: reqType.name!,
+              status: (latestHistory?.document_status ||
+                submittedReq.status) as DocumentStatus,
+              filePath: submittedReq.file_path,
+              fileName: submittedReq.file_name,
+              fileSize: submittedReq.file_size?.toString() || null,
+              submittedDate: submittedReq.submitted_at,
+            };
+          } else {
+            return {
+              id: reqType.id!,
+              requirementName: reqType.name!,
+              status: "not submitted" as DocumentStatus,
+              filePath: null,
+              fileName: null,
+              fileSize: null,
+              submittedDate: null,
+            };
+          }
+        });
+
+        return (
+          <DocumentStatusCell
+            slug={slug}
+            studentName={`${trainee.last_name}, ${trainee.first_name}`}
+            documents={documents}
+          />
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },
-    // ...requirementTypes.map((reqType) => ({
-    //   accessorKey: reqType.name,
-    //   header: ({
-    //     column,
-    //   }: HeaderContext<TraineeWithRequirementsAndInternship, unknown>) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title={reqType.name
-    //         .split(" ")
-    //         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    //         .join(" ")}
-    //     />
-    //   ),
-    //   cell: ({
-    //     row,
-    //   }: {
-    //     row: { original: TraineeWithRequirementsAndInternship };
-    //   }) => {
-    //     const trainee = row.original;
-    //     const documents: Record<
-    //       string,
-    //       {
-    //         id: string;
-    //         status: string;
-    //         filePath: string;
-    //         fileName: string;
-    //         fileSize: number;
-    //         fileType: string;
-    //         submitted: string;
-    //       }
-    //     > = {};
-
-    //     // Create a mapping of requirement names to their status
-    //     if (Array.isArray(trainee.requirements)) {
-    //       trainee.requirements.forEach((req) => {
-    //         const latestHistory = req.history?.length
-    //           ? [...req.history].sort(
-    //               (a, b) =>
-    //                 new Date(b.date).getTime() - new Date(a.date).getTime()
-    //             )[0]
-    //           : null;
-
-    //         const status =
-    //           latestHistory?.document_status || req.status || "not submitted";
-
-    //         if (status !== "not submitted") {
-    //           documents[req.requirement_name] = {
-    //             id: req.id,
-    //             status,
-    //             filePath: req.file_path,
-    //             fileName: req.file_name,
-    //             fileSize: req.file_size,
-    //             fileType: req.file_type,
-    //             submitted: req.submitted_at,
-    //           };
-    //         }
-    //       });
-    //     }
-
-    //     return (
-    //       <DocumentStatusCell
-    //         docInfo={documents[reqType.name] || null}
-    //         studentName={`${trainee.last_name}, ${trainee.first_name}`}
-    //         slug={slug}
-    //       />
-    //     );
-    //   },
-    //   enableSorting: false,
-    // })),
   ];
 };
 

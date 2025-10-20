@@ -215,7 +215,7 @@ export const deleteIndustryPartnerAction = enhanceAction(
     );
 
     if (!success) {
-      throw new Error(``);
+      throw new Error(`Invalid form data: ${error.message}`);
     }
 
     const ctx = {

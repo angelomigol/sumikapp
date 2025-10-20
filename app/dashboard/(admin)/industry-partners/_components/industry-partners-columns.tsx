@@ -1,17 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
 import { ColumnDef } from "@tanstack/react-table";
-import { TriangleAlert } from "lucide-react";
-
-import { useGenerateMoaUrl } from "@/hooks/use-industry-partner";
 
 import { safeFormatDate } from "@/utils/shared";
 import { Tables } from "@/utils/supabase/supabase.types";
 
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 

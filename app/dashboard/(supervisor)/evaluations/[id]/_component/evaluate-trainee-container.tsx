@@ -318,8 +318,8 @@ export default function EvaluateTraineeContainer(params: {
                                 className="text-center"
                               >
                                 <RadioGroupItem
-                                  value={String(i + 1)}
-                                  id={`${criterion.key}-${i + 1}`}
+                                  value={String(5 - i)}
+                                  id={`${criterion.key}-${5 - i}`}
                                 />
                               </TableCell>
                             )
@@ -400,7 +400,7 @@ export default function EvaluateTraineeContainer(params: {
                         key={`overall-score-${i}`}
                         className="text-center"
                       >
-                        <RadioGroupItem value={String(i + 1)} />
+                        <RadioGroupItem value={String(5 - i)} />
                       </TableCell>
                     ))}
                   </RadioGroup>

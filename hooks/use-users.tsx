@@ -29,6 +29,7 @@ import {
   createUserAction,
   getUserByIdAction,
   getUsersAction,
+  updateUserAction,
 } from "@/app/dashboard/(admin)/users/server/server-actions";
 
 type User = Tables<"users">;
@@ -67,6 +68,7 @@ type SupervisorDetails = {
   company_name: string;
   company_address: string;
   company_contact_no: string;
+  nature_of_business: string;
 };
 
 type AdminDetails = {
@@ -79,14 +81,19 @@ export type NormalizedUser =
   | (BaseUser & CoordinatorDetails)
   | (BaseUser & SupervisorDetails);
 
-export const USERS_QUERY_KEY = ["supabase:users"] as const;
-export const getUserQueryKey = (id: string) => ["supabase:user", id] as const;
-export const USER_STATS_QUERY_KEY = ["user-statistics"] as const;
-export const CREATE_USER_MUTATION_KEY = ["create-user"] as const;
+export const USERS_QUERY_KEYS = {
+  all: ["supabase:users"] as const,
+  detail: (id: string) => ["supabase:user", id] as const,
+  stats: ["user-statistics"] as const,
+  mutations: {
+    create: ["create-user"] as const,
+    update: ["update-user"] as const,
+  },
+};
 
 export function useFetchUsers() {
   return useQuery<User[]>({
-    queryKey: USERS_QUERY_KEY,
+    queryKey: USERS_QUERY_KEYS.all,
     queryFn: async () => {
       const result = await getUsersAction(null);
       return result;
@@ -99,7 +106,7 @@ export function useFetchUsers() {
 
 export function useFetchUser(id: string) {
   return useQuery<NormalizedUser>({
-    queryKey: getUserQueryKey(id),
+    queryKey: USERS_QUERY_KEYS.detail(id),
     queryFn: async () => await getUserByIdAction(id),
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -112,7 +119,7 @@ export function useFetchUserStats() {
   const supabase = useSupabase();
 
   return useQuery({
-    queryKey: USER_STATS_QUERY_KEY,
+    queryKey: USERS_QUERY_KEYS.stats,
     queryFn: async (): Promise<UserStatistics | null> => {
       const { data, error } = await supabase
         .from("user_statistics")
@@ -207,7 +214,7 @@ export function useUserStatsCards() {
 }
 
 export function useCreateUser() {
-  const mutationKey = CREATE_USER_MUTATION_KEY;
+  const mutationKey = USERS_QUERY_KEYS.mutations.create;
   const revalidateUsers = useRevalidateFetchUsers();
   const revalidateStats = useRevalidateFetchUserStats();
 
@@ -269,13 +276,77 @@ export function useCreateUser() {
   });
 }
 
+export function useUpdateUser(id: string) {
+  const queryClient = useQueryClient();
+  const mutationKey = USERS_QUERY_KEYS.mutations.update;
+
+  const mutationFn = async (payload: NormalizedUser) => {
+    const formData = new FormData();
+
+    formData.append("firstName", payload.first_name);
+    formData.append("lastName", payload.last_name);
+    formData.append("email", payload.email);
+    formData.append("role", payload.role);
+    if (payload.middle_name) {
+      formData.append("middleName", payload.middle_name);
+    }
+
+    switch (payload.role) {
+      case "trainee":
+        formData.append("studentIdNumber", payload.student_id_number);
+        formData.append("course", payload.course);
+        formData.append("section", payload.section);
+        if (payload.address) formData.append("address", payload.address);
+        if (payload.mobile_number)
+          formData.append("mobileNumber", payload.mobile_number);
+        break;
+
+      case "coordinator":
+        formData.append("coordinatorDepartment", payload.department);
+        break;
+
+      case "supervisor":
+        formData.append("position", payload.position);
+        formData.append("supervisorDepartment", payload.department);
+        formData.append("telephoneNumber", payload.telephone_number);
+        if (payload.company_name)
+          formData.append("companyName", payload.company_name);
+        if (payload.company_contact_no)
+          formData.append("companyContactNo", payload.company_contact_no);
+        if (payload.company_address)
+          formData.append("companyAddress", payload.company_address);
+        if (payload.nature_of_business)
+          formData.append("natureOfBusiness", payload.nature_of_business);
+        break;
+
+      case "admin":
+        // No additional fields needed for admin
+        break;
+    }
+
+    const result = await updateUserAction(formData);
+
+    return result;
+  };
+
+  return useMutation({
+    mutationKey,
+    mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: USERS_QUERY_KEYS.detail(id),
+      });
+    },
+  });
+}
+
 export function useRevalidateFetchUsers() {
   const queryClient = useQueryClient();
 
   return useCallback(
     () =>
       queryClient.invalidateQueries({
-        queryKey: USERS_QUERY_KEY,
+        queryKey: USERS_QUERY_KEYS.all,
       }),
     [queryClient]
   );
@@ -287,7 +358,7 @@ export function useRevalidateFetchUser() {
   return useCallback(
     (id: string) =>
       queryClient.invalidateQueries({
-        queryKey: getUserQueryKey(id),
+        queryKey: USERS_QUERY_KEYS.detail(id),
       }),
     [queryClient]
   );
@@ -299,7 +370,7 @@ export function useRevalidateFetchUserStats() {
   return useCallback(
     () =>
       queryClient.invalidateQueries({
-        queryKey: USER_STATS_QUERY_KEY,
+        queryKey: USERS_QUERY_KEYS.stats,
       }),
     [queryClient]
   );
@@ -307,7 +378,7 @@ export function useRevalidateFetchUserStats() {
 
 export async function prefetchUsers(queryClient: QueryClient) {
   await queryClient.prefetchQuery({
-    queryKey: USERS_QUERY_KEY,
+    queryKey: USERS_QUERY_KEYS.all,
     queryFn: async () => {
       const result = await getUsersAction(null);
       return result;
@@ -318,7 +389,7 @@ export async function prefetchUsers(queryClient: QueryClient) {
 
 export async function prefetchUser(queryClient: QueryClient, id: string) {
   await queryClient.prefetchQuery({
-    queryKey: getUserQueryKey(id),
+    queryKey: USERS_QUERY_KEYS.detail(id),
     queryFn: async () => {
       const result = await getUserByIdAction(id);
       return result;

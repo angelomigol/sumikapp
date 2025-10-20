@@ -3,21 +3,19 @@
 import React from "react";
 
 import pathsConfig from "@/config/paths.config";
-import { useFetchSectionTrainee } from "@/hooks/use-section-trainees";
+import { useFetchSupervisorTrainee } from "@/hooks/use-supervisor-trainees";
 
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 import TrineeDetailsContainer from "@/components/sumikapp/trainee-details-container";
 
 import NotFoundPage from "@/app/not-found";
 
-export default function SectionTraineeDetailsContainer(params: {
-  traineeId: string;
-  slug: string;
+export default function SupervisorTraineeDetailsContainer(params: {
+  internshipId: string;
 }) {
-  const { data: traineeDetails, isLoading } = useFetchSectionTrainee({
-    slug: params.slug,
-    id: params.traineeId,
-  });
+  const { data: traineeDetails, isLoading } = useFetchSupervisorTrainee(
+    params.internshipId
+  );
 
   if (isLoading) {
     return <LoadingOverlay fullPage />;
@@ -29,8 +27,8 @@ export default function SectionTraineeDetailsContainer(params: {
 
   return (
     <TrineeDetailsContainer
-      role={"coordinator"}
-      link={pathsConfig.dynamic.sectionTrainees(params.slug)}
+      role={"supervisor"}
+      link={pathsConfig.app.trainees}
       traineeDetails={traineeDetails}
     />
   );

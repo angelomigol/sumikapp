@@ -18,7 +18,7 @@ type ProfileAvatarProps = (SessionProps | TextProps) & {
 
 export function ProfileAvatar(props: ProfileAvatarProps) {
   const avatarClassName = cn(
-    "relative flex shrink-0 overflow-hidden rounded-full mx-auto size-9 group-focus:ring-2",
+    "relative flex shrink-0 overflow-hidden rounded-full size-9 group-focus:ring-2",
     props.className
   );
 

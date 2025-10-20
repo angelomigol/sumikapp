@@ -6,6 +6,7 @@ import { getLogger } from "@/utils/logger";
 import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
 
 import { updateEntryStatusSchema } from "../schema/update-entry-status.schema";
+import { createSubmitEntryFeedbackService } from "./services/submit-entry-feedback.service";
 import { createUpdateEntryStatusService } from "./services/update-entry-status.service";
 import { createUpdateTraineeReportService } from "./services/update-trainee-report-status.service";
 
@@ -157,6 +158,66 @@ export const updateEntryAction = enhanceAction(
           error,
         },
         "Failed to update entry status"
+      );
+
+      throw error;
+    }
+  },
+  {}
+);
+
+/**
+ * @name submitFeedbackAction
+ * @description Server action to
+ */
+export const submitFeedbackAction = enhanceAction(
+  async (data: { entryId: string; feedback: string }, user) => {
+    const logger = await getLogger();
+    const { entryId, feedback } = data;
+
+    if (!entryId || typeof entryId !== "string") {
+      throw new Error("Invalid entry ID");
+    }
+
+    if (feedback && feedback.length > 200) {
+      throw new Error("Feedback cannot exceed 200 characters");
+    }
+
+    const ctx = {
+      name: "weekly_report_entry.submitFeedback",
+      userId: user.id,
+      entryId,
+    };
+
+    logger.info(ctx, "Submitting feedback for entry...");
+
+    try {
+      const server = getSupabaseServerClient();
+      const service = createSubmitEntryFeedbackService();
+
+      const result = await service.submitFeedback({
+        server,
+        userId: user.id,
+        entryId,
+        feedback,
+      });
+
+      logger.info(
+        {
+          ...ctx,
+          reports: result,
+        },
+        "Successfully submitted feedback"
+      );
+
+      return result;
+    } catch (error) {
+      logger.error(
+        {
+          ...ctx,
+          error,
+        },
+        "Failed to submit feedback"
       );
 
       throw error;

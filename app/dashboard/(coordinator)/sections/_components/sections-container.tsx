@@ -21,7 +21,7 @@ import AddSectionSheet from "./add-section-sheet";
 import SectionCard from "./section-card";
 
 export default function SectionsContainer() {
-  const { data = [], isLoading, error } = useFetchSections();
+  const { data = [], isLoading } = useFetchSections();
 
   if (isLoading) {
     return <LoadingOverlay fullPage />;

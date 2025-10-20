@@ -16,7 +16,7 @@ export function createGetTraineeReportsService() {
 
 /**
  * @name GetTraineeReportsService
- * @description Service for fetching trainees from a section from the database
+ * @description Service for fetching trainees' reports from the database
  * @param Database - The Supabase database type to use
  * @example
  * const client = getSupabaseClient();
@@ -144,7 +144,7 @@ class GetTraineeReportsService {
 
   /**
    * @name getTraineeReportById
-   * @description Fetch report of the trainees by ID
+   * @description Fetch report of the trainee by ID
    */
   async getTraineeReportById(params: {
     client: SupabaseClient<Database>;
@@ -208,6 +208,10 @@ class GetTraineeReportsService {
         )
         .eq("id", reportId)
         .eq("internship_details.supervisor_id", userId)
+        .order("entry_date", {
+          ascending: true,
+          referencedTable: "weekly_report_entries",
+        })
         .single();
 
       if (weeklyReportError) {

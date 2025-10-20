@@ -179,6 +179,7 @@ export default function FileOptions({
                   className="hover:bg-destructive/20 cursor-pointer transition-none"
                   onClick={handleDelete}
                   disabled={isOperationInProgress}
+                  asChild
                 >
                   <motion.button whileTap={{ scale: 0.85 }}>
                     <If

@@ -8,7 +8,7 @@ import {
 } from "@/hooks/use-review-reports";
 
 import { getLogger } from "@/utils/logger";
-import { Database, Tables } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
 
 export function createGetSectionTraineeReportsService() {
   return new GetSectionTraineeReportsService();
@@ -208,6 +208,10 @@ class GetSectionTraineeReportsService {
           "internship_details.trainee_batch_enrollment.program_batch.coordinator_id",
           userId
         )
+        .order("entry_date", {
+          ascending: true,
+          referencedTable: "weekly_report_entries",
+        })
         .single();
 
       if (weeklyReportError) {

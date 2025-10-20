@@ -9,14 +9,13 @@ import {
 
 import { DocumentStatus, EntryStatus } from "@/lib/constants";
 
-import {
-  WeeklyReportEntryWithFiles,
-} from "@/schemas/weekly-report/weekly-report.schema";
+import { WeeklyReportEntryWithFiles } from "@/schemas/weekly-report/weekly-report.schema";
 
 import { UpdateEntryStatusFormValues } from "@/app/dashboard/(supervisor)/review-reports/[id]/schema/update-entry-status.schema";
 import {
   approveReportAction,
   rejectReportAction,
+  submitFeedbackAction,
   updateEntryAction,
 } from "@/app/dashboard/(supervisor)/review-reports/[id]/server/server-actions";
 import {
@@ -24,15 +23,18 @@ import {
   getTraineeReportsAction,
 } from "@/app/dashboard/(supervisor)/review-reports/server/server-actions";
 
-export const REVIEW_REPORTS_QUERY_KEY = ["supabase:review_reports"] as const;
-export const REVIEW_REPORT_QUERY_KEY = (id: string) =>
-  ["supabase:review_report", id] as const;
-export const UPDATE_REPORT_MUTATION_KEY = [
-  "supabase:update_review_report",
-] as const;
-export const UPDATE_ENTRY_MUTATION_KEY = [
-  "supabase:update_report_entry",
-] as const;
+export const REVIEW_REPORTS_QUERY_KEYS = {
+  all: ["supabase:review_reports"] as const,
+  detail: (id: string) => ["supabase:review_report", id] as const,
+  entryFiles: (entryId: string) => ["supabase:entry_files", entryId] as const,
+  mutations: {
+    update: ["supabase:update_review_report"] as const,
+    updateEntry: ["supabase:update_report_entry"] as const,
+    submit: ["submit_weekly_report"] as const,
+    uploadFiles: ["upload_entry_files"] as const,
+    deleteFile: ["delete_entry_file"] as const,
+  },
+};
 
 export type ReviewReports = {
   trainee_id: string;
@@ -82,7 +84,7 @@ export type NormalizedReviewReport = ReviewReports & {
 
 export function useFetchTraineeReports() {
   return useQuery<ReviewReports[]>({
-    queryKey: REVIEW_REPORTS_QUERY_KEY,
+    queryKey: REVIEW_REPORTS_QUERY_KEYS.all,
     queryFn: async () => {
       const result = await getTraineeReportsAction(null);
       return result;
@@ -95,7 +97,7 @@ export function useFetchTraineeReports() {
 
 export function useFetchTraineeReport(id: string) {
   return useQuery<NormalizedReviewReport>({
-    queryKey: REVIEW_REPORT_QUERY_KEY(id),
+    queryKey: REVIEW_REPORTS_QUERY_KEYS.detail(id),
     queryFn: async () => {
       const result = await getTraineeReportByIdAction(id);
       return result;
@@ -107,11 +109,29 @@ export function useFetchTraineeReport(id: string) {
   });
 }
 
+export function useSubmitEntryFeedback(id: string) {
+  const revalidateReport = useRevalidateFetchTraineeReport();
+
+  return useMutation({
+    mutationKey: [REVIEW_REPORTS_QUERY_KEYS.mutations.update, "feedback"],
+    mutationFn: ({
+      entryId,
+      feedback,
+    }: {
+      entryId: string;
+      feedback: string;
+    }) => submitFeedbackAction({ entryId, feedback }),
+    onSuccess: () => {
+      revalidateReport(id);
+    },
+  });
+}
+
 export function useApproveTraineeReport(id: string) {
   const revalidateReport = useRevalidateFetchTraineeReport();
 
   return useMutation({
-    mutationKey: [UPDATE_REPORT_MUTATION_KEY, "approve"],
+    mutationKey: [REVIEW_REPORTS_QUERY_KEYS.mutations.update, "approve"],
     mutationFn: (reportId: string) => approveReportAction(reportId),
     onSuccess: () => {
       revalidateReport(id);
@@ -123,7 +143,7 @@ export function useRejectTraineeReport(id: string) {
   const revalidateReport = useRevalidateFetchTraineeReport();
 
   return useMutation({
-    mutationKey: [UPDATE_REPORT_MUTATION_KEY, "reject"],
+    mutationKey: [REVIEW_REPORTS_QUERY_KEYS.mutations.update, "reject"],
     mutationFn: (reportId: string) => rejectReportAction(reportId),
     onSuccess: () => {
       revalidateReport(id);
@@ -132,7 +152,7 @@ export function useRejectTraineeReport(id: string) {
 }
 
 export function useUpdateEntryStatus(id: string) {
-  const mutationKey = UPDATE_ENTRY_MUTATION_KEY;
+  const mutationKey = REVIEW_REPORTS_QUERY_KEYS.mutations.update;
   const revalidateReport = useRevalidateFetchTraineeReport();
 
   const mutationFn = async (payload: UpdateEntryStatusFormValues) => {
@@ -160,7 +180,7 @@ export function useRevalidateFetchTraineeReport() {
   return useCallback(
     (id: string) => {
       queryClient.invalidateQueries({
-        queryKey: REVIEW_REPORT_QUERY_KEY(id),
+        queryKey: REVIEW_REPORTS_QUERY_KEYS.detail(id),
       });
     },
     [queryClient]
@@ -169,7 +189,7 @@ export function useRevalidateFetchTraineeReport() {
 
 export async function prefetchTraineeReports(queryClient: QueryClient) {
   await queryClient.prefetchQuery({
-    queryKey: REVIEW_REPORTS_QUERY_KEY,
+    queryKey: REVIEW_REPORTS_QUERY_KEYS.all,
     queryFn: async () => {
       const result = await getTraineeReportsAction(null);
       return result;
@@ -183,7 +203,7 @@ export async function prefetchTraineeReport(
   id: string
 ) {
   await queryClient.prefetchQuery({
-    queryKey: REVIEW_REPORT_QUERY_KEY(id),
+    queryKey: REVIEW_REPORTS_QUERY_KEYS.detail(id),
     queryFn: async () => {
       const result = await getTraineeReportByIdAction(id);
       return result;

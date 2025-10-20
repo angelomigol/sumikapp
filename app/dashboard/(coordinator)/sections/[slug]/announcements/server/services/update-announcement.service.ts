@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getLogger } from "@/utils/logger";
-import { Database, TablesUpdate } from "@/utils/supabase/supabase.types";
+import { Database } from "@/utils/supabase/supabase.types";
 
 import { AnnouncementFormValues } from "../../schema/announcement.schema";
 

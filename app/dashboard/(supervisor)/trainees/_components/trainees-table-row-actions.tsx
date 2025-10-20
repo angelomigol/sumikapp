@@ -35,7 +35,9 @@ export function TraineesTableRowActions({ row }: TraineesTableRowActionsProps) {
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem>
           <Link
-            href={pathsConfig.dynamic.traineeDetails(row.original.trainee_id)}
+            href={pathsConfig.dynamic.traineeDetails(
+              row.original.internship_id
+            )}
           >
             View Student
           </Link>

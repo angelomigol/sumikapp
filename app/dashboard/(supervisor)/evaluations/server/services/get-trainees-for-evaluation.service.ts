@@ -161,9 +161,9 @@ class GetTraineesForEvaluationService {
       }
 
       // Step 2: Get total hours served for each internship from approved attendance reports
-      const { data: attendanceReports, error: attendanceError } = await client
-        .from("attendance_reports")
-        .select("internship_id, total_hours_served")
+      const { data: weeklyReports, error: attendanceError } = await client
+        .from("weekly_reports")
+        .select("internship_id, period_total")
         .in("internship_id", internshipIds)
         .eq("status", "approved");
 
@@ -186,12 +186,9 @@ class GetTraineesForEvaluationService {
 
       // Step 3: Calculate total hours for each internship
       const hoursMap = new Map<string, number>();
-      attendanceReports?.forEach((report) => {
+      weeklyReports?.forEach((report) => {
         const currentTotal = hoursMap.get(report.internship_id) || 0;
-        hoursMap.set(
-          report.internship_id,
-          currentTotal + report.total_hours_served
-        );
+        hoursMap.set(report.internship_id, currentTotal + report.period_total);
       });
 
       // Step 4: Check which trainees have met required hours

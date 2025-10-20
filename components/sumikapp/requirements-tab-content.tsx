@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Download, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 
 import { RequirementWithHistory } from "@/hooks/use-batch-requirements";
 
@@ -9,7 +9,6 @@ import { getDocumentStatusConfig } from "@/lib/constants";
 import { safeFormatDate } from "@/utils/shared";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -57,7 +56,6 @@ export default function RequirementsTabContent({
           <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r">
             Status
           </TableHead>
-          <TableHead className="bg-muted h-8 border-t border-b border-none px-3 text-xs font-semibold first:rounded-l-xl first:border-l last:rounded-r-xl last:border-r"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -108,19 +106,6 @@ export default function RequirementsTabContent({
                   )}
                   {status.label}
                 </Badge>
-              </TableCell>
-
-              <TableCell>
-                <Button
-                  size={"sm"}
-                  variant={"ghost"}
-                  className="size-8 p-0"
-                  onClick={() => {
-                    window.open(requirement.file_path, "_blank");
-                  }}
-                >
-                  <Download className="size-4" />
-                </Button>
               </TableCell>
             </TableRow>
           );

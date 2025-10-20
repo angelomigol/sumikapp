@@ -54,7 +54,7 @@ class DeleteTraineeFromSectionService {
         throw new Error(`Section: "${sectionName}" not found`);
       }
 
-      const { data, error } = await client
+      const { error } = await client
         .from("trainee_batch_enrollment")
         .delete()
         .eq("program_batch_id", batchData.id)

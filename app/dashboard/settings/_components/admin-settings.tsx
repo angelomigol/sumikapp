@@ -10,7 +10,11 @@ import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
 
 type AdminUser = Extract<NormalizedUser, { role: "admin" }>;
 
-export default function AdminSettings(params: { userId: string }) {
+export default function AdminSettings(params: {
+  userId: string;
+  isEdit: boolean;
+  setIsEdit: (isEdit: boolean) => void;
+}) {
   const user = useFetchUser(params.userId);
 
   if (!user.data || user.isLoading) {

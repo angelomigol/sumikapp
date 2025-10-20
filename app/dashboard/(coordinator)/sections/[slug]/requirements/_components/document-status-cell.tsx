@@ -2,116 +2,61 @@
 
 import { useState } from "react";
 
-import { useFetchSignedUrl, usePrefetchSignedUrl } from "@/hooks/use-document";
+import { IconEye } from "@tabler/icons-react";
 
 import { DocumentStatus } from "@/lib/constants";
 
-import { formatFileSize } from "@/utils/shared";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import DocumentViewerModal from "./document-viewer-modal";
+import NewDocumentViewerModal from "./new-document-viewer-modal";
 
 export const DocumentStatusCell = ({
-  docInfo,
   studentName,
   slug,
+  documents,
 }: {
-  docInfo: {
-    id: string;
-    status: string;
-    filePath: string;
-    fileName: string;
-    fileSize: number;
-    fileType: string;
-    submitted: string;
-  } | null;
-  docSubmitted?: string;
   studentName: string;
   slug: string;
+  documents: Array<{
+    id: string;
+    requirementName: string;
+    status: DocumentStatus;
+    filePath: string | null;
+    fileName: string | null;
+    fileSize: string | null;
+    submittedDate: string | null;
+  }>;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const prefetchSignedUrl = usePrefetchSignedUrl();
-  const documentUrl = useFetchSignedUrl(
-    docInfo?.filePath ?? "", // safe default
-    isModalOpen && !!docInfo?.filePath
-  );
-
-  if (!docInfo) {
-    return (
-      <Badge
-        variant="outline"
-        className="text-muted-foreground border-gray-300"
-      >
-        Missing
-      </Badge>
-    );
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-500 text-white";
-      case "rejected":
-        return "bg-red-500 text-white";
-      case "pending":
-        return "bg-yellow-500 text-white";
-      case "not submitted":
-        return "bg-gray-500 text-white";
-      default:
-        return "bg-amber-500 text-white";
-    }
-  };
-
-  const fileSize = formatFileSize(docInfo.fileSize);
-
-  const handlePrefetch = () => {
-    if (docInfo.filePath) {
-      prefetchSignedUrl(docInfo.filePath);
-    }
-  };
-
-  const handleViewDocument = () => {
-    if (!docInfo.filePath) return;
-    setIsModalOpen(true);
-  };
-
   return (
     <div className="flex flex-col items-center justify-center gap-2">
-      <div className="flex max-w-[150px] text-sm" title={docInfo.fileName}>
-        <span className="truncate">{docInfo.fileName}</span>
-      </div>
-
-      <Badge className={getStatusColor(docInfo.status)}>
-        {docInfo.status.charAt(0).toUpperCase() + docInfo.status.slice(1)}
-      </Badge>
-
-      <Button
-        variant={"outline"}
-        size={"sm"}
-        className="h-7 text-xs"
-        onClick={handleViewDocument}
-        onMouseEnter={handlePrefetch}
-        disabled={!docInfo.filePath}
-      >
-        {documentUrl.isLoading && isModalOpen ? "Loading..." : "View"}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={"outline"}
+            size={"sm"}
+            onClick={() => setIsModalOpen(true)}
+          >
+            <IconEye />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>View</p>
+        </TooltipContent>
+      </Tooltip>
 
       {isModalOpen && (
-        <DocumentViewerModal
-          isOpen={true}
+        <NewDocumentViewerModal
+          isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          documentUrl={documentUrl.data ?? ""}
-          documentName={docInfo.fileName}
-          submittedDate={docInfo.submitted}
-          fileSize={fileSize}
-          documentId={docInfo.id}
           studentName={studentName}
-          currentStatus={docInfo.status as DocumentStatus}
-          isLoading={documentUrl.isLoading}
-          error={documentUrl.error?.message}
+          documents={documents}
           slug={slug}
         />
       )}
