@@ -19,6 +19,8 @@ export default function SectionTraineeDetailsContainer(params: {
     id: params.traineeId,
   });
 
+  console.log(params.slug, params.traineeId);
+
   if (isLoading) {
     return <LoadingOverlay fullPage />;
   }

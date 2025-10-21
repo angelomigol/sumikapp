@@ -124,8 +124,6 @@ export function useFetchTraineeDashboard() {
         .limit(1)
         .single();
 
-      console.log(enrollment);
-
       if (enrollmentError) {
         throw new Error(`Enrollment error: ${enrollmentError.message}`);
       }
