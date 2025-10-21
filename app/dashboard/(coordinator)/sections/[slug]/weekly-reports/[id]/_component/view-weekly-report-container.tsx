@@ -2,7 +2,16 @@
 
 import React, { useState } from "react";
 
+import { IconDownload, IconExternalLink } from "@tabler/icons-react";
 import { format } from "date-fns";
+import {
+  FileIcon,
+  FileSpreadsheetIcon,
+  FileTextIcon,
+  ImageIcon,
+} from "lucide-react";
+import * as motion from "motion/react-client";
+import { toast } from "sonner";
 
 import pathsConfig from "@/config/paths.config";
 import { useFetchSectionTraineeReport } from "@/hooks/use-section-weekly-reports";
@@ -13,10 +22,16 @@ import {
   internCodeMap,
 } from "@/lib/constants";
 
-import { formatHoursDisplay, safeFormatDate } from "@/utils/shared";
+import {
+  formatFileSize,
+  formatHoursDisplay,
+  safeFormatDate,
+} from "@/utils/shared";
+import { useSupabase } from "@/utils/supabase/hooks/use-supabase";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,6 +46,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import RichTextEditor from "@/components/rich-text-editor";
 import BackButton from "@/components/sumikapp/back-button";
 import { If } from "@/components/sumikapp/if";
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
@@ -42,9 +63,18 @@ export default function ViewWeeklyReportContainer(params: {
   reportId: string;
   slug: string;
 }) {
+  const supabase = useSupabase();
+  const reportData = useFetchSectionTraineeReport(params.reportId);
+
   const [activeTab, setActiveTab] = useState("0");
 
-  const reportData = useFetchSectionTraineeReport(params.reportId);
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith("image/")) return <ImageIcon className="size-4" />;
+    if (fileType.includes("pdf")) return <FileTextIcon className="size-4" />;
+    if (fileType.includes("spreadsheet") || fileType.includes("excel"))
+      return <FileSpreadsheetIcon className="size-4" />;
+    return <FileIcon className="size-4" />;
+  };
 
   if (reportData.isLoading) {
     return <LoadingOverlay fullPage />;
@@ -65,6 +95,60 @@ export default function ViewWeeklyReportContainer(params: {
   ]
     .filter(Boolean)
     .join(" ");
+
+  const handleDownloadFile = async ({
+    filePath,
+    fileName,
+  }: {
+    filePath: string;
+    fileName: string;
+  }) => {
+    if (fileName && filePath) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("additional-attachments")
+          .download(filePath);
+
+        if (error) {
+          toast.error(`Failed to download ${fileName}.`);
+          console.error("Error downloading file:", error);
+          return;
+        }
+
+        const url = URL.createObjectURL(data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Failed to download file:", err);
+      }
+    }
+  };
+
+  const handleViewFile = async ({ filePath }: { filePath: string }) => {
+    if (filePath) {
+      try {
+        const { data, error } = await supabase.storage
+          .from("additional-attachments")
+          .createSignedUrl(filePath, 3600);
+
+        if (error) {
+          toast.error("Failed to view file.");
+          console.error("Error getting file URL:", error);
+          return;
+        }
+
+        window.open(data.signedUrl, "_blank");
+      } catch (err) {
+        console.error("Failed to view file:", err);
+        toast.error("Something went wrong while opening the file.");
+      }
+    }
+  };
 
   return (
     <>
@@ -165,108 +249,161 @@ export default function ViewWeeklyReportContainer(params: {
               })}
             </TabsList>
 
-            {reportData.data.entries.map((entry, index) => {
-              const isFieldsDisabled =
-                entry.status === "absent" || entry.status === "holiday";
-
-              return (
-                <TabsContent
-                  key={entry.entry_date}
-                  value={index.toString()}
-                  className="mt-3 space-y-6 md:space-y-8"
-                >
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        {format(entry.entry_date, "PPPP")}
-                      </span>
-                      {entry.status === "absent" && (
-                        <Badge
-                          className={`px-1.5 py-px ${getEntryStatusConfig("absent").badgeColor}`}
-                        >
-                          Absent
-                        </Badge>
-                      )}
-                      {entry.status === "holiday" && (
-                        <Badge
-                          className={`px-1.5 py-px ${getEntryStatusConfig("holiday").badgeColor}`}
-                        >
-                          Holiday
-                        </Badge>
-                      )}
-                    </div>
+            {reportData.data.entries.map((entry, index) => (
+              <TabsContent
+                key={entry.entry_date}
+                value={index.toString()}
+                className="mt-3 space-y-6 md:space-y-8"
+              >
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">
+                      {format(entry.entry_date, "PPPP")}
+                    </span>
+                    {entry.status === "absent" && (
+                      <Badge
+                        className={`px-1.5 py-px ${getEntryStatusConfig("absent").badgeColor}`}
+                      >
+                        Absent
+                      </Badge>
+                    )}
+                    {entry.status === "holiday" && (
+                      <Badge
+                        className={`px-1.5 py-px ${getEntryStatusConfig("holiday").badgeColor}`}
+                      >
+                        Holiday
+                      </Badge>
+                    )}
                   </div>
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
-                      <div className="space-y-2">
-                        <Label>Time In</Label>
-                        <Input
-                          type="time"
-                          value={entry.time_in || ""}
-                          readOnly
-                          className="cursor-default"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Time Out</Label>
-                        <Input
-                          type="time"
-                          value={entry.time_out || ""}
-                          readOnly
-                          className="cursor-default"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Working Hours</Label>
-                        <Input
-                          readOnly
-                          value={formatHoursDisplay(entry.total_hours)}
-                          className="cursor-default"
-                        />
-                      </div>
-                    </div>
-
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
                     <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Label>
-                          Daily Accomplishments
-                          {isFieldsDisabled && (
-                            <Badge
-                              variant={"secondary"}
-                              className="ml-2 px-1.5 py-px"
-                            >
-                              Disabled
-                            </Badge>
-                          )}
-                        </Label>
-                      </div>
-                      <div
-                        className="prose prose-sm max-w-none rounded-md border p-3"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            entry.daily_accomplishments ||
-                            "<p class='text-muted-foreground'>No accomplishments recorded</p>",
-                        }}
+                      <Label>Time In</Label>
+                      <Input
+                        type="time"
+                        value={entry.time_in || ""}
+                        readOnly
+                        className="cursor-default"
                       />
                     </div>
-
-                    <If condition={entry.additional_notes}>
-                      <div className="space-y-2">
-                        <Label>Additional Notes</Label>
-                        <Textarea
-                          readOnly
-                          value={entry.additional_notes ?? ""}
-                          className="cursor-default resize-none"
-                        />
-                      </div>
-                    </If>
+                    <div className="space-y-2">
+                      <Label>Time Out</Label>
+                      <Input
+                        type="time"
+                        value={entry.time_out || ""}
+                        readOnly
+                        className="cursor-default"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Working Hours</Label>
+                      <Input
+                        readOnly
+                        value={formatHoursDisplay(entry.total_hours)}
+                        className="cursor-default"
+                      />
+                    </div>
                   </div>
-                </TabsContent>
-              );
-            })}
+
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Label>Daily Accomplishments</Label>
+                    </div>
+                    <RichTextEditor
+                      value={entry.daily_accomplishments || ""}
+                      disabled
+                    />
+                  </div>
+
+                  <If condition={entry.additional_notes}>
+                    <div className="space-y-2">
+                      <Label>Additional Notes</Label>
+                      <Textarea
+                        readOnly
+                        value={entry.additional_notes ?? ""}
+                        className="cursor-default resize-none"
+                      />
+                    </div>
+                  </If>
+
+                  <If condition={entry.files && entry.files.length > 0}>
+                    <div className="space-y-3">
+                      <Label>Attachments</Label>
+
+                      <div className="space-y-2">
+                        {entry.files?.map((file) => (
+                          <div
+                            key={`${file.entry_id}-${file.file_name}`}
+                            className="hover:bg-accent/50 flex items-center gap-3 rounded-lg border p-3 transition-colors"
+                          >
+                            <div className="flex-shrink-0">
+                              <div className="bg-muted flex size-10 items-center justify-center rounded">
+                                {getFileIcon(file.file_type)}
+                              </div>
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <p className="truncate text-sm font-medium">
+                                    {file.file_name}
+                                  </p>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{file.file_name}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <p className="text-muted-foreground text-xs">
+                                {formatFileSize(file.file_size)}
+                              </p>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button
+                                variant={"ghost"}
+                                size={"icon-sm"}
+                                onClick={() =>
+                                  handleViewFile({ filePath: file.file_path })
+                                }
+                                asChild
+                              >
+                                <motion.button whileTap={{ scale: 0.85 }}>
+                                  <a>
+                                    <IconExternalLink className="size-4" />
+                                    <span className="sr-only">View</span>
+                                  </a>
+                                </motion.button>
+                              </Button>
+
+                              <Button
+                                variant={"ghost"}
+                                size={"icon-sm"}
+                                onClick={() =>
+                                  handleDownloadFile({
+                                    filePath: file.file_path,
+                                    fileName: file.file_name,
+                                  })
+                                }
+                                asChild
+                              >
+                                <motion.button whileTap={{ scale: 0.85 }}>
+                                  <IconDownload className="size-4" />
+                                  <span className="sr-only">Download</span>
+                                </motion.button>
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </If>
+                </div>
+              </TabsContent>
+            ))}
           </Tabs>
           <div className="bg-accent/50 rounded-lg border p-3 md:p-4">
             <div className="flex items-center justify-between gap-4">
