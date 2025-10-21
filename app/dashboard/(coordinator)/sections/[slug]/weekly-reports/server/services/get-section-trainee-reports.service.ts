@@ -200,7 +200,12 @@ class GetSectionTraineeReportsService {
                 )
               )
             ),
-            weekly_report_entries (*)
+            weekly_report_entries (
+              *,
+              weekly_report_entry_files(
+              *
+              )
+            )
           `
         )
         .eq("id", reportId)
@@ -272,6 +277,16 @@ class GetSectionTraineeReportsService {
           report_id: entry.report_id,
           additional_notes: entry.additional_notes,
           feedback: entry.feedback,
+          files: entry.weekly_report_entry_files
+            .filter((file) => file.entry_id === entry.id)
+            .map((file) => ({
+              entry_id: file.entry_id,
+              file_name: file.file_name,
+              created_at: file.created_at,
+              file_path: file.file_path,
+              file_size: file.file_size,
+              file_type: file.file_type,
+            })),
         })),
         company_name: weeklyReportData.internship_details.company_name,
         job_role: weeklyReportData.internship_details.job_role,
