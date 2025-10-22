@@ -401,6 +401,19 @@ export default function ViewWeeklyReportContainer(params: {
                       </div>
                     </div>
                   </If>
+
+                  <Separator className="my-8" />
+
+                  <If condition={status === "pending" || status === "rejected"}>
+                    <div className="space-y-2">
+                      <Label htmlFor="feedback">Supervisor Feedback</Label>
+                      <Textarea
+                        readOnly
+                        value={entry.feedback ?? ""}
+                        className="field-sizing-content max-h-30 min-h-20 resize-none py-1.75"
+                      />
+                    </div>
+                  </If>
                 </div>
               </TabsContent>
             ))}

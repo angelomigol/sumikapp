@@ -39,14 +39,14 @@ import { If } from "@/components/sumikapp/if";
 import { deleteInternshipAction } from "../server/server-actions";
 
 interface InternshipDetailsViewProps {
-  internship: InternshipDetails;
+  selectedInternship: InternshipDetails;
   allInternships: InternshipDetails[];
   onEdit: () => void;
   onClose: () => void;
 }
 
 export default function InternshipDetailsView({
-  internship,
+  selectedInternship,
   allInternships,
   onEdit,
   onClose,
@@ -64,7 +64,11 @@ export default function InternshipDetailsView({
   } | null>(null);
 
   const hasPendingInternship = allInternships.some(
-    (int) => int.status === "pending" && int.id !== internship.id
+    (int) => int.status === "pending" && int.id !== selectedInternship.id
+  );
+
+  const hasApprovedInternship = allInternships.some(
+    (int) => int.status === "approved"
   );
 
   const openConfirmDialog = (config: typeof dialogConfig) => {
@@ -73,20 +77,23 @@ export default function InternshipDetailsView({
   };
 
   const getJobRoleDisplay = () => {
-    if (!internship.job_role) return "Not specified";
+    if (!selectedInternship.job_role) return "Not specified";
 
     const predefinedRole = jobRoles.find(
-      (role) => role.value === internship.job_role
+      (role) => role.value === selectedInternship.job_role
     );
-    return predefinedRole ? predefinedRole.label : internship.job_role;
+    return predefinedRole ? predefinedRole.label : selectedInternship.job_role;
   };
 
   const getScheduleDisplay = () => {
-    if (!internship.dailySchedule || internship.dailySchedule.length === 0) {
+    if (
+      !selectedInternship.dailySchedule ||
+      selectedInternship.dailySchedule.length === 0
+    ) {
       return "Not specified";
     }
 
-    return internship.dailySchedule.join(", ");
+    return selectedInternship.dailySchedule.join(", ");
   };
 
   const formatTime = (time: string | null) => {
@@ -111,7 +118,7 @@ export default function InternshipDetailsView({
 
   const handleSubmitForm = () => {
     const promise = async () => {
-      await submitInternshipFormMutation.mutateAsync(internship.id);
+      await submitInternshipFormMutation.mutateAsync(selectedInternship.id);
     };
 
     toast.promise(promise, {
@@ -135,16 +142,16 @@ export default function InternshipDetailsView({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Badge
-              className={`${getDocumentStatusConfig(internship.status)?.badgeColor} capitalize`}
+              className={`${getDocumentStatusConfig(selectedInternship.status)?.badgeColor} capitalize`}
             >
-              {internship.status}
+              {selectedInternship.status}
             </Badge>
           </div>
 
           <If
             condition={
-              internship.status === "not submitted" ||
-              internship.status === "rejected"
+              selectedInternship.status === "not submitted" ||
+              selectedInternship.status === "rejected"
             }
           >
             <div>
@@ -160,17 +167,20 @@ export default function InternshipDetailsView({
                     title: `Delete Internship Form`,
                     description: `Are you sure you want to delete this internship form? This action cannot be undone.`,
                     onConfirm: () => {
-                      toast.promise(deleteInternshipAction(internship.id), {
-                        loading: `Deleting internship form...`,
-                        success: () => {
-                          revalidateInternships();
-                          return `Internship form deleted successfully!`;
-                        },
-                        error: (err) =>
-                          err instanceof Error
-                            ? err.message
-                            : `Something went wrong while deleting internship form.`,
-                      });
+                      toast.promise(
+                        deleteInternshipAction(selectedInternship.id),
+                        {
+                          loading: `Deleting internship form...`,
+                          success: () => {
+                            revalidateInternships();
+                            return `Internship form deleted successfully!`;
+                          },
+                          error: (err) =>
+                            err instanceof Error
+                              ? err.message
+                              : `Something went wrong while deleting internship form.`,
+                        }
+                      );
                     },
                     confirmText: "Delete",
                     variant: "destructive",
@@ -198,7 +208,7 @@ export default function InternshipDetailsView({
                   Company Name
                 </h4>
                 <p className="text-sm">
-                  {internship.companyName || "Not specified"}
+                  {selectedInternship.companyName || "Not specified"}
                 </p>
               </div>
               <div>
@@ -206,7 +216,7 @@ export default function InternshipDetailsView({
                   Contact Number
                 </h4>
                 <p className="text-sm">
-                  {internship.contactNumber || "Not specified"}
+                  {selectedInternship.contactNumber || "Not specified"}
                 </p>
               </div>
               <div>
@@ -214,7 +224,7 @@ export default function InternshipDetailsView({
                   Nature of Business
                 </h4>
                 <p className="text-sm">
-                  {internship.natureOfBusiness || "Not specified"}
+                  {selectedInternship.natureOfBusiness || "Not specified"}
                 </p>
               </div>
               <div>
@@ -223,7 +233,7 @@ export default function InternshipDetailsView({
                 </h4>
                 <p className="flex items-start gap-1 text-sm">
                   <MapPin className="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0" />
-                  {internship.companyAddress || "Not specified"}
+                  {selectedInternship.companyAddress || "Not specified"}
                 </p>
               </div>
             </div>
@@ -249,7 +259,7 @@ export default function InternshipDetailsView({
                 <h4 className="text-muted-foreground mb-1 text-sm font-medium">
                   Supervisor Email
                 </h4>
-                <p className="text-sm">{internship.supervisorEmail}</p>
+                <p className="text-sm">{selectedInternship.supervisorEmail}</p>
               </div>
             </div>
 
@@ -262,8 +272,8 @@ export default function InternshipDetailsView({
                   Duration
                 </h4>
                 <p className="text-sm">
-                  {safeFormatDate(internship.startDate, "PP")} -{" "}
-                  {safeFormatDate(internship.endDate, "PP")}
+                  {safeFormatDate(selectedInternship.startDate, "PP")} -{" "}
+                  {safeFormatDate(selectedInternship.endDate, "PP")}
                 </p>
               </div>
               <div>
@@ -272,8 +282,8 @@ export default function InternshipDetailsView({
                   Working Hours
                 </h4>
                 <p className="text-sm">
-                  {formatTime(internship.startTime)} -{" "}
-                  {formatTime(internship.endTime)}
+                  {formatTime(selectedInternship.startTime)} -{" "}
+                  {formatTime(selectedInternship.endTime)}
                 </p>
               </div>
             </div>
@@ -289,24 +299,25 @@ export default function InternshipDetailsView({
                 <h4 className="text-muted-foreground mb-1 text-sm font-medium">
                   Lunch Break
                 </h4>
-                <p className="text-sm">{internship.lunchBreak} Minutes</p>
+                <p className="text-sm">
+                  {selectedInternship.lunchBreak} Minutes
+                </p>
               </div>
             </div>
           </CardContent>
 
           <If
             condition={
-              internship.status === "not submitted" ||
-              internship.status === "rejected"
+              (selectedInternship.status === "rejected" ||
+                selectedInternship.status === "not submitted") &&
+              !hasApprovedInternship
             }
           >
             <CardFooter className="flex justify-end">
               <Button
                 size={"sm"}
                 onClick={handleSubmitForm}
-                disabled={
-                  submitInternshipFormMutation.isPending || hasPendingInternship
-                }
+                disabled={submitInternshipFormMutation.isPending}
               >
                 Submit
               </Button>

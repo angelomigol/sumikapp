@@ -101,7 +101,7 @@ export default function InternshipDetailsContainer() {
 
           {mode === "view" && selectedInternship && (
             <InternshipDetailsView
-              internship={selectedInternship}
+              selectedInternship={selectedInternship}
               allInternships={internships}
               onEdit={() => setMode("edit")}
               onClose={() => {

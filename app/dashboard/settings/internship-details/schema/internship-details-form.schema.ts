@@ -22,7 +22,7 @@ export const internshipDetailsFormSchema = z
     dailySchedule: z.array(z.string()).min(1, "Please select at least one day"),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
-    lunchBreak: z.number().int().positive(),
+    lunchBreak: z.string(),
   })
   .refine(
     (data) => {

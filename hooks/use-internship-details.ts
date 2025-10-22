@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { DocumentStatus } from "@/lib/constants";
+import { DocumentStatus, OJTStatus } from "@/lib/constants";
 
 import { InternshipDetailsFormValues } from "@/app/dashboard/settings/internship-details/schema/internship-details-form.schema";
 import {
@@ -32,6 +32,7 @@ export type InternshipDetails = {
   supervisorEmail: string | null;
   status: DocumentStatus;
   lunchBreak: number;
+  ojtStatus?: OJTStatus;
 };
 
 export const INTERNSHIPS_QUERY_KEY = ["supabase:intership_details"] as const;

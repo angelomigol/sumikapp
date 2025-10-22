@@ -83,6 +83,7 @@ class CreateInternshipPlacementService {
             daily_schedule: data.dailySchedule,
             status: "not submitted" as const,
             temp_email: data.supervisorEmail,
+            lunch_break_in_mins: Number(data.lunchBreak),
           })
           .select()
           .single();

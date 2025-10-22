@@ -49,7 +49,8 @@ class GetTraineeInternshipsService {
           *,
           trainee_batch_enrollment!inner (
             id,
-            trainee_id
+            trainee_id,
+            ojt_status
           ),
           supervisors (
             users!inner (
@@ -102,6 +103,7 @@ class GetTraineeInternshipsService {
         supervisorEmail: a.supervisors?.users.email ?? a.temp_email,
         status: a.status,
         lunchBreak: a.lunch_break_in_mins,
+        ojtStatus: a.trainee_batch_enrollment.ojt_status,
       }));
 
       return mappedData;

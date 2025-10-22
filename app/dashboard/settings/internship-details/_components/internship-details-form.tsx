@@ -87,7 +87,7 @@ export default function InternshipDetailsForm({
       dailySchedule: [],
       startTime: "",
       endTime: "",
-      lunchBreak: 0,
+      lunchBreak: "",
     },
   });
 
@@ -123,7 +123,7 @@ export default function InternshipDetailsForm({
         dailySchedule: internship.dailySchedule || [],
         startTime: internship.startTime || "",
         endTime: internship.endTime || "",
-        lunchBreak: internship.lunchBreak || 0,
+        lunchBreak: internship.lunchBreak.toString() || "0",
       };
 
       form.reset(formData);
@@ -142,7 +142,7 @@ export default function InternshipDetailsForm({
         dailySchedule: [],
         startTime: "",
         endTime: "",
-        lunchBreak: 0,
+        lunchBreak: "0",
       });
     }
   }, [isEditing, internship, form]);
@@ -505,7 +505,7 @@ export default function InternshipDetailsForm({
                 <FormItem>
                   <FormLabel>Lunch Break (in minutes)</FormLabel>
                   <FormControl>
-                    <Input type="number" inputMode="numeric" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

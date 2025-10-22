@@ -40,7 +40,7 @@ export const getInternshipsAction = enhanceAction(async (_, user) => {
     logger.info(
       {
         ...ctx,
-        reports: result,
+        internships: result,
       },
       "Successfully fetched trainee internships"
     );
@@ -207,6 +207,7 @@ export const updateInternshipAction = enhanceAction(
           startTime: data.startTime,
           supervisorEmail: data.supervisorEmail,
           lunchBreak: data.lunchBreak,
+          
         },
       });
 

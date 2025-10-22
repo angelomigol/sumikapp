@@ -60,6 +60,8 @@ class UpdateInternshipPlacementService {
           start_time: data.startTime,
           end_time: data.endTime,
           daily_schedule: data.dailySchedule,
+          lunch_break_in_mins: Number(data.lunchBreak),
+          temp_email: data.supervisorEmail,
         })
         .eq("id", data.id);
 
