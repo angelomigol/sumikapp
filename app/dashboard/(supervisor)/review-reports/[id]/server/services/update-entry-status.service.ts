@@ -50,7 +50,7 @@ class UpdateEntryStatusService {
         .from("weekly_report_entries")
         .select("id, status")
         .eq("id", entryId)
-        .single();
+        .maybeSingle();
 
       if (weeklyEntError) {
         logger.error(
@@ -83,7 +83,7 @@ class UpdateEntryStatusService {
         })
         .eq("id", entryId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updateError) {
         logger.error(
@@ -101,7 +101,7 @@ class UpdateEntryStatusService {
         {
           ...ctx,
           oldStatus: weeklyEntData.status,
-          newStatus: updateData.status,
+          newStatus: updateData?.status,
         },
         "Successfully updated entry status"
       );
