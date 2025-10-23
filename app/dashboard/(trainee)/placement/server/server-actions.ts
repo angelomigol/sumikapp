@@ -17,7 +17,7 @@ export async function fetchInternOffers(offset: number = 0) {
   }
 
   // https://internships-api.p.rapidapi.com/active-ats-7d?location_filter=Philippines&description_type=text&offset=${offset}&ai_work_arrangement_filter=On-site%2CHybrid
-  const url = `https://internships-api.p.rapidapi.com/active-jb-7d?location_filter=Philippines&description_type=text&offset=${offset}&ai_work_arrangement_filter=On-site%2CHybrid`;
+  const url = `'https://internships-api.p.rapidapi.com/active-jb-7d?location_filter=Philippines&description_type=type&ai_work_arrangement_filter=On-site%2CHybrid`;
 
   const options = {
     method: "GET",
