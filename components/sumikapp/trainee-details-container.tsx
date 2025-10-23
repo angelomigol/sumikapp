@@ -33,12 +33,12 @@ import BackButton from "./back-button";
 import { If } from "./if";
 
 interface TraineeDetailsContainerProps {
-  role: "coordinator" | "supervisor";
-  link: string;
+  role: "coordinator" | "supervisor" | "trainee";
+  link?: string;
   traineeDetails: TraineeFullDetails;
 }
 
-export default function TrineeDetailsContainer({
+export default function TraineeDetailsContainer({
   role,
   link,
   traineeDetails,
@@ -69,15 +69,17 @@ export default function TrineeDetailsContainer({
   const progress =
     requiredHours > 0 ? (hoursCompleted / requiredHours) * 100 : 0;
 
-  if (!role || !link || !traineeDetails) {
+  if (!role || !traineeDetails) {
     return null;
   }
 
   return (
     <>
-      <div>
-        <BackButton title={"Trainee Details"} link={link} />
-      </div>
+      <If condition={role !== "trainee"}>
+        <div>
+          <BackButton title={"Trainee Details"} link={link} />
+        </div>
+      </If>
 
       <Card className="border-none py-0 shadow-none">
         <CardContent className="px-0">
@@ -261,7 +263,7 @@ export default function TrineeDetailsContainer({
               <FileCheckIcon className="size-4" />
               Reports
             </TabsTrigger>
-            <If condition={role === "coordinator"}>
+            <If condition={role === "coordinator" || role === "trainee"}>
               <TabsTrigger value="req">
                 <FileTextIcon className="size-4" />
                 Requirements
@@ -281,7 +283,7 @@ export default function TrineeDetailsContainer({
             </TabPanel>
           </TabsContent>
 
-          <If condition={role === "coordinator"}>
+          <If condition={role === "coordinator" || role === "trainee"}>
             <TabsContent value="req">
               <TabPanel title="Requirements">
                 <RequirementsTabContent

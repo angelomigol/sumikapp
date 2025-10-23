@@ -6,7 +6,7 @@ import pathsConfig from "@/config/paths.config";
 import { useFetchSectionTrainee } from "@/hooks/use-section-trainees";
 
 import { LoadingOverlay } from "@/components/sumikapp/loading-overlay";
-import TrineeDetailsContainer from "@/components/sumikapp/trainee-details-container";
+import TraineeDetailsContainer from "@/components/sumikapp/trainee-details-container";
 
 import NotFoundPage from "@/app/not-found";
 
@@ -30,7 +30,7 @@ export default function SectionTraineeDetailsContainer(params: {
   }
 
   return (
-    <TrineeDetailsContainer
+    <TraineeDetailsContainer
       role={"coordinator"}
       link={pathsConfig.dynamic.sectionTrainees(params.slug)}
       traineeDetails={traineeDetails}

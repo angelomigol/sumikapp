@@ -18,12 +18,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { If } from "../sumikapp/if";
+import InternshipTabContent from "../sumikapp/internship-tab-content";
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
 import RefreshButton from "../sumikapp/refresh-button";
 import DashboardStatsCard from "./dashboard-stats-card";
 import TraineeOverviewTab from "./trainee-overview-tab";
-import TrineeDetailsContainer from "../sumikapp/trainee-details-container";
 
 export default function TraineeDashboard() {
   const {
@@ -49,6 +49,25 @@ export default function TraineeDashboard() {
 
     return parts.length > 0 ? parts.join(", ") : "No reports submitted";
   };
+
+  const completedInternships =
+    traineeData?.internships?.filter(
+      (internship) => internship.ojt_status === "completed"
+    ) || [];
+
+  const hasIntern1 = completedInternships.some(
+    (i) => i.program_batch.internship_code === "CTNTERN1"
+  );
+  const hasIntern2 = completedInternships.some(
+    (i) => i.program_batch.internship_code === "CTNTERN2"
+  );
+
+  const intern1Data = traineeData?.internships?.find(
+    (i) => i.program_batch.internship_code === "CTNTERN1"
+  );
+  const intern2Data = traineeData?.internships?.find(
+    (i) => i.program_batch.internship_code === "CTNTERN2"
+  );
 
   const dashboard = [
     {
@@ -161,11 +180,13 @@ export default function TraineeDashboard() {
             Overview
           </TabsTrigger>
 
-          <If condition={traineeData?.ojtStatus === "completed"}>
+          <If condition={hasIntern1 && !!intern1Data}>
             <TabsTrigger value="intern1">
               <BadgeCheck />
               Internship 1
             </TabsTrigger>
+          </If>
+          <If condition={hasIntern2 && !!intern2Data}>
             <TabsTrigger value="intern2">
               <BadgeCheck />
               Internship 2
@@ -177,11 +198,24 @@ export default function TraineeDashboard() {
           <TraineeOverviewTab traineeData={traineeData} />
         </TabsContent>
 
-        <If condition={traineeData?.ojtStatus === "completed"}>
-          {/* <TabsContent value="intern1">
-            <TrineeDetailsContainer role="trainee" link={pathsConfig.app.weeklyReports} />
-          </TabsContent> */}
-          <TabsContent value="intern2">Internship 2 Results</TabsContent>
+        <If condition={hasIntern1 && !!intern1Data}>
+          <TabsContent value="intern1">
+            <InternshipTabContent
+              role={"trainee"}
+              link={undefined}
+              traineeDetails={intern1Data!}
+            />
+          </TabsContent>
+        </If>
+
+        <If condition={hasIntern2 && !!intern2Data}>
+          <TabsContent value="intern2">
+            <InternshipTabContent
+              role={"trainee"}
+              link={undefined}
+              traineeDetails={intern2Data!}
+            />
+          </TabsContent>
         </If>
       </Tabs>
     </>

@@ -55,6 +55,48 @@ export default function AddSectionTraineesContainer(params: { slug: string }) {
     setStudents((prev) => [...prev, trainee]);
   };
 
+  const handleBulkStudentsUploaded = (
+    uploadedStudents: SearchableTrainee[]
+  ) => {
+    // Get existing student IDs and emails for duplicate checking
+    const existingStudentIds = new Set(
+      students.map((s) => s.student_id_number.toLowerCase())
+    );
+    const existingEmails = new Set(students.map((s) => s.email.toLowerCase()));
+
+    // Filter out students that are already in the table
+    const newStudents = uploadedStudents.filter((student) => {
+      const isDuplicateId = existingStudentIds.has(
+        student.student_id_number.toLowerCase()
+      );
+      const isDuplicateEmail = existingEmails.has(student.email.toLowerCase());
+
+      if (isDuplicateId) {
+        console.warn(
+          `Skipping duplicate student ID: ${student.student_id_number}`
+        );
+      }
+      if (isDuplicateEmail && !isDuplicateId) {
+        console.warn(`Skipping duplicate email: ${student.email}`);
+      }
+
+      return !isDuplicateId && !isDuplicateEmail;
+    });
+
+    // Add new students to the table
+    if (newStudents.length > 0) {
+      setStudents((prev) => [...prev, ...newStudents]);
+    }
+
+    // Log statistics
+    const skippedCount = uploadedStudents.length - newStudents.length;
+    if (skippedCount > 0) {
+      console.log(
+        `Added ${newStudents.length} students, skipped ${skippedCount} duplicates`
+      );
+    }
+  };
+
   return (
     <>
       <div className="flex flex-row items-center gap-2">
@@ -69,16 +111,16 @@ export default function AddSectionTraineesContainer(params: { slug: string }) {
           <TabsTrigger value="manual" className="text-sm">
             Manual Entry
           </TabsTrigger>
-          <TabsTrigger value="bulk" className="text-sm" disabled>
+          {/* <TabsTrigger value="bulk" className="text-sm">
             Bulk Entry
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         <TabsContent value="manual">
           <SmartTraineeSearch onSelect={handleTraineeSelect} />
         </TabsContent>
-        <TabsContent value="bulk">
-          <BulkUploadTab />
-        </TabsContent>
+        {/* <TabsContent value="bulk">
+          <BulkUploadTab onStudentsUploaded={handleBulkStudentsUploaded} />
+        </TabsContent> */}
       </Tabs>
 
       <div className="leading-none">
@@ -89,8 +131,8 @@ export default function AddSectionTraineesContainer(params: { slug: string }) {
           )}
         </div>
         <p className="text-muted-foreground text-sm">
-          Review student details before saving. You can make changes
-          directly in the table.
+          Review student details before saving. You can make changes directly in
+          the table.
         </p>
       </div>
 

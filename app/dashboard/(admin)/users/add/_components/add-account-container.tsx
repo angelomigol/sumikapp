@@ -23,16 +23,16 @@ export default function AddAccountContainer() {
             <TabsTrigger value="manual" className="text-sm">
               Manual Entry
             </TabsTrigger>
-            <TabsTrigger value="bulk" className="text-sm" disabled>
+            {/* <TabsTrigger value="bulk" className="text-sm">
               Bulk Entry
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
           <TabsContent value="manual">
             <ManualAddUserTab />
           </TabsContent>
-          <TabsContent value="bulk">
+          {/* <TabsContent value="bulk">
             <BulkAddUserTab />
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </div>
     </>

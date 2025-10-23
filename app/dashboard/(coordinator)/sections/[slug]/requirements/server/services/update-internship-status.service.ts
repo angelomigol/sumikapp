@@ -43,7 +43,10 @@ class UpdateInternshipStatusService {
       if (userError && userError.code !== "PGRST116") {
         // PGRST116 = no rows returned
         logger.error(
-          { email, error: userError },
+          {
+            email,
+            error: userError,
+          },
           "Error checking for existing user"
         );
         return null;
@@ -54,15 +57,25 @@ class UpdateInternshipStatusService {
       if (existingUser) {
         if (existingUser.role === "supervisor") {
           supervisorId = existingUser.id;
-          logger.info({ email, supervisorId }, "Found existing supervisor");
+          logger.info(
+            {
+              email,
+              supervisorId,
+            },
+            "Found existing supervisor"
+          );
         } else {
           logger.warn(
-            { email, role: existingUser.role },
+            {
+              email,
+              role: existingUser.role,
+            },
             "User exists but is not a supervisor"
           );
           return null;
         }
       } else {
+        // Create new auth user
         const { data: authData, error: authError } =
           await adminClient.auth.admin.createUser({
             email,
@@ -70,26 +83,90 @@ class UpdateInternshipStatusService {
             email_confirm: true,
           });
 
-        if (authError) {
-          if (!authData) {
-            logger.warn("User not found");
-            return null;
+        // FIX: Handle auth error properly
+        if (authError || !authData?.user) {
+          // Check if user already exists in Auth
+          if (authError?.message?.includes("already registered")) {
+            logger.warn(
+              {
+                email,
+                errorMessage: authError.message,
+              },
+              "User already exists in Auth but not in users table"
+            );
+            
+            // Try to get the existing auth user
+            const { data: existingAuthUsers } = await adminClient.auth.admin.listUsers();
+            const existingAuthUser = existingAuthUsers?.users?.find(u => u.email === email);
+            
+            if (existingAuthUser) {
+              // Create user record with existing auth ID
+              const { data: newUser, error: createUserError } = await client
+                .from("users")
+                .insert({
+                  id: existingAuthUser.id,
+                  email,
+                  first_name: "",
+                  last_name: "",
+                  role: "supervisor",
+                  status: "pending",
+                })
+                .select("id")
+                .single();
+
+              if (createUserError || !newUser) {
+                logger.error(
+                  {
+                    email,
+                    error: createUserError,
+                  },
+                  "Failed to create supervisor user record for existing auth user"
+                );
+                return null;
+              }
+
+              supervisorId = newUser.id;
+
+              // Create supervisor profile
+              const { error: supervisorError } = await client
+                .from("supervisors")
+                .insert({
+                  id: supervisorId,
+                });
+
+              if (supervisorError) {
+                logger.error(
+                  {
+                    email,
+                    supervisorId,
+                    error: supervisorError,
+                  },
+                  "Failed to create supervisor profile for existing auth user"
+                );
+                // Clean up the user record
+                await client.from("users").delete().eq("id", supervisorId);
+                return null;
+              }
+
+              logger.info({ email, supervisorId }, "Created user record for existing auth user");
+              return supervisorId;
+            }
           }
 
           logger.error(
             {
+              email,
               supabaseError: {
-                code: authError.code,
-                message: authError.message,
+                code: authError?.code,
+                message: authError?.message,
               },
             },
-
-            `Supabase error while creating auth user: ${authError.message}`
+            `Failed to create auth user: ${authError?.message || "Unknown error"}`
           );
-
-          throw new Error(`Failed to create auth user: ${authError.message}`);
+          return null;
         }
 
+        // Create user record
         const { data: newUser, error: createUserError } = await client
           .from("users")
           .insert({
@@ -105,9 +182,14 @@ class UpdateInternshipStatusService {
 
         if (createUserError || !newUser) {
           logger.error(
-            { email, error: createUserError },
+            {
+              email,
+              error: createUserError,
+            },
             "Failed to create supervisor user"
           );
+          // Clean up the auth user
+          await adminClient.auth.admin.deleteUser(authData.user.id);
           return null;
         }
 
@@ -118,15 +200,20 @@ class UpdateInternshipStatusService {
           .from("supervisors")
           .insert({
             id: supervisorId,
-            created_at: new Date().toISOString(),
           });
 
         if (supervisorError) {
           logger.error(
-            { email, supervisorId, error: supervisorError },
+            {
+              email,
+              supervisorId,
+              error: supervisorError,
+            },
             "Failed to create supervisor profile"
           );
+          // Clean up both user record and auth user
           await client.from("users").delete().eq("id", supervisorId);
+          await adminClient.auth.admin.deleteUser(authData.user.id);
           return null;
         }
 
@@ -216,7 +303,9 @@ class UpdateInternshipStatusService {
             "Failed to create/find supervisor during approval"
           );
 
-          throw new Error("No supervisor email provided");
+          throw new Error(
+            "Failed to create or validate supervisor account. Check logs for details."
+          );
         }
       }
 

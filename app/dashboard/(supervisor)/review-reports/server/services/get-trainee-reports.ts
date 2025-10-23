@@ -172,33 +172,33 @@ class GetTraineeReportsService {
         .from("weekly_reports")
         .select(
           `
-            id,
-            start_date,
-            end_date,
-            period_total,
-            submitted_at,
-            supervisor_approved_at,
-            status,
-            internship_details!inner (
-              supervisor_id,
-              company_name,
-              job_role,
-              trainee_batch_enrollment!inner (
-                program_batch!inner (
-                  internship_code
-                ),
-                trainees!inner (
-                  id,
-                  users!inner (
-                    first_name,
-                    middle_name,
-                    last_name,
-                    email
-                  )
+          id,
+          start_date,
+          end_date,
+          period_total,
+          submitted_at,
+          supervisor_approved_at,
+          status,
+          internship_details!inner (
+            supervisor_id,
+            company_name,
+            job_role,
+            trainee_batch_enrollment!inner (
+              program_batch!inner (
+                internship_code
+              ),
+              trainees!inner (
+                id,
+                users!inner (
+                  first_name,
+                  middle_name,
+                  last_name,
+                  email
                 )
               )
-            ),
-            weekly_report_entries(
+            )
+          ),
+          weekly_report_entries(
             *,
             weekly_report_entry_files(
               *
