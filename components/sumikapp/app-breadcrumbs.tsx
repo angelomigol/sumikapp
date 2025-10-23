@@ -63,7 +63,9 @@ export function AppBreadcrumbs(props: {
               <BreadcrumbItem className={"capitalize lg:text-xs"}>
                 <If
                   condition={index < visiblePaths.length - 1}
-                  fallback={label}
+                  fallback={cleanSlugAdvanced(label, {
+                    preserveOriginal: true,
+                  })}
                 >
                   <BreadcrumbLink
                     href={

@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle } from "lucide-react";
+import * as motion from "motion/react-client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -33,8 +34,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/rich-text-editor";
 
 import {
@@ -136,9 +135,16 @@ export default function AddEditAnnouncementDialog({
       <Form {...form}>
         <form id="announcement-form" onSubmit={form.handleSubmit(onSubmit)}>
           <DialogTrigger asChild>
-            <Button size={"sm"} onClick={handleAdd}>
-              <PlusCircle className="size-4" />
-              Add Announcement
+            <Button
+              size={"sm"}
+              onClick={handleAdd}
+              className="transition-none"
+              asChild
+            >
+              <motion.button whileTap={{ scale: 0.85 }}>
+                <PlusCircle className="size-4" />
+                Add Announcement
+              </motion.button>
             </Button>
           </DialogTrigger>
           <DialogContent
@@ -152,7 +158,7 @@ export default function AddEditAnnouncementDialog({
               </DialogTitle>
               <DialogDescription>
                 {isEditing
-                  ? `Update the details for this announcement. Click "update" when you're done.`
+                  ? `Update the details for this announcement. Click "update" when you\'re done.`
                   : 'Fill in the details for creating new announcement. Click "create" when you\'re done.'}
               </DialogDescription>
             </DialogHeader>

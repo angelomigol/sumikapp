@@ -224,10 +224,15 @@ class GetSupervisorTraineesService {
               details: error.details,
             },
           },
-          "Supabase error while fetching supervisor trainee"
+          "Supabase error while fetching supervisor trainees"
         );
 
-        throw new Error(`Supabase error: ${error.message}`);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch trainee supervisor trainees";
+
+        throw new Error(`Database error: ${errorMessage}`);
       }
 
       const { data: emp_data, error: emp_error } = await client
@@ -250,7 +255,12 @@ class GetSupervisorTraineesService {
           "Supabase error while fetching trainee evaluation results"
         );
 
-        throw new Error(`Supabase error: ${emp_error.message}`);
+        const errorMessage =
+          emp_error instanceof Error
+            ? emp_error.message
+            : "Failed to fetch trainee evaluation results";
+
+        throw new Error(`Database error: ${errorMessage}`);
       }
 
       if (!emp_data) {
@@ -294,7 +304,8 @@ class GetSupervisorTraineesService {
           end_date: data.end_date,
         },
         program_batch: {
-          internship_code: data.trainee_batch_enrollment.program_batch.internship_code,
+          internship_code:
+            data.trainee_batch_enrollment.program_batch.internship_code,
           required_hours:
             data.trainee_batch_enrollment.program_batch.required_hours,
           start_date: data.trainee_batch_enrollment.program_batch.start_date,

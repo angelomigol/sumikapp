@@ -153,7 +153,12 @@ export default function NewDocumentViewerModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <DialogContent
         className="data-[state=open]:!zoom-in-0 flex h-screen min-w-screen flex-col gap-0 rounded-none bg-black/20 p-0 outline-none data-[state=open]:duration-300"
         showCloseButton={false}

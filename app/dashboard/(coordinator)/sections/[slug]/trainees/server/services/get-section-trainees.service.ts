@@ -280,10 +280,15 @@ class GetSectionTraineesService {
               details: error.details,
             },
           },
-          "Supabase error while fetching section trainee"
+          "Supabase error while fetching section trainees"
         );
 
-        throw new Error(`Supabase error: ${error.message}`);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch section trainees";
+
+        throw new Error(`Database Error: ${errorMessage}`);
       }
 
       // Fetch employability predictions - use maybeSingle() to handle no results
@@ -307,7 +312,12 @@ class GetSectionTraineesService {
           "Supabase error while fetching trainee evaluation results"
         );
 
-        throw new Error(`Supabase error: ${emp_error.message}`);
+        const errorMessage =
+          emp_error instanceof Error
+            ? emp_error.message
+            : "Failed to fetch trainee evaluation results";
+
+        throw new Error(`Database Error: ${errorMessage}`);
       }
 
       // Log if no evaluation results found

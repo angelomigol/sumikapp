@@ -5,32 +5,32 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
-import { CustomRequirementFormValues } from "../../../../schemas/requirement.schema";
+import { PredefRequirementFormValues } from "../../schema/predef-requirement.schema";
 
-export function createCreateCustomRequirementService() {
-  return new CreateCustomRequirementService();
+export function createCreatePredefRequirementService() {
+  return new CreatePredefRequirementService();
 }
 
 /**
- * @name CreateCustomRequirementService
- * @description Service for creating a custom requirement for user
+ * @name CreatePredefRequirementService
+ * @description Service for creating a predefined requirement for user
  * @param Database - The Supabase database type to use
  * @example
  * const client = getSupabaseClient();
- * const service = new CreateCustomRequirementService();
+ * const service = new CreatePredefRequirementService();
  */
-class CreateCustomRequirementService {
+class CreatePredefRequirementService {
   private namespace = "requirement_type.create";
   private bucketName = "requirement-templates";
 
   /**
-   * @name createCustomRequirement
-   * Create a custom requirement for a user.
+   * @name createPredefRequirement
+   * Create a predefined requirement for a user.
    */
-  async createCustomRequirement(params: {
+  async createPredefRequirement(params: {
     client: SupabaseClient<Database>;
     userId: string;
-    data: CustomRequirementFormValues;
+    data: PredefRequirementFormValues;
   }) {
     const logger = await getLogger();
 
@@ -42,57 +42,15 @@ class CreateCustomRequirementService {
       name: this.namespace,
     };
 
-    if (!data.slug) {
-      throw new Error("Slug missing");
-    }
-
-    logger.info(ctx, "Creating custom requirement for user...");
+    logger.info(ctx, "Creating predefined requirement for user...");
 
     try {
-      // Step 1: Fetch program_batch ID first
-      const { data: pbData, error: pbError } = await client
-        .from("program_batch")
-        .select("id")
-        .eq("title", data.slug)
-        .eq("coordinator_id", userId)
-        .limit(1)
-        .single();
-
-      if (pbError) {
-        if (pbError.code === "PGRST116") {
-          logger.warn(ctx, "Section not found or access denied");
-          return null;
-        }
-
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              code: pbError.code,
-              message: pbError.message,
-              hint: pbError.hint,
-              details: pbError.details,
-            },
-          },
-
-          `Supabase error while fetching program batch: ${pbError.message}`
-        );
-
-        throw new Error("Failed to fetch program batch");
-      }
-
-      // Step 2: Check if requirement with the same name already exists for this batch
+      // Step 1: Check if requirement with the same name already exists for this batch
       const { data: existingRequirement, error: existingReqError } =
         await client
-          .from("batch_requirements")
-          .select(
-            `
-            id,
-            requirement_types!inner(name)
-          `
-          )
-          .eq("program_batch_id", pbData.id)
-          .eq("requirement_types.name", data.name)
+          .from("requirement_types")
+          .select(`*`)
+          .eq("name", data.name)
           .maybeSingle();
 
       if (existingReqError) {
@@ -120,17 +78,17 @@ class CreateCustomRequirementService {
         );
 
         throw new Error(
-          `A requirement with the name "${data.name}" already exists in this batch`
+          `A requirement with the name "${data.name}" already exists`
         );
       }
 
       let templateFilePath: string | null = null;
       let templateFileName: string | null = null;
 
-      // Step 3: Insert template file to storage
+      // Step 2: Insert template file to storage
       if (data.template) {
         const fileName = data.template.name;
-        const filePath = `/${userId}/${pbData.id}/${fileName}`;
+        const filePath = `/${userId}/${fileName}`;
 
         const { data: uploadData, error: uploadError } = await client.storage
           .from(this.bucketName)
@@ -167,12 +125,13 @@ class CreateCustomRequirementService {
         templateFileName = fileName;
       }
 
-      // Step 4: Insert new custom requirement
+      // Step 3: Insert new custom requirement
       const { data: reqData, error: reqError } = await client
         .from("requirement_types")
         .insert({
           name: data.name,
           description: data.description || null,
+          is_predefined: true,
           allowed_file_types: data.allowedFileTypes,
           max_file_size_bytes: data.maxFileSizeBytes,
           created_by: userId,
@@ -199,47 +158,18 @@ class CreateCustomRequirementService {
             },
           },
 
-          `Supabase error while creating custom requirement to requirement_types: ${reqError.message}`
+          `Supabase error while creating predefined requirement to requirement_types: ${reqError.message}`
         );
 
-        throw new Error("Failed to create custom requirement");
+        throw new Error("Failed to create predefined requirement");
       }
 
-      // Step 5: Insert the custom requirement to batch_requirements
-      const { error: batchReqError } = await client
-        .from("batch_requirements")
-        .insert({
-          program_batch_id: pbData.id,
-          requirement_type_id: reqData.id,
-        });
-
-      if (batchReqError) {
-        // If batch_requirements insertion fails, we should clean up the requirement_types record
-        await client.from("requirement_types").delete().eq("id", reqData.id);
-
-        logger.error(
-          {
-            ...ctx,
-            supabaseError: {
-              code: batchReqError.code,
-              message: batchReqError.message,
-              hint: batchReqError.hint,
-              details: batchReqError.details,
-            },
-          },
-
-          `Supabase error while inserting custom requirement to batch_requirements: ${batchReqError.message}`
-        );
-
-        throw new Error("Failed to create custom requirement");
-      }
-
-      logger.info(ctx, "Successfully created custom requirement");
+      logger.info(ctx, "Successfully created predefined requirement");
 
       return {
         success: true,
         data: reqData,
-        message: "Successfully created custom requirement",
+        message: "Successfully created predefined requirement",
       };
     } catch (error) {
       logger.error(
@@ -247,7 +177,7 @@ class CreateCustomRequirementService {
           ...ctx,
           error,
         },
-        "Unexpected error creating custom requirement"
+        "Unexpected error creating predefined requirement"
       );
 
       throw error;

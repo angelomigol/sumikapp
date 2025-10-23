@@ -69,7 +69,12 @@ class InsertWeeklyReportEntryService {
           "Supabase error while fetching weekly report"
         );
 
-        throw new Error(`Supabase error: ${reportError.message}`);
+        const errorMessage =
+          reportError instanceof Error
+            ? reportError.message
+            : "Failed to fetch weekly report";
+
+        throw new Error(`Database error: ${errorMessage}`);
       }
 
       const { data: entryData, error: entryError } = await server

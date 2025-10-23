@@ -23,6 +23,7 @@ import PageTitle from "../sumikapp/page-title";
 import RefreshButton from "../sumikapp/refresh-button";
 import DashboardStatsCard from "./dashboard-stats-card";
 import TraineeOverviewTab from "./trainee-overview-tab";
+import TrineeDetailsContainer from "../sumikapp/trainee-details-container";
 
 export default function TraineeDashboard() {
   const {
@@ -177,7 +178,9 @@ export default function TraineeDashboard() {
         </TabsContent>
 
         <If condition={traineeData?.ojtStatus === "completed"}>
-          <TabsContent value="intern1">Internship 1 Results</TabsContent>
+          {/* <TabsContent value="intern1">
+            <TrineeDetailsContainer role="trainee" link={pathsConfig.app.weeklyReports} />
+          </TabsContent> */}
           <TabsContent value="intern2">Internship 2 Results</TabsContent>
         </If>
       </Tabs>

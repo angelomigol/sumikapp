@@ -5,27 +5,27 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
-export function createDeleteCustomRequirementService() {
-  return new DeleteCustomRequirementService();
+export function createDeletePredefRequirementService() {
+  return new DeletePredefRequirementService();
 }
 
 /**
- * @name DeleteCustomRequirementService
- * @description Service for creating a custom requirment for user
+ * @name DeletePredefRequirementService
+ * @description Service for creating a predefined requirment for user
  * @param Database - The Supabase database type to use
  * @example
  * const client = getSupabaseClient();
- * const service = new DeleteCustomRequirementService();
+ * const service = new DeletePredefRequirementService();
  */
-class DeleteCustomRequirementService {
+class DeletePredefRequirementService {
   private namespace = "requirement_type.delete";
   private bucketName = "requirement-templates";
 
   /**
-   * @name deleteCustomRequirement
-   * Delete a custom requirement for a user.
+   * @name deletePredefRequirement
+   * Delete a predefined requirement for a user.
    */
-  async deleteCustomRequirement(params: {
+  async deletePredefRequirement(params: {
     client: SupabaseClient<Database>;
     userId: string;
     requirementId: string;
@@ -38,12 +38,12 @@ class DeleteCustomRequirementService {
       name: this.namespace,
     };
 
-    logger.info(ctx, "Deleting custom requirement for a user...");
+    logger.info(ctx, "Deleting predefined requirement for a user...");
 
     try {
       const { data: requirement, error: fetchError } = await client
         .from("requirement_types")
-        .select("id, name, created_by, is_predefined, template_file_path")
+        .select("id, name, template_file_path")
         .eq("id", requirementId)
         .single();
 
@@ -67,24 +67,6 @@ class DeleteCustomRequirementService {
       if (!requirement) {
         logger.warn(ctx, "Requirement type not found");
         throw new Error("Requirement type not found");
-      }
-
-      // Check if it's a predefined requirement (shouldn't be deleted)
-      if (requirement.is_predefined) {
-        logger.warn(ctx, "Attempted to delete predefined requirement");
-        throw new Error("Cannot delete predefined requirement types");
-      }
-
-      // Check if user has permission to delete (if they created it or are admin)
-      if (requirement.created_by !== userId) {
-        // You might want to add admin role check here
-        logger.warn(
-          ctx,
-          "User does not have permission to delete this requirement"
-        );
-        throw new Error(
-          "You do not have permission to delete this requirement"
-        );
       }
 
       if (requirement.template_file_path) {
@@ -120,12 +102,12 @@ class DeleteCustomRequirementService {
           ...ctx,
           requirementName: requirement.name,
         },
-        "Successfully deleted custom requirement"
+        "Successfully deleted predefined requirement"
       );
 
       return {
         success: true,
-        message: "Custom requirement deleted successfully",
+        message: "predefined requirement deleted successfully",
       };
     } catch (error) {
       logger.error(
@@ -133,7 +115,7 @@ class DeleteCustomRequirementService {
           ...ctx,
           error,
         },
-        "Unexpected error deleting custom requirement"
+        "Unexpected error deleting predefined requirement"
       );
 
       throw error;

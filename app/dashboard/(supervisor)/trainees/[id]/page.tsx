@@ -6,7 +6,7 @@ import { prefetchSupervisorTrainee } from "@/hooks/use-supervisor-trainees";
 
 import { getQueryClient } from "@/components/get-query-client";
 
-import TraineeDetailsContainer from "./_components/supervisor-trainee-details-container";
+import SupervisorTraineeDetailsContainer from "./_components/supervisor-trainee-details-container";
 
 export default async function SupervisorTraineeDetailsPage({
   params,
@@ -20,7 +20,7 @@ export default async function SupervisorTraineeDetailsPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <TraineeDetailsContainer internshipId={id} />
+      <SupervisorTraineeDetailsContainer internshipId={id} />
     </HydrationBoundary>
   );
 }

@@ -99,7 +99,12 @@ class CreateIndustryPartnerService {
           `Supabase error while creating industry partner: ${error.message}`
         );
 
-        throw new Error("Failed to create industry partner");
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to create industry partner";
+
+        throw new Error(`Database Error: ${errorMessage}`);
       }
 
       logger.info(ctx, "Successfully created industry partner");

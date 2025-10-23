@@ -45,7 +45,7 @@ export const getTraineeRequirementsAction = enhanceAction(
       logger.info(
         {
           ...ctx,
-          reports: result,
+          reports: result.length,
         },
         "Successfully fetched trainee requirements"
       );
@@ -153,7 +153,7 @@ export const getBatchRequirementsAction = enhanceAction(
       logger.info(
         {
           ...ctx,
-          reports: result,
+          reports: result.length,
         },
         "Successfully fetched batch requirements"
       );

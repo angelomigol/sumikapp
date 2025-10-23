@@ -5,32 +5,32 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
-import { CustomRequirementFormValues } from "../../../../schemas/requirement.schema";
+import { PredefRequirementFormValues } from "../../schema/predef-requirement.schema";
 
-export function createUpdateCustomRequirementService() {
-  return new UpdateCustomRequirementService();
+export function createUpdatePredefRequirementService() {
+  return new UpdatePredefRequirementService();
 }
 
 /**
- * @name UpdateCustomRequirementService
- * @description Service for updating a custom requirement for user
+ * @name UpdatePredefRequirementService
+ * @description Service for updating a predefined requirement for user
  * @param Database - The Supabase database type to use
  * @example
  * const client = getSupabaseClient();
- * const service = new UpdateCustomRequirementService();
+ * const service = new UpdatePredefRequirementService();
  */
-class UpdateCustomRequirementService {
+class UpdatePredefRequirementService {
   private namespace = "requirement_type.update";
   private bucketName = "requirement-templates";
 
   /**
-   * @name updateCustomRequirement
-   * Update a custom requirement for a user.
+   * @name updatePredefRequirement
+   * Update a predefined requirement for a user.
    */
-  async updateCustomRequirement(params: {
+  async updatePredefRequirement(params: {
     client: SupabaseClient<Database>;
     userId: string;
-    data: CustomRequirementFormValues;
+    data: PredefRequirementFormValues;
   }) {
     const logger = await getLogger();
 
@@ -42,7 +42,7 @@ class UpdateCustomRequirementService {
       name: this.namespace,
     };
 
-    logger.info(ctx, "Updating custom requirement...");
+    logger.info(ctx, "Updating predefined requirement...");
 
     try {
       if (!data.id || data.id === undefined) {
@@ -72,6 +72,7 @@ class UpdateCustomRequirementService {
               details: existingReqError.details,
             },
           },
+
           `Supabase error while fetching existing requirement: ${existingReqError.message}`
         );
 
@@ -84,39 +85,8 @@ class UpdateCustomRequirementService {
       let originalFileName: string | null = existingReqData.template_file_name;
 
       if (data.template) {
-        const { data: pbData, error: pbError } = await client
-          .from("program_batch")
-          .select("id")
-          .eq("title", data.slug)
-          .eq("coordinator_id", userId)
-          .limit(1)
-          .single();
-
-        if (pbError) {
-          if (pbError.code === "PGRST116") {
-            logger.warn(ctx, "Section not found or access denied");
-            return null;
-          }
-
-          logger.error(
-            {
-              ...ctx,
-              supabaseError: {
-                code: pbError.code,
-                message: pbError.message,
-                hint: pbError.hint,
-                details: pbError.details,
-              },
-            },
-
-            `Supabase error while fetching program batch: ${pbError.message}`
-          );
-
-          throw new Error("Failed to fetch program batch");
-        }
-
         const fileName = data.template.name;
-        const newFilePath = `/${userId}/${pbData.id}/${fileName}`;
+        const newFilePath = `/${userId}/${fileName}`;
         originalFileName = data.template.name;
 
         logger.info(
@@ -225,6 +195,7 @@ class UpdateCustomRequirementService {
         .update({
           name: data.name,
           description: data.description || null,
+          is_predefined: true,
           allowed_file_types: data.allowedFileTypes,
           max_file_size_bytes: data.maxFileSizeBytes,
           template_file_path: filePath,
@@ -248,7 +219,7 @@ class UpdateCustomRequirementService {
             },
           },
 
-          `Supabase error while updating custom requirement: ${updateError.message}`
+          `Supabase error while updating predefined requirement: ${updateError.message}`
         );
 
         throw new Error(`Database Error: ${updateError.message}`);
@@ -260,13 +231,13 @@ class UpdateCustomRequirementService {
           updatedRequirementId: updatedReq.id,
         },
 
-        "Successfully updated custom requirement"
+        "Successfully updated predefined requirement"
       );
 
       return {
         success: true,
         data: updatedReq,
-        message: "Successfully updated custom requirement",
+        message: "Successfully updated predefined requirement",
       };
     } catch (error) {
       logger.error(
@@ -275,7 +246,7 @@ class UpdateCustomRequirementService {
           error,
         },
 
-        "Unexpected error updating custom requirement"
+        "Unexpected error updating predefined requirement"
       );
       throw error;
     }

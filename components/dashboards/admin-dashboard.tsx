@@ -1,6 +1,6 @@
 "use client";
 
-import { IconActivity, IconBuilding, IconRefresh } from "@tabler/icons-react";
+import { IconActivity, IconBuilding } from "@tabler/icons-react";
 import { AlertCircle, Users2 } from "lucide-react";
 
 import { useFetchAdminDashboard } from "@/hooks/use-admin-dashboard";
@@ -9,11 +9,11 @@ import { formatTimestamp } from "@/utils/shared";
 
 import { ActivityHelper } from "@/schemas/dashboard/recent_activity.schema";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { LoadingOverlay } from "../sumikapp/loading-overlay";
 import PageTitle from "../sumikapp/page-title";
+import RefreshButton from "../sumikapp/refresh-button";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { ScrollArea } from "../ui/scroll-area";
@@ -26,6 +26,7 @@ export default function AdminDashboard() {
     error,
     isError,
     refetch,
+    isFetching,
   } = useFetchAdminDashboard();
 
   const dashboard = [
@@ -85,17 +86,7 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant={"outline"}
-            size={"sm"}
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            <IconRefresh
-              className={`size-4 ${isLoading ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
+          <RefreshButton refetch={refetch} isFetching={isFetching} />
         </div>
       </div>
 
@@ -112,7 +103,9 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid auto-rows-auto grid-cols-3 gap-5 md:grid-cols-6 lg:grid-cols-9">
-        <Card className="col-span-9"> {/* md:col-span-6 */}
+        <Card className="col-span-9">
+          {" "}
+          {/* md:col-span-6 */}
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconActivity className="size-5" />

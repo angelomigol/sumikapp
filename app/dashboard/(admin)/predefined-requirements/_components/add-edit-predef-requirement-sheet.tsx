@@ -4,17 +4,15 @@ import { useEffect, useRef, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText, PlusCircle, Upload, X } from "lucide-react";
-import * as motion from "motion/react-client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import {
-  useCreateCustomRequirement,
-  useUpdateCustomRequirement,
-} from "@/hooks/use-batch-requirements";
+  useCreatePredefRequirement,
+  useUpdatePredefRequirement,
+} from "@/hooks/use-predefined-requirements";
 
 import { COMMON_FILE_TYPES, FILE_SIZE_OPTIONS } from "@/lib/constants";
-import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
 import { formatFileSize } from "@/utils/shared";
 
@@ -65,11 +63,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { If } from "@/components/sumikapp/if";
 
 import {
-  CustomRequirementFormValues,
-  customRequirementSchema,
-} from "../../../schemas/requirement.schema";
+  PredefRequirementFormValues,
+  predefRequirementSchema,
+} from "../schema/predef-requirement.schema";
 
-interface AddEditCustomRequirementSheetProps {
+const MAX_FILE_SIZE = FILE_SIZE_OPTIONS[FILE_SIZE_OPTIONS.length - 1].value;
+
+interface AddEditPredefRequirementSheetProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   editingRequirement?: {
@@ -81,34 +81,31 @@ interface AddEditCustomRequirementSheetProps {
     filePath: string;
     fileName: string;
   } | null;
-  slug: string;
   handleAdd: () => void;
 }
 
-export default function AddEditCustomRequirementSheet({
+export default function AddEditPredefRequirementSheet({
   open,
   setOpen,
   editingRequirement,
-  slug,
   handleAdd,
-}: AddEditCustomRequirementSheetProps) {
-  const createCustomRequirementMutation = useCreateCustomRequirement(slug);
-  const updateCustomRequirementMutation = useUpdateCustomRequirement(slug);
+}: AddEditPredefRequirementSheetProps) {
+  const createRequirementMutation = useCreatePredefRequirement();
+  const updateRequirementMutation = useUpdatePredefRequirement();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [existingFileName, setExistingFileName] = useState<string | null>(null);
 
   const isEditing = !!editingRequirement;
 
-  const form = useForm<CustomRequirementFormValues>({
-    resolver: zodResolver(customRequirementSchema),
+  const form = useForm<PredefRequirementFormValues>({
+    resolver: zodResolver(predefRequirementSchema),
     defaultValues: {
       id: editingRequirement?.id,
       name: "",
       description: "",
       allowedFileTypes: [".pdf"],
       maxFileSizeBytes: 5242880,
-      slug: slug,
     },
   });
 
@@ -120,7 +117,6 @@ export default function AddEditCustomRequirementSheet({
         description: editingRequirement.description || "",
         allowedFileTypes: editingRequirement.allowedFileTypes || [],
         maxFileSizeBytes: editingRequirement.maxFileSizeBytes || 5242880,
-        slug: slug,
       });
 
       setExistingFileName(editingRequirement.fileName || null);
@@ -132,13 +128,12 @@ export default function AddEditCustomRequirementSheet({
         description: "",
         allowedFileTypes: [".pdf"],
         maxFileSizeBytes: 5242880,
-        slug: slug,
       });
 
       setExistingFileName(null);
       setSelectedFile(null);
     }
-  }, [open, editingRequirement, form, slug]);
+  }, [open, editingRequirement, form]);
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
@@ -176,11 +171,19 @@ export default function AddEditCustomRequirementSheet({
     }
   };
 
-  async function onSubmit(data: CustomRequirementFormValues) {
+  async function onSubmit(data: PredefRequirementFormValues) {
+    if (selectedFile) {
+      const validationError = validateFile(selectedFile);
+      if (validationError) {
+        toast.error(validationError);
+        return;
+      }
+    }
+
     let promise;
 
     if (isEditing && editingRequirement) {
-      promise = updateCustomRequirementMutation.mutateAsync({
+      promise = updateRequirementMutation.mutateAsync({
         ...data,
       });
 
@@ -199,7 +202,7 @@ export default function AddEditCustomRequirementSheet({
         },
       });
     } else {
-      promise = createCustomRequirementMutation.mutateAsync(data);
+      promise = createRequirementMutation.mutateAsync(data);
 
       toast.promise(promise, {
         loading: "Adding requirement...",
@@ -276,9 +279,10 @@ export default function AddEditCustomRequirementSheet({
       >
         <Upload className="mb-2 size-8 text-gray-400" />
         <span className="text-sm font-medium text-gray-700">
-          Click to upload template or file reference
+          Click to upload a file template or reference
         </span>
         <span className="mt-1 text-center text-xs text-gray-500">
+          PDF and Image files are supported <br />
           Max File Size: 50MB
         </span>
       </div>
@@ -289,20 +293,13 @@ export default function AddEditCustomRequirementSheet({
     <Sheet open={open} onOpenChange={setOpen}>
       <Form {...form}>
         <form
-          id="custom-requirement-form"
+          id="predef-requirement-form"
           onSubmit={form.handleSubmit(onSubmit)}
         >
           <SheetTrigger asChild>
-            <Button
-              size={"sm"}
-              onClick={handleAdd}
-              className="transition-none"
-              asChild
-            >
-              <motion.button whileTap={{ scale: 0.85 }}>
-                <PlusCircle className="size-4" />
-                Add Requirement
-              </motion.button>
+            <Button size={"sm"} onClick={handleAdd}>
+              <PlusCircle className="size-4" />
+              New Requirement
             </Button>
           </SheetTrigger>
           <SheetContent
@@ -311,13 +308,11 @@ export default function AddEditCustomRequirementSheet({
             className="min-w-1/2 gap-0 [&>button.absolute]:hidden"
           >
             <SheetHeader className="border-b">
-              <SheetTitle>
-                {isEditing ? "Edit" : "Create"} custom requirement
-              </SheetTitle>
+              <SheetTitle>{isEditing ? "Edit" : "Add"} Requirement</SheetTitle>
               <SheetDescription>
                 {isEditing
-                  ? 'Update the details for this custom requirement. Click "save changes" when you\'re done.'
-                  : 'Fill in the details for the custom requirement. Click "create requirement" when you\'re done.'}
+                  ? `Update the details for ${editingRequirement?.fileName}. Click "update" when you're done.`
+                  : 'Fill in the details for creating new requirement. Click "create" when you\'re done.'}
               </SheetDescription>
             </SheetHeader>
             <fieldset
@@ -360,11 +355,11 @@ export default function AddEditCustomRequirementSheet({
                 )}
               />
               <FormField
-                control={form.control}
                 name="maxFileSizeBytes"
+                control={form.control}
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-3 items-start gap-4">
-                    <FormLabel>File Size Limit</FormLabel>
+                    <Label>File Size Limit</Label>
                     <div className="col-span-2 space-y-2">
                       <Select
                         onValueChange={(value) =>
@@ -533,7 +528,14 @@ export default function AddEditCustomRequirementSheet({
                   <Button
                     size={"sm"}
                     variant={"outline"}
-                    onClick={() => form.reset()}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      form.reset();
+
+                      setSelectedFile(null);
+                      setExistingFileName(null);
+                      setOpen(false);
+                    }}
                     disabled={form.formState.isSubmitting}
                   >
                     Cancel
@@ -542,7 +544,8 @@ export default function AddEditCustomRequirementSheet({
                 <Button
                   size={"sm"}
                   type="submit"
-                  form="custom-requirement-form"
+                  form="predef-requirement-form"
+                  className="cursor-pointer"
                   disabled={form.formState.isSubmitting}
                 >
                   <If

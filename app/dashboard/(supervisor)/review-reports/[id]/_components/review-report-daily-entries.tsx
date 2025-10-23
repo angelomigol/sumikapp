@@ -366,10 +366,27 @@ export default function ReviewReportDailyEntries({
                 condition={
                   reportStatus === "pending" || reportStatus === "rejected"
                 }
+                fallback={
+                  <div className="space-y-2">
+                    <Label htmlFor={`feedback-${entry.id}`}>
+                      Your Feedback
+                    </Label>
+                    <Textarea
+                      readOnly
+                      value={feedbackValues[entry.id] ?? ""}
+                      id={`feedback-${entry.id}`}
+                      placeholder="Type your feedback here..."
+                      maxLength={200}
+                      className="field-sizing-content max-h-30 min-h-20 resize-none py-1.75"
+                    />
+                  </div>
+                }
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-1">
-                    <Label htmlFor="feedback">Your Feedback</Label>
+                    <Label htmlFor={`feedback-${entry.id}`}>
+                      Your Feedback
+                    </Label>
 
                     <span className="text-muted-foreground text-xs">
                       Optional field

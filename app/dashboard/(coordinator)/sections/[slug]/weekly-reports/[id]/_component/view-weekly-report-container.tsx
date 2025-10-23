@@ -404,7 +404,7 @@ export default function ViewWeeklyReportContainer(params: {
 
                   <Separator className="my-8" />
 
-                  <If condition={status === "pending" || status === "rejected"}>
+                  <If condition={entry.feedback}>
                     <div className="space-y-2">
                       <Label htmlFor="feedback">Supervisor Feedback</Label>
                       <Textarea

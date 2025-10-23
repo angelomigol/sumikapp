@@ -77,7 +77,12 @@ class GetWeeklyReportsService {
           "Supabase error while fetching weekly reports"
         );
 
-        throw new Error("Failed to fetch weeklty reports");
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch weekly reports";
+
+        throw new Error(`Database Error: ${errorMessage}`);
       }
 
       logger.info(ctx, "Successfully fetched weekly reports");
@@ -190,7 +195,12 @@ class GetWeeklyReportsService {
           "Supabase error while fetching weekly report"
         );
 
-        throw new Error(`Supabase error: ${error.message}`);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch weekly reports";
+
+        throw new Error(`Database error: ${errorMessage}`);
       }
 
       logger.info(ctx, `Successfully fetched weekly report: ${reportId}`);

@@ -61,22 +61,20 @@ class CreateWeeklyReportService {
         .limit(1)
         .single();
 
-      if (internshipError) {
+      if (internshipError || !internshipDetails) {
         logger.error(
           {
             ...ctx,
-            supabaseError: {
-              code: internshipError.code,
-              message: internshipError.message,
-              hint: internshipError.hint,
-              details: internshipError.details,
-            },
+            supabaseError: internshipError.code,
           },
 
           `Supabase error while fetching internship details: ${internshipError.message}`
         );
 
-        throw new Error("Error fetching internship details");
+        return {
+          success: false,
+          message: "Unable to fetch approved internship details.",
+        };
       }
 
       const { data: reportData, error } = await server

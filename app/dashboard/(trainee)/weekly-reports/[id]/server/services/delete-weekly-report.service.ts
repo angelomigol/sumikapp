@@ -65,7 +65,7 @@ class DeleteWeeklyReportService {
             ? reportError.message
             : "Failed to delete weekly report";
 
-        throw new Error(`Supabase error: ${errorMessage}`);
+        throw new Error(`Database error: ${errorMessage}`);
       }
 
       return {

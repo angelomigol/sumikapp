@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   ClipboardPen,
+  File,
   FileBarChart,
   FileCheck2,
   FileText,
@@ -118,6 +119,12 @@ export const sidebarRoutes = [
       //   Icon: <Image className={iconClasses} />,
       //   authorizedRoles: ["admin"],
       // },
+      {
+        label: "Requirements",
+        path: pathsConfig.app.predefinedRequirements,
+        Icon: <File className={iconClasses} />,
+        authorizedRoles: ["admin"],
+      },
       // {
       //   label: "Events/Logs",
       //   path: pathsConfig.app.logs,
@@ -171,11 +178,11 @@ export const createSectionRoutes = (slug: string) =>
           path: pathsConfig.dynamic.sectionReports(slug),
           Icon: <FileText className={iconClasses} />,
         },
-        {
-          label: "Event Calendar",
-          path: pathsConfig.dynamic.sectionCalendar(slug),
-          Icon: <CalendarDays className={iconClasses} />,
-        },
+        // {
+        //   label: "Event Calendar",
+        //   path: pathsConfig.dynamic.sectionCalendar(slug),
+        //   Icon: <CalendarDays className={iconClasses} />,
+        // },
       ],
     },
     {

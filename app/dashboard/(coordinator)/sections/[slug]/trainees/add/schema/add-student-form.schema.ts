@@ -1,4 +1,4 @@
-import { searchableTrainee, SearchableTrainee } from "@/components/sumikapp/smart-trainee-search";
+import { searchableTrainee } from "@/components/sumikapp/smart-trainee-search";
 import z from "zod";
 
 export const addStudentSchema = z.object({

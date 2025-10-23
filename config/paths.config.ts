@@ -22,6 +22,7 @@ const StaticPathsSchema = z.object({
     users: z.string().min(1),
     addUsers: z.string().min(1),
     partners: z.string().min(1),
+    predefinedRequirements: z.string().min(1),
     logs: z.string().min(1),
     settings: z.string().min(1),
     skills: z.string().min(1),
@@ -51,6 +52,7 @@ const staticPaths = StaticPathsSchema.parse({
     users: "/dashboard/users",
     addUsers: "/dashboard/users/add",
     partners: "/dashboard/industry-partners",
+    predefinedRequirements: "/dashboard/predefined-requirements",
     logs: "/dashboard/logs",
     settings: "/dashboard/settings",
     skills: "/dashboard/settings/skills",
@@ -79,8 +81,7 @@ const dynamicPaths = {
     `/dashboard/sections/${slug}/weekly-reports/${id}`,
   sectionTraineeDetails: (id: string, slug: string) =>
     `/dashboard/sections/${slug}/trainees/${id}`,
-  sectionCalendar: (slug: string) =>
-    `/dashboard/sections/${slug}/calendar`,
+  sectionCalendar: (slug: string) => `/dashboard/sections/${slug}/calendar`,
 
   weeklyReport: (id: string) => `/dashboard/weekly-reports/${id}`,
 
