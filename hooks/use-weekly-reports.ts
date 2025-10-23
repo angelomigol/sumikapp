@@ -12,6 +12,7 @@ import {
   NormalizedWeeklyReport,
   WeeklyReport,
   WeeklyReportFormValues,
+  WeeklyReportServerPayload,
 } from "@/schemas/weekly-report/weekly-report.schema";
 
 import {
@@ -68,7 +69,7 @@ export function useCreateWeeklyReport() {
   const mutationKey = WEEKLY_REPORTS_QUERY_KEYS.mutations.create;
   const revalidateReports = useRevalidateFetchWeeklyReportsQuery();
 
-  const mutationFn = async (payload: WeeklyReportFormValues) => {
+  const mutationFn = async (payload: WeeklyReportServerPayload) => {
     const result = await createWeeklyReportAction(payload);
     return result;
   };

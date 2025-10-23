@@ -1,12 +1,15 @@
 import "server-only";
 
 import { SupabaseClient } from "@supabase/supabase-js";
-import { format } from "date-fns";
+import z from "zod";
 
 import { getLogger } from "@/utils/logger";
 import { Database } from "@/utils/supabase/supabase.types";
 
-import { WeeklyReportFormValues } from "@/schemas/weekly-report/weekly-report.schema";
+import {
+  WeeklyReportFormValues,
+  WeeklyReportServerPayload,
+} from "@/schemas/weekly-report/weekly-report.schema";
 
 export function createCreateWeeklyReportService() {
   return new CreateWeeklyReportService();
@@ -23,6 +26,10 @@ export function createCreateWeeklyReportService() {
 class CreateWeeklyReportService {
   private namespace = "weekly_report.create";
 
+  private isValidDateString(dateString: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}$/.test(dateString);
+  }
+
   /**
    * @name createWeeklyReport
    * Creates weekly report for a user.
@@ -30,16 +37,29 @@ class CreateWeeklyReportService {
   async createWeeklyReport(params: {
     server: SupabaseClient<Database>;
     userId: string;
-    data: WeeklyReportFormValues;
+    data: WeeklyReportServerPayload;
   }) {
     const logger = await getLogger();
 
     const { userId, data, server } = params;
+
+    if (!this.isValidDateString(data.start_date)) {
+      throw new Error(
+        `Invalid start_date format: "${data.start_date}". Expected YYYY-MM-DD`
+      );
+    }
+
+    if (!this.isValidDateString(data.end_date)) {
+      throw new Error(
+        `Invalid end_date format: "${data.end_date}". Expected YYYY-MM-DD`
+      );
+    }
+
     const ctx = {
       name: this.namespace,
+      userId,
       startDate: data.start_date,
       endDate: data.end_date,
-      userId,
     };
 
     logger.info(ctx, "Creating weekly report...");
@@ -81,7 +101,7 @@ class CreateWeeklyReportService {
         .from("weekly_reports")
         .insert({
           internship_id: internshipDetails.id,
-          start_date: format(data.start_date, "yyyy-MM-dd"),
+          start_date: data.start_date,
         })
         .select()
         .single();

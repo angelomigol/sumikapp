@@ -111,3 +111,15 @@ export type NormalizedWeeklyReport = WeeklyReport & {
   file_attachments: EntryUploadedFile[];
 };
 export type EntryUploadedFile = z.infer<typeof entryUploadedFileSchema>;
+
+export const weeklyReportServerSchema = z.object({
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    error: "Start date must be in YYYY-MM-DD format",
+  }),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    error: "End date must be in YYYY-MM-DD format",
+  }),
+});
+export type WeeklyReportServerPayload = z.infer<
+  typeof weeklyReportServerSchema
+>;

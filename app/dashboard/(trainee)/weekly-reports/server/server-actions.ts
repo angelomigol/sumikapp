@@ -7,7 +7,7 @@ import { getSupabaseServerClient } from "@/utils/supabase/client/server-client";
 
 import {
   NormalizedWeeklyReport,
-  WeeklyReportFormValues,
+  WeeklyReportServerPayload,
 } from "@/schemas/weekly-report/weekly-report.schema";
 
 import { createCreateWeeklyReportService } from "./services/create-weekly-report.service";
@@ -131,7 +131,7 @@ export const getWeeklyReportByIdAction = enhanceAction(
  * @description Server action to
  */
 export const createWeeklyReportAction = enhanceAction(
-  async (data: WeeklyReportFormValues, user) => {
+  async (data: WeeklyReportServerPayload, user) => {
     const logger = await getLogger();
 
     const ctx = {

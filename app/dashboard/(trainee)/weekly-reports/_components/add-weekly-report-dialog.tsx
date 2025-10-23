@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { PlusCircle } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { useForm } from "react-hook-form";
@@ -14,6 +15,7 @@ import {
   WeeklyReport,
   weeklyReportFormSchema,
   WeeklyReportFormValues,
+  WeeklyReportServerPayload,
 } from "@/schemas/weekly-report/weekly-report.schema";
 
 import { Button } from "@/components/ui/button";
@@ -103,7 +105,12 @@ export default function AddWeeklyReportDialog({
       return;
     }
 
-    const promise = createAttendanceReportMutation.mutateAsync(data);
+    const serverPayload: WeeklyReportServerPayload = {
+      start_date: format(data.start_date, "yyyy-MM-dd"),
+      end_date: format(data.end_date, "yyyy-MM-dd"),
+    };
+
+    const promise = createAttendanceReportMutation.mutateAsync(serverPayload);
 
     toast.promise(promise, {
       loading: "Creating weekly report...",
